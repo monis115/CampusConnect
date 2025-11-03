@@ -1,0 +1,70 @@
+package com.cc.controller;
+
+import com.cc.modals.Location;
+import com.cc.repository.LocationRepository;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.Optional;
+
+@RestController
+@RequestMapping("/api/locations")
+@CrossOrigin(origins = "*") // Allow frontend access
+public class LocationController {
+
+    @Autowired
+    private LocationRepository locationRepository;
+
+    // ✅ 1. Get all locations
+    @GetMapping
+    public ResponseEntity<List<Location>> getAllLocations() {
+        List<Location> locations = locationRepository.findAll();
+        return ResponseEntity.ok(locations);
+    }
+
+    // ✅ 2. Get locations by state (for dropdown filtering)
+    @GetMapping("/state/{state}")
+    public ResponseEntity<List<Location>> getLocationsByState(@PathVariable String state) {
+        List<Location> locations = locationRepository.findByStateIgnoreCase(state);
+        return ResponseEntity.ok(locations);
+    }
+
+    // ✅ 3. Add a new location (state + district)
+    @PostMapping
+    public ResponseEntity<Location> addLocation(@RequestBody Location location) {
+        if (location.getState() == null || location.getDistrict() == null) {
+            return ResponseEntity.badRequest().build();
+        }
+        Location savedLocation = locationRepository.save(location);
+        return ResponseEntity.ok(savedLocation);
+    }
+
+    // ✅ 4. Update existing location
+    @PutMapping("/{id}")
+    public ResponseEntity<Location> updateLocation(@PathVariable Long id, @RequestBody Location updatedLocation) {
+        Optional<Location> existing = locationRepository.findById(id);
+        if (existing.isPresent()) {
+            Location loc = existing.get();
+            loc.setState(updatedLocation.getState());
+            loc.setDistrict(updatedLocation.getDistrict());
+            Location saved = locationRepository.save(loc);
+            return ResponseEntity.ok(saved);
+        } else {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    // ✅ 5. Delete a location
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteLocation(@PathVariable Long id) {
+        if (locationRepository.existsById(id)) {
+            locationRepository.deleteById(id);
+            return ResponseEntity.noContent().build();
+        } else {
+            return ResponseEntity.notFound().build();
+        }
+    }
+}
