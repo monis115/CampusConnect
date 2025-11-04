@@ -99,6 +99,13 @@ public class Student {
     @JoinColumn(name = "admission_manager_id")
     @JsonBackReference(value = "manager-student")
     private AddmissionManager admissionManager;
+    
+    
+    @Column(name = "confirmation_page_path", nullable = true)
+    private String confirmationPagePath;
+
+    @Column(name = "admission_letter_path", nullable = true)
+    private String admissionLetterPath;
 
 
     public College getCollege() {
@@ -304,6 +311,23 @@ public class Student {
 
 	public void setAdmissionManager(AddmissionManager admissionManager) {
 		this.admissionManager = admissionManager;
+	}
+	
+	
+	public String getConfirmationPagePath() {
+	    return confirmationPagePath;
+	}
+
+	public void setConfirmationPagePath(String confirmationPagePath) {
+	    this.confirmationPagePath = confirmationPagePath;
+	}
+
+	public String getAdmissionLetterPath() {
+	    return admissionLetterPath;
+	}
+
+	public void setAdmissionLetterPath(String admissionLetterPath) {
+	    this.admissionLetterPath = admissionLetterPath;
 	}
     
     

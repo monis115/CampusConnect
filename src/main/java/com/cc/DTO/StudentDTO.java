@@ -20,14 +20,27 @@ public class StudentDTO {
     private String highestDegree;
     private Double marks;
     private String appliedFor;
+    private String confirmationPagePath;
+    private String admissionLetterPath;
+    
     
 
-    // Sending only college IDs (not full objects)
+    public String getAdmissionLetterPath() {
+		return admissionLetterPath;
+	}
+
+	public void setAdmissionLetterPath(String admissionLetterPath) {
+		this.admissionLetterPath = admissionLetterPath;
+	}
+
+
+
+	// Sending only college IDs (not full objects)
     private List<Long> collegeIds;
     public StudentDTO(String fullName, LocalDate dob, Integer age, String applicationStatus, String email,
 			String contactNo, String address, Integer districtId, String emergencyContactNo, String emergencyRelation,
 			String passportNo, LocalDate passportValidTill, String highestDegree, Double marks, String appliedFor,
-			List<Long> collegeIds, String userNameAgent) {
+			List<Long> collegeIds, String userNameAgent, String  confirmationPagePath) {
 		super();
 		this.fullName = fullName;
 		this.dob = dob;
@@ -46,6 +59,9 @@ public class StudentDTO {
 		this.appliedFor = appliedFor;
 		this.collegeIds = collegeIds;
 		this.userNameAgent = userNameAgent;
+		this.confirmationPagePath=confirmationPagePath;
+		
+		
 	}
 
 
@@ -220,5 +236,13 @@ public class StudentDTO {
 
     public void setUserNameAgent(String userNameAgent) {
         this.userNameAgent = userNameAgent;
+    }
+    
+    public String getConfirmationPagePath() {
+        return confirmationPagePath;
+    }
+
+    public void setConfirmationPagePath(String confirmationPagePath) {
+        this.confirmationPagePath = confirmationPagePath;
     }
 }
