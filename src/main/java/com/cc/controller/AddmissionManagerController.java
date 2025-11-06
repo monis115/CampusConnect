@@ -68,6 +68,13 @@ public class AddmissionManagerController {
         AddmissionManager manager = addmissionManagerService.getManagerById(id);
         return manager != null ? ResponseEntity.ok(manager) : ResponseEntity.notFound().build();
     }
+    
+    @GetMapping("/with-students")
+    public ResponseEntity<List<AddmissionManager>> getManagersWithStudents() {
+        List<AddmissionManager> managers = addmissionManagerService.getManagersWithStudents();
+        return ResponseEntity.ok(managers);
+    }
+
 
     @PutMapping("/update/{id}")
     public ResponseEntity<AddmissionManager> updateManager(

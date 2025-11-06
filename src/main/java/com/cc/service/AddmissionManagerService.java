@@ -144,5 +144,10 @@ public class AddmissionManagerService {
 
         addmissionManagerRepository.deleteById(id);
     }
+    
+    
+    public List<AddmissionManager> getManagersWithStudents() {
+        return addmissionManagerRepository.findByStudentsIsNotEmpty();
+    }
 }
 
