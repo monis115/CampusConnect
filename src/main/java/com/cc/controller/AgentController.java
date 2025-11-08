@@ -79,6 +79,14 @@ public class AgentController {
         return agentService.getActiveAgents();
     }
     
+    
+ // Add this endpoint to AgentController.java (e.g., after the getActiveAgents() method)
+
+    @GetMapping("/with-students")
+    public List<Agent> getAgentsWithStudents() {
+        return agentService.getAgentsWithStudents();
+    }
+    
 
     
 }

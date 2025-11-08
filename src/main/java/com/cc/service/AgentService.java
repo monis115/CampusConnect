@@ -277,4 +277,8 @@ public class AgentService {
     public List<Agent> getActiveAgents() {
         return agentRepository.findByStatus("Active");
     }
+    
+    public List<Agent> getAgentsWithStudents() {
+        return agentRepository.findAgentsWithStudents();
+    }
 }
