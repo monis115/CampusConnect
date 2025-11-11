@@ -106,6 +106,11 @@ public class Student {
 
     @Column(name = "admission_letter_path", nullable = true)
     private String admissionLetterPath;
+    
+    
+    
+    @Column(nullable=true)
+    private String updatedBy;
 
 
     public College getCollege() {

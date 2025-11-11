@@ -3,6 +3,7 @@ package com.cc.service;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Random;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -148,6 +149,12 @@ public class AddmissionManagerService {
     
     public List<AddmissionManager> getManagersWithStudents() {
         return addmissionManagerRepository.findByStudentsIsNotEmpty();
+    }
+    
+    public Optional<AddmissionManager> getAdmissionManagerByUserName(String  userName) {
+    	
+    	return addmissionManagerRepository.findByUsername(userName);
+    	
     }
 }
 

@@ -2,7 +2,6 @@ package com.cc.controller;
 
 import com.cc.DTO.StudentDTO;
 import com.cc.modals.Student;
-import com.cc.modals.StudentStatus;
 import com.cc.service.StudentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -101,6 +100,7 @@ public class StudentController {
             return ResponseEntity.internalServerError().body("An unexpected error occurred: " + e.getMessage());
         }
     }
+    
 
     /**
      * Delete a student record by ID.
