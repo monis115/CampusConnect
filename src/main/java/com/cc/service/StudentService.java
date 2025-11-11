@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.cc.DTO.StudentDTO;
+import com.cc.DTO.StudentStatusUpdateDTO; // --- RENAMED IMPORT ---
 import com.cc.modals.Agent;
 import com.cc.modals.College;
 import com.cc.modals.CompanyLogo;
@@ -764,23 +765,55 @@ public class StudentService {
     // ═══════════════════════════════════════════════════════════════════════════
     // OTHER SERVICE METHODS
     // ═══════════════════════════════════════════════════════════════════════════
-    
     @Transactional
-    public Student uploadAdmissionLetter(Long studentId, String fileName) {
+    public Student uploadAdmissionLetter(Long studentId, String fileName, String username) {
         Student student = studentRepository.findById(studentId)
                 .orElseThrow(() -> new RuntimeException("Student not found with ID: " + studentId));
 
-        if (student.getPresentStatus() != StudentStatus.REGISTERED &&
-            student.getNextStep() != StudentStatus.UNDER_REVIEW) {
-            throw new RuntimeException("Student not eligible for admission letter upload.");
+        if (student.getPresentStatus() != StudentStatus.APPROVED) {
+            throw new RuntimeException("Only Approved Students are eligible for AdmissionLetter");
         }
 
         student.setAdmissionLetterPath("uploads/admission-letters/" + fileName);
         student.setPresentStatus(StudentStatus.ADMISSION_LETTER_GENERATED);
         student.setNextStep(StudentStatus.TELEX_INITIATED);
+        student.setUpdatedBy("AdmissionManager " + username); // <-- SET HERE
 
         return studentRepository.save(student);
     }
+    
+    // --- NEW METHOD TO UPDATE STATUS ---
+    public Student updateStudentStatus(Long studentId, StudentStatusUpdateDTO statusUpdateDTO) {
+        Student student = studentRepository.findById(studentId)
+                .orElseThrow(() -> new RuntimeException("Student not found with ID: " + studentId));
+
+        // --- MODIFIED VALIDATION ---
+        if (statusUpdateDTO.getPresentStatus() == null || statusUpdateDTO.getUpdatedByRole() == null || statusUpdateDTO.getUpdatedByUsername() == null) {
+            throw new RuntimeException("Validation Error: presentStatus, updatedByRole, and updatedByUsername are required.");
+        }
+        
+        StudentStatus newStatus = statusUpdateDTO.getPresentStatus();
+        student.setPresentStatus(newStatus);
+
+        // --- NEW LOGIC: Auto-set nextStep based on rule ---
+        if (newStatus == StudentStatus.APPROVED) {
+            student.setNextStep(StudentStatus.ADMISSION_LETTER_WAITING);
+        } else if (statusUpdateDTO.getNextStep() != null) {
+            // Use the DTO's nextStep for any other status transition
+            student.setNextStep(statusUpdateDTO.getNextStep());
+        } else {
+            // Fallback if no specific rule and DTO is null
+             student.setNextStep(null); // Or determine based on newStatus
+        }
+
+        // --- MODIFIED: Store "ROLE:USERNAME" ---
+        String updatedBy = statusUpdateDTO.getUpdatedByRole() + ":" + statusUpdateDTO.getUpdatedByUsername();
+        student.setUpdatedBy(updatedBy);
+
+        return studentRepository.save(student);
+    }
+
+    // ------------------------------------
 
     public Student getStudentById(Long studentId) {
         return studentRepository.findById(studentId)
@@ -793,5 +826,11 @@ public class StudentService {
 
     public List<Student> getStudentsByAgent(Long agentId) {
         return studentRepository.findByAgent_Id(agentId);
+    }
+    
+    public List<Student> getGeneratedAdmissionLettersByManagerUsername(String username) {
+        return studentRepository.findByAdmissionManager_UsernameAndPresentStatus(
+                username,
+                StudentStatus.ADMISSION_LETTER_GENERATED);
     }
 }

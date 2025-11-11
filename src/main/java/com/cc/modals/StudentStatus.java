@@ -6,7 +6,8 @@ public enum StudentStatus {
     PENDING_APPROVAL,               // Waiting for admin/admission manager approval
     APPROVED,                       // Approved by admin
     ADMISSION_LETTER_WAITING,       // Auto state after approval
-    ADMISSION_LETTER_GENERATED,     // After admin generates the letter
+    ADMISSION_LETTER_GENERATED, 
+    INITIATE_TELEX,        // After admin generates the letter
     TELEX_INITIATED,                // Agent initiates telex
     TELEX_APPROVED,                 // Admin approves telex
     VISA_INITIATED,                 // Agent initiates visa

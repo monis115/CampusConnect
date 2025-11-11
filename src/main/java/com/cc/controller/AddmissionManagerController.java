@@ -1,5 +1,6 @@
 package com.cc.controller;
 
+import java.security.Principal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.cc.DTO.AddmissionManagerCreateDTO;
 import com.cc.DTO.UpdateAdmissionManagerDTO;
 import com.cc.modals.AddmissionManager;
+import com.cc.modals.Student;
 import com.cc.service.AddmissionManagerService;
 
 @RestController
@@ -101,7 +103,43 @@ public class AddmissionManagerController {
     @GetMapping("userName/{userName}")
     public Optional<AddmissionManager> getManagerByUserName(@PathVariable String userName) {
     	 return addmissionManagerService.getAdmissionManagerByUserName(userName);
-    	
+    }
+    
+    @GetMapping("/approved-students/{username}")
+    public ResponseEntity<List<Student>> getApprovedStudentsByUsername(
+            @PathVariable String username) {
+
+        Optional<AddmissionManager> optManager = 
+            addmissionManagerService.getAdmissionManagerByUserName(username);
+
+        if (optManager.isEmpty()) {
+            return ResponseEntity.notFound().build(); // 404 if manager not found
+        }
+
+        AddmissionManager manager = optManager.get();
+        List<Student> approvedStudents = 
+            addmissionManagerService.getApprovedStudentsForManager(manager);
+
+        return ResponseEntity.ok(approvedStudents);
+    }
+    
+    
+    @GetMapping("/students/registered-or-under-review/{username}")
+    public ResponseEntity<List<Student>> getRegisteredOrUnderReviewStudents(
+            @PathVariable String username) {
+
+        Optional<AddmissionManager> optManager = 
+            addmissionManagerService.getAdmissionManagerByUserName(username);
+
+        if (optManager.isEmpty()) {
+            return ResponseEntity.notFound().build(); // 404
+        }
+
+        AddmissionManager manager = optManager.get();
+        List<Student> students = 
+            addmissionManagerService.getRegisteredOrUnderReviewStudentsForManager(manager);
+
+        return ResponseEntity.ok(students);
     }
     
    

@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import com.cc.modals.AddmissionManager;
+import com.cc.modals.Student;
 
 @Repository
 public interface AddmissionManagerRepository extends JpaRepository<AddmissionManager, Long> {
@@ -17,5 +18,6 @@ public interface AddmissionManagerRepository extends JpaRepository<AddmissionMan
     
     
     List<AddmissionManager> findByStudentsIsNotEmpty();
+
 
 }

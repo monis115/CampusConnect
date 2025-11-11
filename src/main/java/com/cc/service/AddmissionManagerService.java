@@ -12,8 +12,14 @@ import org.springframework.transaction.annotation.Transactional; // <-- IMPORT T
 
 import com.cc.modals.AddmissionManager;
 import com.cc.modals.College;
+import com.cc.modals.Student;
+import com.cc.modals.StudentStatus;
 import com.cc.repository.AddmissionManagerRepository;
 import com.cc.repository.CollegeRepository;
+import com.cc.repository.StudentRepository;
+//Add this import at the top
+import java.util.Arrays;
+import java.util.List;
 
 @Service
 public class AddmissionManagerService {
@@ -23,6 +29,9 @@ public class AddmissionManagerService {
 
     @Autowired
     private CollegeRepository collegeRepository;
+    
+    @Autowired
+    private StudentRepository studentRepository;
 
     private final Random random = new Random();
 
@@ -156,5 +165,17 @@ public class AddmissionManagerService {
     	return addmissionManagerRepository.findByUsername(userName);
     	
     }
+    
+    
+    public List<Student> getApprovedStudentsForManager(AddmissionManager manager) {
+        return studentRepository.findByAdmissionManagerAndPresentStatus(
+                manager, StudentStatus.APPROVED);
+    }
+    
+    public List<Student> getRegisteredOrUnderReviewStudentsForManager(AddmissionManager manager) {
+        return studentRepository.findByAdmissionManagerAndPresentStatusIn(
+            manager,
+            Arrays.asList(StudentStatus.REGISTERED, StudentStatus.UNDER_REVIEW)
+        );}
 }
 

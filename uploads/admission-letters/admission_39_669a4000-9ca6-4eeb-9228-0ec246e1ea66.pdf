@@ -1,0 +1,842 @@
+<!DOCTYPE html><html lang="en"><head>
+  <script type="module" src="/@vite/client"></script>
+
+  <meta charset="utf-8">
+  <title>StudentApp</title>
+  <base href="/">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&amp;display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+  <!-- Font Awesome 6 -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+<link rel="stylesheet" href="styles.css"><style ng-app-id="ng">
+
+*[_ngcontent-ng-c1933515739] {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+body[_ngcontent-ng-c1933515739] {
+  font-family:
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    Oxygen,
+    Ubuntu,
+    sans-serif;
+}
+/*# sourceMappingURL=/app.css.map */</style><style ng-app-id="ng">
+
+*[_ngcontent-ng-c287643023] {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+.dashboard-container[_ngcontent-ng-c287643023] {
+  display: flex;
+  height: 100vh;
+  font-family:
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    Oxygen,
+    Ubuntu,
+    sans-serif;
+}
+.sidebar[_ngcontent-ng-c287643023] {
+  width: 250px;
+  background-color: #2c3e50;
+  color: #ecf0f1;
+  overflow-y: auto;
+  transition: all 0.3s ease;
+}
+.sidebar-header[_ngcontent-ng-c287643023] {
+  padding: 20px;
+  background-color: #34495e;
+  text-align: center;
+  border-bottom: 1px solid #1a252f;
+}
+.sidebar-header[_ngcontent-ng-c287643023]   h2[_ngcontent-ng-c287643023] {
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+.menu-list[_ngcontent-ng-c287643023] {
+  list-style: none;
+  padding: 10px 0;
+}
+.menu-item[_ngcontent-ng-c287643023] {
+  position: relative;
+}
+.menu-link[_ngcontent-ng-c287643023] {
+  display: flex;
+  align-items: center;
+  padding: 12px 20px;
+  color: #ecf0f1;
+  text-decoration: none;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+.menu-link[_ngcontent-ng-c287643023]:hover {
+  background-color: #34495e;
+  padding-left: 25px;
+}
+.menu-link.active[_ngcontent-ng-c287643023] {
+  background-color: #3498db;
+  border-left: 4px solid #2980b9;
+}
+.icon[_ngcontent-ng-c287643023] {
+  margin-right: 12px;
+  font-size: 16px;
+  width: 20px;
+  text-align: center;
+}
+.arrow[_ngcontent-ng-c287643023] {
+  margin-left: auto;
+  font-size: 10px;
+  transition: transform 0.3s ease;
+}
+.menu-item.has-submenu[_ngcontent-ng-c287643023]   .menu-link[_ngcontent-ng-c287643023]:hover   .arrow[_ngcontent-ng-c287643023] {
+  transform: rotate(-180deg);
+}
+.submenu[_ngcontent-ng-c287643023] {
+  list-style: none;
+  background-color: #1a252f;
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease;
+}
+.submenu.show[_ngcontent-ng-c287643023] {
+  max-height: 300px;
+}
+.submenu-link[_ngcontent-ng-c287643023] {
+  display: block;
+  padding: 10px 20px 10px 52px;
+  color: #bdc3c7;
+  text-decoration: none;
+  font-size: 13px;
+  transition: all 0.3s ease;
+}
+.submenu-link[_ngcontent-ng-c287643023]:hover {
+  color: #ecf0f1;
+  background-color: #2c3e50;
+  padding-left: 56px;
+}
+.main-content[_ngcontent-ng-c287643023] {
+  flex: 1;
+  background-color: #f5f6fa;
+  overflow-y: auto;
+  padding: 20px;
+}
+@media (max-width: 768px) {
+  .sidebar[_ngcontent-ng-c287643023] {
+    width: 200px;
+  }
+  .sidebar-header[_ngcontent-ng-c287643023]   h2[_ngcontent-ng-c287643023] {
+    font-size: 16px;
+  }
+  .menu-link[_ngcontent-ng-c287643023] {
+    font-size: 13px;
+    padding: 10px 15px;
+  }
+  .submenu-link[_ngcontent-ng-c287643023] {
+    font-size: 12px;
+    padding: 8px 15px 8px 45px;
+  }
+}
+.sidebar[_ngcontent-ng-c287643023]::-webkit-scrollbar {
+  width: 6px;
+}
+.sidebar[_ngcontent-ng-c287643023]::-webkit-scrollbar-track {
+  background: #1a252f;
+}
+.sidebar[_ngcontent-ng-c287643023]::-webkit-scrollbar-thumb {
+  background: #34495e;
+  border-radius: 3px;
+}
+.sidebar[_ngcontent-ng-c287643023]::-webkit-scrollbar-thumb:hover {
+  background: #4a5f7a;
+}
+.arrow.rotated[_ngcontent-ng-c287643023] {
+  transform: rotate(-180deg);
+}
+.menu-link.active[_ngcontent-ng-c287643023], 
+.submenu-link.active[_ngcontent-ng-c287643023] {
+  background-color: #3498db;
+  position: relative;
+}
+.menu-link.active[_ngcontent-ng-c287643023]::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background-color: #2980b9;
+}
+.submenu-link.active[_ngcontent-ng-c287643023] {
+  color: #ffffff;
+  font-weight: 500;
+}
+/*# sourceMappingURL=/dashboard.css.map */</style><style ng-app-id="ng">
+
+*[_ngcontent-ng-c2205322053] {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+.dashboard-overview[_ngcontent-ng-c2205322053] {
+  padding: 20px;
+  background-color: #f5f6fa;
+  min-height: 100vh;
+}
+.page-header[_ngcontent-ng-c2205322053] {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+.header-content[_ngcontent-ng-c2205322053]   h1[_ngcontent-ng-c2205322053] {
+  font-size: 28px;
+  color: #2c3e50;
+  margin-bottom: 5px;
+}
+.welcome-text[_ngcontent-ng-c2205322053] {
+  color: #7f8c8d;
+  font-size: 14px;
+}
+.header-actions[_ngcontent-ng-c2205322053] {
+  display: flex;
+  gap: 10px;
+}
+.btn-outline[_ngcontent-ng-c2205322053] {
+  padding: 10px 20px;
+  border: 1px solid #e0e0e0;
+  background: white;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #555;
+  transition: all 0.3s ease;
+}
+.btn-outline[_ngcontent-ng-c2205322053]:hover {
+  border-color: #3498db;
+  color: #3498db;
+}
+.btn-primary[_ngcontent-ng-c2205322053] {
+  padding: 10px 20px;
+  background: #3498db;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.3s ease;
+}
+.btn-primary[_ngcontent-ng-c2205322053]:hover {
+  background: #2980b9;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+}
+.stats-grid[_ngcontent-ng-c2205322053] {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+  margin-bottom: 30px;
+}
+.stat-card[_ngcontent-ng-c2205322053] {
+  background: white;
+  padding: 25px;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+.stat-card[_ngcontent-ng-c2205322053]:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+.stat-card[_ngcontent-ng-c2205322053]::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background:
+    linear-gradient(
+      90deg,
+      #3498db,
+      #2ecc71);
+}
+.stat-card.students[_ngcontent-ng-c2205322053]::before {
+  background:
+    linear-gradient(
+      90deg,
+      #3498db,
+      #5dade2);
+}
+.stat-card.teachers[_ngcontent-ng-c2205322053]::before {
+  background:
+    linear-gradient(
+      90deg,
+      #e74c3c,
+      #ec7063);
+}
+.stat-card.staff[_ngcontent-ng-c2205322053]::before {
+  background:
+    linear-gradient(
+      90deg,
+      #f39c12,
+      #f5b041);
+}
+.stat-card.revenue[_ngcontent-ng-c2205322053]::before {
+  background:
+    linear-gradient(
+      90deg,
+      #27ae60,
+      #52be80);
+}
+.stat-icon[_ngcontent-ng-c2205322053] {
+  width: 60px;
+  height: 60px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+}
+.stat-card.students[_ngcontent-ng-c2205322053]   .stat-icon[_ngcontent-ng-c2205322053] {
+  background: #ebf5fb;
+}
+.stat-card.teachers[_ngcontent-ng-c2205322053]   .stat-icon[_ngcontent-ng-c2205322053] {
+  background: #fadbd8;
+}
+.stat-card.staff[_ngcontent-ng-c2205322053]   .stat-icon[_ngcontent-ng-c2205322053] {
+  background: #fef5e7;
+}
+.stat-card.revenue[_ngcontent-ng-c2205322053]   .stat-icon[_ngcontent-ng-c2205322053] {
+  background: #e8f8f5;
+}
+.stat-content[_ngcontent-ng-c2205322053] {
+  flex: 1;
+}
+.stat-content[_ngcontent-ng-c2205322053]   h3[_ngcontent-ng-c2205322053] {
+  font-size: 14px;
+  color: #7f8c8d;
+  margin-bottom: 8px;
+  font-weight: 400;
+}
+.stat-number[_ngcontent-ng-c2205322053] {
+  font-size: 32px;
+  font-weight: 700;
+  color: #2c3e50;
+  margin-bottom: 5px;
+}
+.stat-change[_ngcontent-ng-c2205322053] {
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.stat-change.positive[_ngcontent-ng-c2205322053] {
+  color: #27ae60;
+}
+.stat-change.negative[_ngcontent-ng-c2205322053] {
+  color: #e74c3c;
+}
+.stat-change.neutral[_ngcontent-ng-c2205322053] {
+  color: #95a5a6;
+}
+.stat-chart[_ngcontent-ng-c2205322053] {
+  width: 80px;
+}
+.mini-bars[_ngcontent-ng-c2205322053] {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  height: 40px;
+  gap: 4px;
+}
+.mini-bars[_ngcontent-ng-c2205322053]   span[_ngcontent-ng-c2205322053] {
+  flex: 1;
+  background: #e0e0e0;
+  border-radius: 2px;
+  position: relative;
+  transition: all 0.3s ease;
+}
+.stat-card[_ngcontent-ng-c2205322053]:hover   .mini-bars[_ngcontent-ng-c2205322053]   span[_ngcontent-ng-c2205322053] {
+  background: #3498db;
+}
+.content-grid[_ngcontent-ng-c2205322053] {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 20px;
+  margin-bottom: 30px;
+}
+.card[_ngcontent-ng-c2205322053] {
+  background: white;
+  border-radius: 12px;
+  padding: 25px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+}
+.card-header[_ngcontent-ng-c2205322053] {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+.card-header[_ngcontent-ng-c2205322053]   h2[_ngcontent-ng-c2205322053] {
+  font-size: 18px;
+  color: #2c3e50;
+}
+.btn-text[_ngcontent-ng-c2205322053] {
+  background: none;
+  border: none;
+  color: #3498db;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+.btn-text[_ngcontent-ng-c2205322053]:hover {
+  text-decoration: underline;
+}
+.activity-list[_ngcontent-ng-c2205322053] {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+.activity-item[_ngcontent-ng-c2205322053] {
+  display: flex;
+  gap: 15px;
+  padding: 15px;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+.activity-item[_ngcontent-ng-c2205322053]:hover {
+  background: #f8f9fa;
+}
+.activity-icon[_ngcontent-ng-c2205322053] {
+  width: 45px;
+  height: 45px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+}
+.activity-icon.admission[_ngcontent-ng-c2205322053] {
+  background: #e3f2fd;
+}
+.activity-icon.payment[_ngcontent-ng-c2205322053] {
+  background: #e8f5e9;
+}
+.activity-icon.exam[_ngcontent-ng-c2205322053] {
+  background: #fff3e0;
+}
+.activity-icon.teacher[_ngcontent-ng-c2205322053] {
+  background: #fce4ec;
+}
+.activity-content[_ngcontent-ng-c2205322053]   h4[_ngcontent-ng-c2205322053] {
+  font-size: 14px;
+  color: #2c3e50;
+  margin-bottom: 4px;
+}
+.activity-content[_ngcontent-ng-c2205322053]   p[_ngcontent-ng-c2205322053] {
+  font-size: 13px;
+  color: #7f8c8d;
+  margin-bottom: 4px;
+}
+.time[_ngcontent-ng-c2205322053] {
+  font-size: 12px;
+  color: #bdc3c7;
+}
+.filter-select[_ngcontent-ng-c2205322053] {
+  padding: 8px 12px;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+}
+.chart-container[_ngcontent-ng-c2205322053] {
+  padding: 20px 0;
+}
+.performance-bars[_ngcontent-ng-c2205322053] {
+  display: flex;
+  justify-content: space-around;
+  align-items: flex-end;
+  height: 200px;
+}
+.bar-group[_ngcontent-ng-c2205322053] {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+.bar[_ngcontent-ng-c2205322053] {
+  width: 60px;
+  border-radius: 8px 8px 0 0;
+  position: relative;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 10px;
+}
+.bar.excellent[_ngcontent-ng-c2205322053] {
+  background:
+    linear-gradient(
+      to top,
+      #3498db,
+      #5dade2);
+}
+.bar.good[_ngcontent-ng-c2205322053] {
+  background:
+    linear-gradient(
+      to top,
+      #2ecc71,
+      #58d68d);
+}
+.bar.average[_ngcontent-ng-c2205322053] {
+  background:
+    linear-gradient(
+      to top,
+      #f39c12,
+      #f5b041);
+}
+.bar.poor[_ngcontent-ng-c2205322053] {
+  background:
+    linear-gradient(
+      to top,
+      #e74c3c,
+      #ec7063);
+}
+.bar-value[_ngcontent-ng-c2205322053] {
+  color: white;
+  font-weight: 600;
+  font-size: 14px;
+}
+.bar-label[_ngcontent-ng-c2205322053] {
+  font-size: 13px;
+  color: #7f8c8d;
+}
+.action-buttons[_ngcontent-ng-c2205322053] {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+.action-btn[_ngcontent-ng-c2205322053] {
+  padding: 15px;
+  border: 2px dashed #e0e0e0;
+  background: #fafafa;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.3s ease;
+}
+.action-btn[_ngcontent-ng-c2205322053]:hover {
+  border-color: #3498db;
+  background: #ebf5fb;
+  transform: translateY(-2px);
+}
+.action-btn[_ngcontent-ng-c2205322053]   i[_ngcontent-ng-c2205322053] {
+  font-size: 24px;
+}
+.action-btn[_ngcontent-ng-c2205322053]   span[_ngcontent-ng-c2205322053] {
+  font-size: 13px;
+  color: #555;
+}
+.event-list[_ngcontent-ng-c2205322053] {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+.event-item[_ngcontent-ng-c2205322053] {
+  display: flex;
+  gap: 15px;
+  padding: 15px;
+  border-left: 3px solid #3498db;
+  background: #f8f9fa;
+  border-radius: 0 8px 8px 0;
+}
+.event-date[_ngcontent-ng-c2205322053] {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: white;
+  padding: 10px 15px;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+.event-date[_ngcontent-ng-c2205322053]   .day[_ngcontent-ng-c2205322053] {
+  font-size: 24px;
+  font-weight: 700;
+  color: #3498db;
+}
+.event-date[_ngcontent-ng-c2205322053]   .month[_ngcontent-ng-c2205322053] {
+  font-size: 12px;
+  color: #7f8c8d;
+  text-transform: uppercase;
+}
+.event-content[_ngcontent-ng-c2205322053]   h4[_ngcontent-ng-c2205322053] {
+  font-size: 14px;
+  color: #2c3e50;
+  margin-bottom: 4px;
+}
+.event-content[_ngcontent-ng-c2205322053]   p[_ngcontent-ng-c2205322053] {
+  font-size: 13px;
+  color: #7f8c8d;
+}
+.department-stats[_ngcontent-ng-c2205322053] {
+  background: white;
+  padding: 25px;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+}
+.department-stats[_ngcontent-ng-c2205322053]   h2[_ngcontent-ng-c2205322053] {
+  font-size: 18px;
+  color: #2c3e50;
+  margin-bottom: 20px;
+}
+.dept-grid[_ngcontent-ng-c2205322053] {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+}
+.dept-card[_ngcontent-ng-c2205322053] {
+  background: #f8f9fa;
+  padding: 20px;
+  border-radius: 10px;
+  transition: all 0.3s ease;
+}
+.dept-card[_ngcontent-ng-c2205322053]:hover {
+  background: #ebf5fb;
+  transform: translateY(-2px);
+}
+.dept-card[_ngcontent-ng-c2205322053]   h3[_ngcontent-ng-c2205322053] {
+  font-size: 16px;
+  color: #2c3e50;
+  margin-bottom: 15px;
+}
+.dept-stats[_ngcontent-ng-c2205322053] {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 15px;
+}
+.dept-stat[_ngcontent-ng-c2205322053] {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.dept-stat[_ngcontent-ng-c2205322053]   .label[_ngcontent-ng-c2205322053] {
+  font-size: 12px;
+  color: #7f8c8d;
+  margin-bottom: 4px;
+}
+.dept-stat[_ngcontent-ng-c2205322053]   .value[_ngcontent-ng-c2205322053] {
+  font-size: 18px;
+  font-weight: 600;
+  color: #2c3e50;
+}
+.progress-bar[_ngcontent-ng-c2205322053] {
+  width: 100%;
+  height: 8px;
+  background: #e0e0e0;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+.progress[_ngcontent-ng-c2205322053] {
+  height: 100%;
+  background:
+    linear-gradient(
+      90deg,
+      #3498db,
+      #2ecc71);
+  border-radius: 4px;
+  transition: width 0.5s ease;
+}
+.capacity-text[_ngcontent-ng-c2205322053] {
+  font-size: 12px;
+  color: #7f8c8d;
+}
+@media (max-width: 768px) {
+  .content-grid[_ngcontent-ng-c2205322053] {
+    grid-template-columns: 1fr;
+  }
+  .stats-grid[_ngcontent-ng-c2205322053] {
+    grid-template-columns: 1fr;
+  }
+  .dept-grid[_ngcontent-ng-c2205322053] {
+    grid-template-columns: 1fr;
+  }
+  .action-buttons[_ngcontent-ng-c2205322053] {
+    grid-template-columns: 1fr;
+  }
+}
+@keyframes _ngcontent-ng-c2205322053_fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.stat-card[_ngcontent-ng-c2205322053], 
+.card[_ngcontent-ng-c2205322053], 
+.dept-card[_ngcontent-ng-c2205322053] {
+  animation: _ngcontent-ng-c2205322053_fadeIn 0.6s ease-out;
+}
+.notification-btn[_ngcontent-ng-c2205322053] {
+  position: relative;
+  background: white;
+  border: 1px solid #e0e0e0;
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  transition: all 0.3s ease;
+}
+.notification-btn[_ngcontent-ng-c2205322053]:hover {
+  border-color: #3498db;
+  transform: scale(1.05);
+}
+.notification-badge[_ngcontent-ng-c2205322053] {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background: #e74c3c;
+  color: white;
+  font-size: 11px;
+  padding: 2px 6px;
+  border-radius: 10px;
+  font-weight: 600;
+}
+@keyframes _ngcontent-ng-c2205322053_shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+.skeleton[_ngcontent-ng-c2205322053] {
+  background:
+    linear-gradient(
+      90deg,
+      #f0f0f0 25%,
+      #e0e0e0 50%,
+      #f0f0f0 75%);
+  background-size: 1000px 100%;
+  animation: _ngcontent-ng-c2205322053_shimmer 1.5s infinite;
+}
+.stat-card[_ngcontent-ng-c2205322053]:hover   .stat-number[_ngcontent-ng-c2205322053] {
+  transform: scale(1.1);
+  transition: transform 0.3s ease;
+}
+.activity-item[_ngcontent-ng-c2205322053]:hover   .activity-icon[_ngcontent-ng-c2205322053] {
+  transform: rotate(10deg) scale(1.1);
+  transition: transform 0.3s ease;
+}
+@keyframes _ngcontent-ng-c2205322053_pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(52, 152, 219, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(52, 152, 219, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(52, 152, 219, 0);
+  }
+}
+.stat-card.revenue[_ngcontent-ng-c2205322053]:hover {
+  animation: _ngcontent-ng-c2205322053_pulse 2s infinite;
+}
+@media (max-width: 1024px) {
+  .stats-grid[_ngcontent-ng-c2205322053] {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .content-grid[_ngcontent-ng-c2205322053] {
+    grid-template-columns: 1fr;
+  }
+  .dept-grid[_ngcontent-ng-c2205322053] {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (max-width: 480px) {
+  .page-header[_ngcontent-ng-c2205322053] {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .header-actions[_ngcontent-ng-c2205322053] {
+    width: 100%;
+    justify-content: space-between;
+  }
+  .stat-card[_ngcontent-ng-c2205322053] {
+    flex-direction: column;
+    text-align: center;
+  }
+  .stat-chart[_ngcontent-ng-c2205322053] {
+    width: 100%;
+    margin-top: 15px;
+  }
+  .action-buttons[_ngcontent-ng-c2205322053] {
+    grid-template-columns: 1fr;
+  }
+  .performance-bars[_ngcontent-ng-c2205322053] {
+    height: 150px;
+  }
+  .bar[_ngcontent-ng-c2205322053] {
+    width: 40px;
+  }
+}
+@media (prefers-color-scheme: dark) {
+  .dashboard-overview[_ngcontent-ng-c2205322053] {
+    background-color: #1a1a1a;
+  }
+  .card[_ngcontent-ng-c2205322053], 
+   .stat-card[_ngcontent-ng-c2205322053], 
+   .dept-card[_ngcontent-ng-c2205322053] {
+    background-color: #2d2d2d;
+    color: #ffffff;
+  }
+  .page-header[_ngcontent-ng-c2205322053]   h1[_ngcontent-ng-c2205322053], 
+   .card-header[_ngcontent-ng-c2205322053]   h2[_ngcontent-ng-c2205322053], 
+   .stat-number[_ngcontent-ng-c2205322053] {
+    color: #ffffff;
+  }
+}
+/*# sourceMappingURL=/home.css.map */</style></head>
+<body><!--nghm--><script type="text/javascript" id="ng-event-dispatch-contract">(()=>{function p(t,n,r,o,e,i,f,m){return{eventType:t,event:n,targetElement:r,eic:o,timeStamp:e,eia:i,eirp:f,eiack:m}}function u(t){let n=[],r=e=>{n.push(e)};return{c:t,q:n,et:[],etc:[],d:r,h:e=>{r(p(e.type,e,e.target,t,Date.now()))}}}function s(t,n,r){for(let o=0;o<n.length;o++){let e=n[o];(r?t.etc:t.et).push(e),t.c.addEventListener(e,t.h,r)}}function c(t,n,r,o,e=window){let i=u(t);e._ejsas||(e._ejsas={}),e._ejsas[n]=i,s(i,r),s(i,o,!0)}window.__jsaction_bootstrap=c;})();
+</script><script>window.__jsaction_bootstrap(document.body,"ng",["click"],[]);</script>
+  <app-root ng-version="20.2.2" _nghost-ng-c1933515739="" ngh="2" ng-server-context="ssg"><router-outlet _ngcontent-ng-c1933515739=""></router-outlet><app-dashboard _nghost-ng-c287643023="" ngh="1"><div _ngcontent-ng-c287643023="" class="dashboard-container"><div _ngcontent-ng-c287643023="" class="sidebar"><div _ngcontent-ng-c287643023="" class="sidebar-header"><h2 _ngcontent-ng-c287643023="">University Portal</h2></div><ul _ngcontent-ng-c287643023="" class="menu-list"><li _ngcontent-ng-c287643023="" class="menu-item"><a _ngcontent-ng-c287643023="" routerlink="/home" routerlinkactive="active" class="menu-link active" href="/home" jsaction="click:;"><i _ngcontent-ng-c287643023="" class="icon">📊</i><span _ngcontent-ng-c287643023="">Dashboard</span></a></li><li _ngcontent-ng-c287643023="" class="menu-item has-submenu"><a _ngcontent-ng-c287643023="" class="menu-link" jsaction="click:;"><i _ngcontent-ng-c287643023="" class="icon">👨‍🎓</i><span _ngcontent-ng-c287643023="">Student</span><i _ngcontent-ng-c287643023="" class="arrow">▼</i></a><ul _ngcontent-ng-c287643023="" class="submenu"><li _ngcontent-ng-c287643023=""><a _ngcontent-ng-c287643023="" routerlink="/student/admission" routerlinkactive="active" class="submenu-link" href="/student/admission" jsaction="click:;">Student Admission</a></li><li _ngcontent-ng-c287643023=""><a _ngcontent-ng-c287643023="" routerlink="/student/fees" routerlinkactive="active" class="submenu-link" href="/student/fees" jsaction="click:;">Fees Management</a></li><li _ngcontent-ng-c287643023=""><a _ngcontent-ng-c287643023="" routerlink="/student/exam-results" routerlinkactive="active" class="submenu-link" href="/student/exam-results" jsaction="click:;">Exam Results</a></li><li _ngcontent-ng-c287643023=""><a _ngcontent-ng-c287643023="" routerlink="/student/attendance" routerlinkactive="active" class="submenu-link" href="/student/attendance" jsaction="click:;">Attendance</a></li><li _ngcontent-ng-c287643023=""><a _ngcontent-ng-c287643023="" routerlink="/student/records" routerlinkactive="active" class="submenu-link" href="/student/records" jsaction="click:;">Student Records</a></li></ul></li><li _ngcontent-ng-c287643023="" class="menu-item has-submenu"><a _ngcontent-ng-c287643023="" class="menu-link" jsaction="click:;"><i _ngcontent-ng-c287643023="" class="icon">👨‍🏫</i><span _ngcontent-ng-c287643023="">Teacher</span><i _ngcontent-ng-c287643023="" class="arrow">▼</i></a><ul _ngcontent-ng-c287643023="" class="submenu"><li _ngcontent-ng-c287643023=""><a _ngcontent-ng-c287643023="" routerlink="/teacher/add" routerlinkactive="active" class="submenu-link" href="/teacher/add" jsaction="click:;">Add Teacher</a></li><li _ngcontent-ng-c287643023=""><a _ngcontent-ng-c287643023="" routerlink="/teacher/salaries" routerlinkactive="active" class="submenu-link" href="/teacher/salaries" jsaction="click:;">Salaries</a></li><li _ngcontent-ng-c287643023=""><a _ngcontent-ng-c287643023="" routerlink="/teacher/schedule" routerlinkactive="active" class="submenu-link" href="/teacher/schedule" jsaction="click:;">Schedule</a></li><li _ngcontent-ng-c287643023=""><a _ngcontent-ng-c287643023="" routerlink="/teacher/performance" routerlinkactive="active" class="submenu-link" href="/teacher/performance" jsaction="click:;">Performance</a></li></ul></li><li _ngcontent-ng-c287643023="" class="menu-item has-submenu"><a _ngcontent-ng-c287643023="" class="menu-link" jsaction="click:;"><i _ngcontent-ng-c287643023="" class="icon">👥</i><span _ngcontent-ng-c287643023="">Staff</span><i _ngcontent-ng-c287643023="" class="arrow">▼</i></a><ul _ngcontent-ng-c287643023="" class="submenu"><li _ngcontent-ng-c287643023=""><a _ngcontent-ng-c287643023="" routerlink="/staff/add" routerlinkactive="active" class="submenu-link" href="/staff/add" jsaction="click:;">Add Staff</a></li><li _ngcontent-ng-c287643023=""><a _ngcontent-ng-c287643023="" routerlink="/staff/payroll" routerlinkactive="active" class="submenu-link" href="/staff/payroll" jsaction="click:;">Payroll</a></li><li _ngcontent-ng-c287643023=""><a _ngcontent-ng-c287643023="" routerlink="/staff/attendance" routerlinkactive="active" class="submenu-link" href="/staff/attendance" jsaction="click:;">Attendance</a></li><li _ngcontent-ng-c287643023=""><a _ngcontent-ng-c287643023="" routerlink="/staff/leave" routerlinkactive="active" class="submenu-link" href="/staff/leave" jsaction="click:;">Leave Management</a></li></ul></li><li _ngcontent-ng-c287643023="" class="menu-item"><a _ngcontent-ng-c287643023="" routerlink="/reports" routerlinkactive="active" class="menu-link" href="/reports" jsaction="click:;"><i _ngcontent-ng-c287643023="" class="icon">📄</i><span _ngcontent-ng-c287643023="">Reports</span></a></li><li _ngcontent-ng-c287643023="" class="menu-item"><a _ngcontent-ng-c287643023="" routerlink="/settings" routerlinkactive="active" class="menu-link" href="/settings" jsaction="click:;"><i _ngcontent-ng-c287643023="" class="icon">⚙️</i><span _ngcontent-ng-c287643023="">Settings</span></a></li></ul></div><div _ngcontent-ng-c287643023="" class="main-content"><router-outlet _ngcontent-ng-c287643023=""></router-outlet><app-home _nghost-ng-c2205322053="" ngh="0"><div _ngcontent-ng-c2205322053="" class="dashboard-overview"><div _ngcontent-ng-c2205322053="" class="page-header"><div _ngcontent-ng-c2205322053="" class="header-content"><h1 _ngcontent-ng-c2205322053="">Dashboard Overview</h1><p _ngcontent-ng-c2205322053="" class="welcome-text">Welcome back, Admin! Here's what's happening today.</p></div><div _ngcontent-ng-c2205322053="" class="header-actions"><button _ngcontent-ng-c2205322053="" class="btn-outline"><i _ngcontent-ng-c2205322053="">📅</i> Today: Saturday, September 6, 2025 </button><button _ngcontent-ng-c2205322053="" class="btn-primary"><i _ngcontent-ng-c2205322053="">📊</i> Generate Report </button><button _ngcontent-ng-c2205322053="" class="notification-btn"><i _ngcontent-ng-c2205322053="">🔔</i><span _ngcontent-ng-c2205322053="" class="notification-badge">5</span></button></div></div><div _ngcontent-ng-c2205322053="" class="stats-grid"><div _ngcontent-ng-c2205322053="" class="stat-card students"><div _ngcontent-ng-c2205322053="" class="stat-icon"><i _ngcontent-ng-c2205322053="">👨‍🎓</i></div><div _ngcontent-ng-c2205322053="" class="stat-content"><h3 _ngcontent-ng-c2205322053="">Total Students</h3><p _ngcontent-ng-c2205322053="" class="stat-number">1,250</p><p _ngcontent-ng-c2205322053="" class="stat-change positive">↑ 12% from last month</p></div><div _ngcontent-ng-c2205322053="" class="stat-chart"><div _ngcontent-ng-c2205322053="" class="mini-bars"><span _ngcontent-ng-c2205322053="" style="height: 40%;"></span><span _ngcontent-ng-c2205322053="" style="height: 65%;"></span><span _ngcontent-ng-c2205322053="" style="height: 45%;"></span><span _ngcontent-ng-c2205322053="" style="height: 80%;"></span><span _ngcontent-ng-c2205322053="" style="height: 100%;"></span></div></div></div><div _ngcontent-ng-c2205322053="" class="stat-card teachers"><div _ngcontent-ng-c2205322053="" class="stat-icon"><i _ngcontent-ng-c2205322053="">👨‍🏫</i></div><div _ngcontent-ng-c2205322053="" class="stat-content"><h3 _ngcontent-ng-c2205322053="">Total Teachers</h3><p _ngcontent-ng-c2205322053="" class="stat-number">85</p><p _ngcontent-ng-c2205322053="" class="stat-change positive">↑ 5% from last month</p></div><div _ngcontent-ng-c2205322053="" class="stat-chart"><div _ngcontent-ng-c2205322053="" class="mini-bars"><span _ngcontent-ng-c2205322053="" style="height: 60%;"></span><span _ngcontent-ng-c2205322053="" style="height: 80%;"></span><span _ngcontent-ng-c2205322053="" style="height: 70%;"></span><span _ngcontent-ng-c2205322053="" style="height: 90%;"></span><span _ngcontent-ng-c2205322053="" style="height: 85%;"></span></div></div></div><div _ngcontent-ng-c2205322053="" class="stat-card staff"><div _ngcontent-ng-c2205322053="" class="stat-icon"><i _ngcontent-ng-c2205322053="">👥</i></div><div _ngcontent-ng-c2205322053="" class="stat-content"><h3 _ngcontent-ng-c2205322053="">Support Staff</h3><p _ngcontent-ng-c2205322053="" class="stat-number">45</p><p _ngcontent-ng-c2205322053="" class="stat-change neutral">→ No change</p></div><div _ngcontent-ng-c2205322053="" class="stat-chart"><div _ngcontent-ng-c2205322053="" class="mini-bars"><span _ngcontent-ng-c2205322053="" style="height: 100%;"></span><span _ngcontent-ng-c2205322053="" style="height: 100%;"></span><span _ngcontent-ng-c2205322053="" style="height: 100%;"></span><span _ngcontent-ng-c2205322053="" style="height: 100%;"></span><span _ngcontent-ng-c2205322053="" style="height: 100%;"></span></div></div></div><div _ngcontent-ng-c2205322053="" class="stat-card revenue"><div _ngcontent-ng-c2205322053="" class="stat-icon"><i _ngcontent-ng-c2205322053="">💰</i></div><div _ngcontent-ng-c2205322053="" class="stat-content"><h3 _ngcontent-ng-c2205322053="">Revenue This Month</h3><p _ngcontent-ng-c2205322053="" class="stat-number">$125,000</p><p _ngcontent-ng-c2205322053="" class="stat-change positive">↑ 18% from last month</p></div><div _ngcontent-ng-c2205322053="" class="stat-chart"><div _ngcontent-ng-c2205322053="" class="mini-bars"><span _ngcontent-ng-c2205322053="" style="height: 30%;"></span><span _ngcontent-ng-c2205322053="" style="height: 50%;"></span><span _ngcontent-ng-c2205322053="" style="height: 70%;"></span><span _ngcontent-ng-c2205322053="" style="height: 85%;"></span><span _ngcontent-ng-c2205322053="" style="height: 100%;"></span></div></div></div></div><div _ngcontent-ng-c2205322053="" class="content-grid"><div _ngcontent-ng-c2205322053="" class="card recent-activities"><div _ngcontent-ng-c2205322053="" class="card-header"><h2 _ngcontent-ng-c2205322053="">Recent Activities</h2><button _ngcontent-ng-c2205322053="" class="btn-text">View All</button></div><div _ngcontent-ng-c2205322053="" class="activity-list"><div _ngcontent-ng-c2205322053="" class="activity-item"><div _ngcontent-ng-c2205322053="" class="activity-icon admission"><i _ngcontent-ng-c2205322053="">📝</i></div><div _ngcontent-ng-c2205322053="" class="activity-content"><h4 _ngcontent-ng-c2205322053="">New Student Admission</h4><p _ngcontent-ng-c2205322053="">John Doe enrolled in Computer Science</p><span _ngcontent-ng-c2205322053="" class="time">2 hours ago</span></div></div><div _ngcontent-ng-c2205322053="" class="activity-item"><div _ngcontent-ng-c2205322053="" class="activity-icon payment"><i _ngcontent-ng-c2205322053="">💳</i></div><div _ngcontent-ng-c2205322053="" class="activity-content"><h4 _ngcontent-ng-c2205322053="">Fee Payment Received</h4><p _ngcontent-ng-c2205322053="">Sarah Smith paid semester fees - $5,000</p><span _ngcontent-ng-c2205322053="" class="time">4 hours ago</span></div></div><div _ngcontent-ng-c2205322053="" class="activity-item"><div _ngcontent-ng-c2205322053="" class="activity-icon exam"><i _ngcontent-ng-c2205322053="">📊</i></div><div _ngcontent-ng-c2205322053="" class="activity-content"><h4 _ngcontent-ng-c2205322053="">Exam Results Published</h4><p _ngcontent-ng-c2205322053="">Mid-term results for Mathematics uploaded</p><span _ngcontent-ng-c2205322053="" class="time">6 hours ago</span></div></div><div _ngcontent-ng-c2205322053="" class="activity-item"><div _ngcontent-ng-c2205322053="" class="activity-icon teacher"><i _ngcontent-ng-c2205322053="">👨‍🏫</i></div><div _ngcontent-ng-c2205322053="" class="activity-content"><h4 _ngcontent-ng-c2205322053="">New Teacher Joined</h4><p _ngcontent-ng-c2205322053="">Dr. Michael Johnson - Physics Department</p><span _ngcontent-ng-c2205322053="" class="time">1 day ago</span></div></div></div></div><div _ngcontent-ng-c2205322053="" class="card performance-chart"><div _ngcontent-ng-c2205322053="" class="card-header"><h2 _ngcontent-ng-c2205322053="">Student Performance Overview</h2><select _ngcontent-ng-c2205322053="" class="filter-select"><option _ngcontent-ng-c2205322053="">This Semester</option><option _ngcontent-ng-c2205322053="">Last Semester</option><option _ngcontent-ng-c2205322053="">This Year</option></select></div><div _ngcontent-ng-c2205322053="" class="chart-container"><div _ngcontent-ng-c2205322053="" class="performance-bars"><div _ngcontent-ng-c2205322053="" class="bar-group"><div _ngcontent-ng-c2205322053="" class="bar excellent" style="height: 65%;"><span _ngcontent-ng-c2205322053="" class="bar-value">65%</span></div><span _ngcontent-ng-c2205322053="" class="bar-label">Excellent</span></div><div _ngcontent-ng-c2205322053="" class="bar-group"><div _ngcontent-ng-c2205322053="" class="bar good" style="height: 80%;"><span _ngcontent-ng-c2205322053="" class="bar-value">80%</span></div><span _ngcontent-ng-c2205322053="" class="bar-label">Good</span></div><div _ngcontent-ng-c2205322053="" class="bar-group"><div _ngcontent-ng-c2205322053="" class="bar average" style="height: 45%;"><span _ngcontent-ng-c2205322053="" class="bar-value">45%</span></div><span _ngcontent-ng-c2205322053="" class="bar-label">Average</span></div><div _ngcontent-ng-c2205322053="" class="bar-group"><div _ngcontent-ng-c2205322053="" class="bar poor" style="height: 25%;"><span _ngcontent-ng-c2205322053="" class="bar-value">25%</span></div><span _ngcontent-ng-c2205322053="" class="bar-label">Poor</span></div></div></div></div><div _ngcontent-ng-c2205322053="" class="card quick-actions"><h2 _ngcontent-ng-c2205322053="">Quick Actions</h2><div _ngcontent-ng-c2205322053="" class="action-buttons"><button _ngcontent-ng-c2205322053="" class="action-btn"><i _ngcontent-ng-c2205322053="">➕</i><span _ngcontent-ng-c2205322053="">Add Student</span></button><button _ngcontent-ng-c2205322053="" class="action-btn"><i _ngcontent-ng-c2205322053="">💵</i><span _ngcontent-ng-c2205322053="">Record Payment</span></button><button _ngcontent-ng-c2205322053="" class="action-btn"><i _ngcontent-ng-c2205322053="">📝</i><span _ngcontent-ng-c2205322053="">Create Exam</span></button><button _ngcontent-ng-c2205322053="" class="action-btn"><i _ngcontent-ng-c2205322053="">📢</i><span _ngcontent-ng-c2205322053="">Announcement</span></button></div></div><div _ngcontent-ng-c2205322053="" class="card upcoming-events"><div _ngcontent-ng-c2205322053="" class="card-header"><h2 _ngcontent-ng-c2205322053="">Upcoming Events</h2><button _ngcontent-ng-c2205322053="" class="btn-text">View Calendar</button></div><div _ngcontent-ng-c2205322053="" class="event-list"><div _ngcontent-ng-c2205322053="" class="event-item"><div _ngcontent-ng-c2205322053="" class="event-date"><span _ngcontent-ng-c2205322053="" class="day">25</span><span _ngcontent-ng-c2205322053="" class="month">MAR</span></div><div _ngcontent-ng-c2205322053="" class="event-content"><h4 _ngcontent-ng-c2205322053="">Annual Sports Day</h4><p _ngcontent-ng-c2205322053="">All departments participating</p></div></div><div _ngcontent-ng-c2205322053="" class="event-item"><div _ngcontent-ng-c2205322053="" class="event-date"><span _ngcontent-ng-c2205322053="" class="day">28</span><span _ngcontent-ng-c2205322053="" class="month">MAR</span></div><div _ngcontent-ng-c2205322053="" class="event-content"><h4 _ngcontent-ng-c2205322053="">Parent-Teacher Meeting</h4><p _ngcontent-ng-c2205322053="">First year students only</p></div></div><div _ngcontent-ng-c2205322053="" class="event-item"><div _ngcontent-ng-c2205322053="" class="event-date"><span _ngcontent-ng-c2205322053="" class="day">02</span><span _ngcontent-ng-c2205322053="" class="month">APR</span></div><div _ngcontent-ng-c2205322053="" class="event-content"><h4 _ngcontent-ng-c2205322053="">Final Exams Begin</h4><p _ngcontent-ng-c2205322053="">All courses</p></div></div></div></div></div><div _ngcontent-ng-c2205322053="" class="department-stats"><h2 _ngcontent-ng-c2205322053="">Department Overview</h2><div _ngcontent-ng-c2205322053="" class="dept-grid"><div _ngcontent-ng-c2205322053="" class="dept-card"><h3 _ngcontent-ng-c2205322053="">Computer Science</h3><div _ngcontent-ng-c2205322053="" class="dept-stats"><div _ngcontent-ng-c2205322053="" class="dept-stat"><span _ngcontent-ng-c2205322053="" class="label">Students</span><span _ngcontent-ng-c2205322053="" class="value">320</span></div><div _ngcontent-ng-c2205322053="" class="dept-stat"><span _ngcontent-ng-c2205322053="" class="label">Teachers</span><span _ngcontent-ng-c2205322053="" class="value">18</span></div><div _ngcontent-ng-c2205322053="" class="dept-stat"><span _ngcontent-ng-c2205322053="" class="label">Courses</span><span _ngcontent-ng-c2205322053="" class="value">24</span></div></div><div _ngcontent-ng-c2205322053="" class="progress-bar"><div _ngcontent-ng-c2205322053="" class="progress" style="width: 85%;"></div></div><span _ngcontent-ng-c2205322053="" class="capacity-text">85% Capacity</span></div><div _ngcontent-ng-c2205322053="" class="dept-card"><h3 _ngcontent-ng-c2205322053="">Business Admin</h3><div _ngcontent-ng-c2205322053="" class="dept-stats"><div _ngcontent-ng-c2205322053="" class="dept-stat"><span _ngcontent-ng-c2205322053="" class="label">Students</span><span _ngcontent-ng-c2205322053="" class="value">280</span></div><div _ngcontent-ng-c2205322053="" class="dept-stat"><span _ngcontent-ng-c2205322053="" class="label">Teachers</span><span _ngcontent-ng-c2205322053="" class="value">15</span></div><div _ngcontent-ng-c2205322053="" class="dept-stat"><span _ngcontent-ng-c2205322053="" class="label">Courses</span><span _ngcontent-ng-c2205322053="" class="value">20</span></div></div><div _ngcontent-ng-c2205322053="" class="progress-bar"><div _ngcontent-ng-c2205322053="" class="progress" style="width: 70%;"></div></div><span _ngcontent-ng-c2205322053="" class="capacity-text">70% Capacity</span></div><div _ngcontent-ng-c2205322053="" class="dept-card"><h3 _ngcontent-ng-c2205322053="">Engineering</h3><div _ngcontent-ng-c2205322053="" class="dept-stats"><div _ngcontent-ng-c2205322053="" class="dept-stat"><span _ngcontent-ng-c2205322053="" class="label">Students</span><span _ngcontent-ng-c2205322053="" class="value">450</span></div><div _ngcontent-ng-c2205322053="" class="dept-stat"><span _ngcontent-ng-c2205322053="" class="label">Teachers</span><span _ngcontent-ng-c2205322053="" class="value">28</span></div><div _ngcontent-ng-c2205322053="" class="dept-stat"><span _ngcontent-ng-c2205322053="" class="label">Courses</span><span _ngcontent-ng-c2205322053="" class="value">32</span></div></div><div _ngcontent-ng-c2205322053="" class="progress-bar"><div _ngcontent-ng-c2205322053="" class="progress" style="width: 95%;"></div></div><span _ngcontent-ng-c2205322053="" class="capacity-text">95% Capacity</span></div><div _ngcontent-ng-c2205322053="" class="dept-card"><h3 _ngcontent-ng-c2205322053="">Medical Science</h3><div _ngcontent-ng-c2205322053="" class="dept-stats"><div _ngcontent-ng-c2205322053="" class="dept-stat"><span _ngcontent-ng-c2205322053="" class="label">Students</span><span _ngcontent-ng-c2205322053="" class="value">200</span></div><div _ngcontent-ng-c2205322053="" class="dept-stat"><span _ngcontent-ng-c2205322053="" class="label">Teachers</span><span _ngcontent-ng-c2205322053="" class="value">24</span></div><div _ngcontent-ng-c2205322053="" class="dept-stat"><span _ngcontent-ng-c2205322053="" class="label">Courses</span><span _ngcontent-ng-c2205322053="" class="value">18</span></div></div><div _ngcontent-ng-c2205322053="" class="progress-bar"><div _ngcontent-ng-c2205322053="" class="progress" style="width: 60%;"></div></div><span _ngcontent-ng-c2205322053="" class="capacity-text">60% Capacity</span></div></div></div></div></app-home><!--container--></div></div></app-dashboard><!--container--></app-root>
+<script src="main.js" type="module"></script>
+
+<script id="ng-state" type="application/json">{"__nghData__":[{},{"c":{"91":[{"i":"c2205322053","r":1}]}},{"c":{"0":[{"i":"c287643023","r":1}]}}]}</script></body></html>

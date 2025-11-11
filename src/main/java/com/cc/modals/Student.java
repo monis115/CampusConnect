@@ -334,6 +334,15 @@ public class Student {
 	public void setAdmissionLetterPath(String admissionLetterPath) {
 	    this.admissionLetterPath = admissionLetterPath;
 	}
+
+	public String getUpdatedBy() {
+		return updatedBy;
+	}
+
+	public void setUpdatedBy(String updatedBy) {
+		this.updatedBy = updatedBy;
+	}
     
+	
     
 }

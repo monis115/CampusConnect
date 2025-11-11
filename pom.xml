@@ -46,17 +46,18 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>com.hms</groupId>
-            <artifactId>Healthcaremanagement</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
-        </dependency>
+       
         <!-- iText 7 Core BOM (includes kernel, io, layout, and other essentials for PDF generation) -->
         <dependency>
             <groupId>com.itextpdf</groupId>
             <artifactId>itext-core</artifactId>
             <version>${itext.version}</version>
             <type>pom</type>
+        </dependency>
+        <dependency>
+        	<groupId>com.hms</groupId>
+        	<artifactId>Healthcaremanagement</artifactId>
+        	<version>0.0.1-SNAPSHOT</version>
         </dependency>
     </dependencies>
 
