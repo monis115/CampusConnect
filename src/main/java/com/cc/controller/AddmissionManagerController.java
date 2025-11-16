@@ -1,28 +1,18 @@
 package com.cc.controller;
 
-import java.security.Principal;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
 import com.cc.DTO.AddmissionManagerCreateDTO;
 import com.cc.DTO.UpdateAdmissionManagerDTO;
 import com.cc.modals.AddmissionManager;
 import com.cc.modals.Student;
 import com.cc.service.AddmissionManagerService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/managers")
@@ -30,117 +20,88 @@ import com.cc.service.AddmissionManagerService;
 public class AddmissionManagerController {
 
     @Autowired
-    private AddmissionManagerService addmissionManagerService;
+    private AddmissionManagerService service;
 
-    // Create Admission Manager (send DTO in body)
+    // CREATE
     @PostMapping("/create")
-    public ResponseEntity<?> createManager(@RequestBody AddmissionManagerCreateDTO dto) {
-        AddmissionManager manager = new AddmissionManager();
-        manager.setFullName(dto.getFullName());
-        manager.setEmail(dto.getEmail());
-        manager.setContactNumber(dto.getContactNumber());
-        // role and status default are already set in entity
+    public ResponseEntity<Map<String, Object>> createManager(@RequestBody AddmissionManagerCreateDTO dto) {
+        AddmissionManager saved = service.createAddmissionManager(dto);
 
-        AddmissionManager saved = addmissionManagerService.createAddmissionManager(manager, dto.getCollegeIds());
+        Map<String, Object> response = new HashMap<>();
+        response.put("id", saved.getId());
+        response.put("username", saved.getUsername());
+        response.put("password", dto.getContactNumber()); // plain password once
+        response.put("fullName", saved.getFullName());
+        response.put("email", saved.getEmail());
+        response.put("contactNumber", saved.getContactNumber());
+        response.put("role", saved.getRole());
+        response.put("status", saved.getStatus());
 
-        // plain password per requirement is the phone number
-        String plainPassword = dto.getContactNumber();
-
-        // return minimal response with generated username and plain password (so caller can communicate them)
-        Map<String, Object> resp = new HashMap<>();
-        resp.put("id", saved.getId());
-        resp.put("username", saved.getUsername());
-        resp.put("password", plainPassword);
-        resp.put("fullName", saved.getFullName());
-        resp.put("email", saved.getEmail());
-        resp.put("contactNumber", saved.getContactNumber());
-        resp.put("status", saved.getStatus());
-        resp.put("role", saved.getRole());
-
-        return ResponseEntity.ok(resp);
+        return ResponseEntity.ok(response);
     }
 
-    // Other endpoints retained from earlier example
+    // READ ALL
     @GetMapping("/all")
     public ResponseEntity<List<AddmissionManager>> getAllManagers() {
-        return ResponseEntity.ok(addmissionManagerService.getAllManagers());
+        return ResponseEntity.ok(service.getAllManagers());
     }
 
+    // READ BY ID
     @GetMapping("/{id}")
     public ResponseEntity<AddmissionManager> getManagerById(@PathVariable Long id) {
-        AddmissionManager manager = addmissionManagerService.getManagerById(id);
+        AddmissionManager manager = service.getManagerById(id);
         return manager != null ? ResponseEntity.ok(manager) : ResponseEntity.notFound().build();
     }
-    
-    @GetMapping("/with-students")
-    public ResponseEntity<List<AddmissionManager>> getManagersWithStudents() {
-        List<AddmissionManager> managers = addmissionManagerService.getManagersWithStudents();
-        return ResponseEntity.ok(managers);
+
+    // READ BY USERNAME
+    @GetMapping("/userName/{userName}")
+    public ResponseEntity<AddmissionManager> getManagerByUserName(@PathVariable String userName) {
+        return service.getAdmissionManagerByUserName(userName)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
+    // READ MANAGERS WITH STUDENTS
+    @GetMapping("/with-students")
+    public ResponseEntity<List<AddmissionManager>> getManagersWithStudents() {
+        return ResponseEntity.ok(service.getManagersWithStudents());
+    }
 
+    // READ APPROVED STUDENTS
+    @GetMapping("/approved-students/{username}")
+    public ResponseEntity<List<Student>> getApprovedStudents(@PathVariable String username) {
+        Optional<AddmissionManager> opt = service.getAdmissionManagerByUserName(username);
+        if (opt.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        List<Student> students = service.getApprovedStudentsForManager(opt.get());
+        return ResponseEntity.ok(students);
+    }
+
+    // READ REGISTERED OR UNDER REVIEW
+    @GetMapping("/students/registered-or-under-review/{username}")
+    public ResponseEntity<List<Student>> getRegisteredOrUnderReviewStudents(@PathVariable String username) {
+        Optional<AddmissionManager> opt = service.getAdmissionManagerByUserName(username);
+        if (opt.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        List<Student> students = service.getRegisteredOrUnderReviewStudentsForManager(opt.get());
+        return ResponseEntity.ok(students);
+    }
+
+    // UPDATE
     @PutMapping("/update/{id}")
     public ResponseEntity<AddmissionManager> updateManager(
             @PathVariable Long id,
-            @RequestBody UpdateAdmissionManagerDTO dto) {  // Use DTO for body (no @RequestParam)
-        AddmissionManager updatedManager = new AddmissionManager();
-        updatedManager.setFullName(dto.getFullName());
-        updatedManager.setEmail(dto.getEmail());
-        updatedManager.setContactNumber(dto.getContactNumber());
-        updatedManager.setRole(dto.getRole());
-        updatedManager.setStatus(dto.getStatus());
-        // username/password unchanged (not in DTO)
-
-        AddmissionManager updated = addmissionManagerService.updateManager(id, updatedManager, dto.getCollegeIds());
+            @RequestBody UpdateAdmissionManagerDTO dto) {
+        AddmissionManager updated = service.updateManager(id, dto);
         return updated != null ? ResponseEntity.ok(updated) : ResponseEntity.notFound().build();
     }
 
+    // DELETE
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<Void> deleteManager(@PathVariable Long id) {
-        addmissionManagerService.deleteManager(id);
+        service.deleteManager(id);
         return ResponseEntity.noContent().build();
     }
-    @GetMapping("userName/{userName}")
-    public Optional<AddmissionManager> getManagerByUserName(@PathVariable String userName) {
-    	 return addmissionManagerService.getAdmissionManagerByUserName(userName);
-    }
-    
-    @GetMapping("/approved-students/{username}")
-    public ResponseEntity<List<Student>> getApprovedStudentsByUsername(
-            @PathVariable String username) {
-
-        Optional<AddmissionManager> optManager = 
-            addmissionManagerService.getAdmissionManagerByUserName(username);
-
-        if (optManager.isEmpty()) {
-            return ResponseEntity.notFound().build(); // 404 if manager not found
-        }
-
-        AddmissionManager manager = optManager.get();
-        List<Student> approvedStudents = 
-            addmissionManagerService.getApprovedStudentsForManager(manager);
-
-        return ResponseEntity.ok(approvedStudents);
-    }
-    
-    
-    @GetMapping("/students/registered-or-under-review/{username}")
-    public ResponseEntity<List<Student>> getRegisteredOrUnderReviewStudents(
-            @PathVariable String username) {
-
-        Optional<AddmissionManager> optManager = 
-            addmissionManagerService.getAdmissionManagerByUserName(username);
-
-        if (optManager.isEmpty()) {
-            return ResponseEntity.notFound().build(); // 404
-        }
-
-        AddmissionManager manager = optManager.get();
-        List<Student> students = 
-            addmissionManagerService.getRegisteredOrUnderReviewStudentsForManager(manager);
-
-        return ResponseEntity.ok(students);
-    }
-    
-   
 }

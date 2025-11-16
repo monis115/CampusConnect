@@ -50,9 +50,12 @@ public class AddmissionManager {
     // and should not be deleted when un-assigned from a manager.
     // We keep CascadeType.ALL to save/update colleges when a manager is saved,
     // but we will manually handle unlinking in the service.
-    @OneToMany(mappedBy = "admissionManager", cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH, CascadeType.DETACH})
-    @JsonManagedReference(value = "manager-college")
-    private List<College> colleges = new ArrayList<>();
+    @OneToMany(
+    	    mappedBy = "admissionManager",
+    	    cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH, CascadeType.DETACH}
+    	)
+    	@JsonManagedReference(value = "manager-college")
+    	private List<College> colleges = new ArrayList<>();
 
     // One manager can issue admission letters to multiple students
     // --- NOTE: You might also want to remove orphanRemoval here if Students are shared ---

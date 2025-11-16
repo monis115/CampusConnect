@@ -1,9 +1,9 @@
 package com.cc.controller;
 
 import com.cc.DTO.StudentDTO;
-import com.cc.DTO.StudentStatusUpdateDTO;
 import com.cc.modals.Student;
 import com.cc.service.StudentService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -24,16 +24,38 @@ public class StudentController {
     @Autowired
     private StudentService studentService;
 
+    @Autowired
+    private ObjectMapper objectMapper;
+
     /**
-     * Add a new student record.
-     * This endpoint accepts a StudentDTO object and performs all necessary validation,
-     * including checking the agent’s access privileges for district and college assignments.
+     * Add a new student record WITH FILE UPLOADS.
+     * Accepts form-data with JSON student details and 4 file uploads.
      */
     @PostMapping("/add")
-    public ResponseEntity<?> addStudent(@RequestBody StudentDTO studentDTO) {
+    public ResponseEntity<?> addStudent(
+            @RequestParam("student") String studentJson,
+            @RequestParam(value = "adhaarFile", required = false) MultipartFile adhaarFile,
+            @RequestParam(value = "passportFile", required = false) MultipartFile passportFile,
+            @RequestParam(value = "marksheetFile", required = false) MultipartFile marksheetFile,
+            @RequestParam(value = "profileImage", required = false) MultipartFile profileImage) {
+        
         try {
-            Student savedStudent = studentService.addStudent(studentDTO);
+            // Parse JSON string to StudentDTO
+            StudentDTO studentDTO = objectMapper.readValue(studentJson, StudentDTO.class);
+            
+            // Call service with DTO and files
+            Student savedStudent = studentService.addStudent(
+                studentDTO, 
+                adhaarFile, 
+                passportFile, 
+                marksheetFile, 
+                profileImage
+            );
+            
             return ResponseEntity.ok(savedStudent);
+            
+        } catch (IOException e) {
+            return ResponseEntity.badRequest().body("JSON Parsing Error: " + e.getMessage());
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body("Validation Error: " + e.getMessage());
         } catch (Exception e) {
@@ -55,12 +77,8 @@ public class StudentController {
      */
     @GetMapping("/{studentId}")
     public ResponseEntity<Student> getStudentById(@PathVariable Long studentId) {
-        try {
-            Student student = studentService.getStudentById(studentId);
-            return ResponseEntity.ok(student);
-        } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
-        }
+        Student student = studentService.getStudentById(studentId);
+        return ResponseEntity.ok(student);
     }
 
     /**
@@ -73,41 +91,36 @@ public class StudentController {
     }
 
     /**
-     * Upload Admission Letter for a student (by AdmissionManager), updating status to ADMISSION_LETTER_GENERATED.
-     * Also records who uploaded it via username.
+     * Upload Admission Letter for a student (by AdmissionManager).
      */
     @PostMapping("/upload-admission-letter/{studentId}")
     public ResponseEntity<?> uploadAdmissionLetter(
-            @PathVariable Long studentId,
-            @RequestParam("file") MultipartFile file,
-            @RequestParam("username") String username) {
-
+            @PathVariable Long studentId, 
+            @RequestParam("file") MultipartFile file) {
+        
         try {
             if (file.isEmpty()) {
                 return ResponseEntity.badRequest().body("File is empty");
             }
-
+            
             // Validate file type (PDF only)
-            if (!"application/pdf".equals(file.getContentType())) {
-                return ResponseEntity.badRequest().body("Only PDF files are allowed");
+            if (!file.getContentType().equals("application/pdf")) {
+                return ResponseEntity.badRequest().body("Only PDF files allowed");
             }
 
-            // Generate unique filename
             String fileName = "admission_" + studentId + "_" + UUID.randomUUID() + ".pdf";
             Path uploadPath = Paths.get("uploads/admission-letters");
-
+            
             if (!Files.exists(uploadPath)) {
                 Files.createDirectories(uploadPath);
             }
-
+            
             Path filePath = uploadPath.resolve(fileName);
             Files.copy(file.getInputStream(), filePath);
 
-            // Pass username to service
-            Student updatedStudent = studentService.uploadAdmissionLetter(studentId, fileName, username);
-
+            Student updatedStudent = studentService.uploadAdmissionLetter(studentId, fileName);
             return ResponseEntity.ok(updatedStudent);
-
+            
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body("Upload Error: " + e.getMessage());
         } catch (IOException e) {
@@ -116,36 +129,4 @@ public class StudentController {
             return ResponseEntity.internalServerError().body("An unexpected error occurred: " + e.getMessage());
         }
     }
-
-    /**
-     * Update a student's status (by Agent or AdmissionManager).
-     * This endpoint accepts the new status, next step, and the updater's role/ID.
-     */
-    @PutMapping("/update-status/{studentId}")
-    public ResponseEntity<?> updateStudentStatus(
-            @PathVariable Long studentId,
-            @RequestBody StudentStatusUpdateDTO statusUpdateDTO) {
-
-        try {
-            Student updatedStudent = studentService.updateStudentStatus(studentId, statusUpdateDTO);
-            return ResponseEntity.ok(updatedStudent);
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body("Update Error: " + e.getMessage());
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().body("An unexpected error occurred: " + e.getMessage());
-        }
-    }
-
-    /**
-     * Delete a student record by ID.
-     */
-    
-    @GetMapping("/generated-by-manager-username/{username}")
-    public ResponseEntity<List<Student>> getGeneratedByManagerUsername(
-            @PathVariable String username) {
-
-        List<Student> students = studentService.getGeneratedAdmissionLettersByManagerUsername(username);
-        return ResponseEntity.ok(students);
-    }
-   
 }

@@ -10,20 +10,15 @@ import java.util.List;
 @Repository
 public interface StudentRepository extends JpaRepository<Student, Long> {
 
+    // Existing methods...
     List<Student> findByAgent_Id(Long agentId);
+    List<Student> findByApplicationStatus(StudentStatus applicationStatus);
+    List<Student> findByUpdatedByAndApplicationStatus(String updatedBy, StudentStatus applicationStatus);
 
-    List<Student> findByApplicationStatus(String applicationStatus);
+    // ✅ NEW METHODS FOR MANAGER FILTERS
+    // Finds students assigned to a specific manager with a specific status (e.g., APPROVED)
+    List<Student> findByAdmissionManagerAndApplicationStatus(AddmissionManager admissionManager, StudentStatus applicationStatus);
 
-    List<Student> findByPresentStatus(StudentStatus presentStatus);
-    List<Student> findByAdmissionManagerAndPresentStatus(
-    	    AddmissionManager manager, StudentStatus presentStatus);
-    
-    List<Student> findByAdmissionManagerAndPresentStatusIn(
-            AddmissionManager manager, List<StudentStatus> statuses);
-    
-    List<Student> findByAdmissionManager_UsernameAndPresentStatus(
-            String managerUsername,
-            StudentStatus presentStatus);
-    
-    
+    // Finds students assigned to a specific manager with ANY of the statuses in the list
+    List<Student> findByAdmissionManagerAndApplicationStatusIn(AddmissionManager admissionManager, List<StudentStatus> applicationStatuses);
 }
