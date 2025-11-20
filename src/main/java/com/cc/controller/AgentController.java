@@ -4,7 +4,16 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import com.cc.DTO.AgentRegistrationDTO;
 import com.cc.modals.Agent;
@@ -21,7 +30,7 @@ public class AgentController {
     // ======================= SELF REGISTRATION =======================
     @PostMapping("/register")
     public Agent registerAgent(@RequestBody AgentRegistrationDTO agent) {
-    	System.out.println(agent);
+        System.out.println(agent);
         return agentService.selfAgentRegistration(agent);
     }
 
@@ -50,15 +59,11 @@ public class AgentController {
     }
 
     // ======================= GET AGENT BY USER ID =======================
-    @GetMapping("/user/{userId}")
-    public Optional<Agent> getAgentByUserId(@PathVariable String userId) {
-        return agentService.getAgentByUserId(userId);
-    }
 
     // ======================= APPROVE PENDING AGENT =======================
     @PostMapping("/approve/{agentId}")
     public Agent approveAgent(@PathVariable Long agentId, @RequestBody AgentRegistrationDTO dto) {
-        return agentService.approveAgent(agentId, dto.getCollegeIds(), dto.getLocationIds());
+        return agentService.approveAgent(agentId, dto.getCollegeAccessList());
     }
 
     // ======================= UPDATE AGENT =======================
@@ -73,20 +78,33 @@ public class AgentController {
         agentService.deleteAgent(id);
         return "Agent deleted successfully with ID: " + id;
     }
-    
+
     @GetMapping("/active")
     public List<Agent> getActiveAgents() {
         return agentService.getActiveAgents();
     }
-    
-    
- // Add this endpoint to AgentController.java (e.g., after the getActiveAgents() method)
+
+    // Add this endpoint to AgentController.java (e.g., after the getActiveAgents()
+    // method)
 
     @GetMapping("/with-students")
     public List<Agent> getAgentsWithStudents() {
         return agentService.getAgentsWithStudents();
     }
-    
 
-    
+    // ======================= GET AGENT BY USER ID =======================
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<?> getAgentByUserId(@PathVariable String userId) {
+        try {
+            Optional<Agent> agent = agentService.getAgentByUserIdWithDetails(userId);
+            if (agent.isPresent()) {
+                return ResponseEntity.ok(agent.get());
+            }
+            return ResponseEntity.status(404).body("Agent not found with userId: " + userId);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body("Error fetching agent: " + e.getMessage());
+        }
+    }
+
 }

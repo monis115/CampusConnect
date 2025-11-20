@@ -1,88 +1,63 @@
 package com.cc.modals;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
-
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import jakarta.persistence.*;
 
 @Entity
 @Table(name = "colleges")
 public class College {
 
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-	@Column(nullable = false)
-	private String collegeName;
+    @Column(nullable = false)
+    private String collegeName;
 
-	@Column(nullable = false)
-	private String city;
+    @Column(nullable = false)
+    private String city;
 
-	@Column(nullable = false)
-	private String country;
-	
-	 @ManyToOne
-	    @JoinColumn(name = "admission_manager_id")
-	    @JsonBackReference(value = "manager-college")
-	    private AddmissionManager admissionManager;
+    @Column(nullable = false)
+    private String country;
 
+    // FIX 1: Use JsonIgnoreProperties instead of BackReference
+    // This says: "Show the Manager, but don't show the Manager's 'colleges' list"
+    @ManyToOne
+    @JoinColumn(name = "admission_manager_id")
+    @JsonIgnoreProperties("colleges")
+    private AddmissionManager admissionManager;
 
-	public College() {
-	}
+    // FIX 2: Add UniversityPerson back (it was missing in your file)
+    // This says: "Show the Person, but don't show the Person's 'college' field"
+    @OneToOne(mappedBy = "college", fetch = FetchType.LAZY)
+    @JsonIgnoreProperties("college")
+    private UniversityPerson universityPerson;
 
-	public College(String collegeName, String city, String country) {
-		this.collegeName = collegeName;
+    public College() {
+    }
 
-		this.city = city;
-		this.country = country;
-	}
+    public College(String collegeName, String city, String country) {
+        this.collegeName = collegeName;
+        this.city = city;
+        this.country = country;
+    }
 
-	public Long getId() {
-		return id;
-	}
+    // Getters & Setters
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
-	public void setId(Long id) {
-		this.id = id;
-	}
+    public String getCollegeName() { return collegeName; }
+    public void setCollegeName(String collegeName) { this.collegeName = collegeName; }
 
-	public String getCollegeName() {
-		return collegeName;
-	}
+    public String getCity() { return city; }
+    public void setCity(String city) { this.city = city; }
 
-	public void setCollegeName(String collegeName) {
-		this.collegeName = collegeName;
-	}
+    public String getCountry() { return country; }
+    public void setCountry(String country) { this.country = country; }
 
-	public String getCity() {
-		return city;
-	}
+    public AddmissionManager getAdmissionManager() { return admissionManager; }
+    public void setAdmissionManager(AddmissionManager admissionManager) { this.admissionManager = admissionManager; }
 
-	public void setCity(String city) {
-		this.city = city;
-	}
-
-	public String getCountry() {
-		return country;
-	}
-
-	public void setCountry(String country) {
-		this.country = country;
-	}
-
-	public AddmissionManager getAdmissionManager() {
-		return admissionManager;
-	}
-
-	public void setAdmissionManager(AddmissionManager admissionManager) {
-		this.admissionManager = admissionManager;
-	}
-	
-	
+    public UniversityPerson getUniversityPerson() { return universityPerson; }
+    public void setUniversityPerson(UniversityPerson universityPerson) { this.universityPerson = universityPerson; }
 }

@@ -3,6 +3,7 @@ package com.cc.modals;
 import java.time.LocalDate;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 import jakarta.persistence.Column;
@@ -18,6 +19,9 @@ import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "agent")
+
+@JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" })
+
 public class Agent {
 
     @Id
@@ -104,44 +108,33 @@ public class Agent {
 
     @Column(nullable = false)
     private String password;
-    
+
     @Column
     private String role;
-    
 
     public String getRole() {
-		return role;
-	}
+        return role;
+    }
 
-	public void setRole(String role) {
-		this.role = role;
-	}
-	// -------------------- Relationships --------------------
-    @ManyToMany
-    @JoinTable(
-        name = "agent_colleges",
-        joinColumns = @JoinColumn(name = "agent_id", referencedColumnName = "id"),
-        inverseJoinColumns = @JoinColumn(name = "college_id", referencedColumnName = "id")
-    )
-    private List<College> collegePrivileges;
+    public void setRole(String role) {
+        this.role = role;
+    }
 
-    @ManyToMany
-    @JoinTable(
-        name = "agent_location",
-        joinColumns = @JoinColumn(name = "agent_id"),
-        inverseJoinColumns = @JoinColumn(name = "location_id")
-    )
-    private List<Location> accessibleLocations;
+    // -------------------- Relationships --------------------
+    @OneToMany(mappedBy = "agent", cascade = jakarta.persistence.CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
+    private List<AgentCollegeAccess> collegeAccess;
 
     @OneToMany(mappedBy = "agent")
     @JsonManagedReference(value = "agent-student") // <-- CHANGE TO MANAGED
     private List<Student> student;
 
     // -------------------- Constructors --------------------
-    public Agent() {}
+    public Agent() {
+    }
 
     public Agent(String fullName, Integer age, LocalDate dob, String email, String contactNo, String status,
-                 LocalDate activationDate, LocalDate creationDate, List<College> colleges) {
+            LocalDate activationDate, LocalDate creationDate, List<College> colleges) {
         this.fullName = fullName;
         this.age = age;
         this.dob = dob;
@@ -150,14 +143,16 @@ public class Agent {
         this.status = status;
         this.activationDate = activationDate;
         this.creationDate = creationDate;
-        this.collegePrivileges = colleges;
-        this.role="agent";
+        this.creationDate = creationDate;
+        // this.collegePrivileges = colleges; // Removed
+        this.role = "agent";
     }
 
     // -------------------- Getters and Setters --------------------
     public Long getId() {
         return id;
     }
+
     public void setId(Long id) {
         this.id = id;
     }
@@ -165,6 +160,7 @@ public class Agent {
     public String getFullName() {
         return fullName;
     }
+
     public void setFullName(String fullName) {
         this.fullName = fullName;
     }
@@ -172,6 +168,7 @@ public class Agent {
     public Integer getAge() {
         return age;
     }
+
     public void setAge(Integer age) {
         this.age = age;
     }
@@ -179,6 +176,7 @@ public class Agent {
     public LocalDate getDob() {
         return dob;
     }
+
     public void setDob(LocalDate dob) {
         this.dob = dob;
     }
@@ -186,6 +184,7 @@ public class Agent {
     public String getEmail() {
         return email;
     }
+
     public void setEmail(String email) {
         this.email = email;
     }
@@ -193,6 +192,7 @@ public class Agent {
     public String getContactNo() {
         return contactNo;
     }
+
     public void setContactNo(String contactNo) {
         this.contactNo = contactNo;
     }
@@ -200,6 +200,7 @@ public class Agent {
     public String getGender() {
         return gender;
     }
+
     public void setGender(String gender) {
         this.gender = gender;
     }
@@ -207,6 +208,7 @@ public class Agent {
     public String getAddress() {
         return address;
     }
+
     public void setAddress(String address) {
         this.address = address;
     }
@@ -214,6 +216,7 @@ public class Agent {
     public String getIdentityProofType() {
         return identityProofType;
     }
+
     public void setIdentityProofType(String identityProofType) {
         this.identityProofType = identityProofType;
     }
@@ -221,6 +224,7 @@ public class Agent {
     public String getIdentityProofNumber() {
         return identityProofNumber;
     }
+
     public void setIdentityProofNumber(String identityProofNumber) {
         this.identityProofNumber = identityProofNumber;
     }
@@ -228,6 +232,7 @@ public class Agent {
     public String getDesignation() {
         return designation;
     }
+
     public void setDesignation(String designation) {
         this.designation = designation;
     }
@@ -235,6 +240,7 @@ public class Agent {
     public String getExperience() {
         return experience;
     }
+
     public void setExperience(String experience) {
         this.experience = experience;
     }
@@ -242,6 +248,7 @@ public class Agent {
     public String getStatus() {
         return status;
     }
+
     public void setStatus(String status) {
         this.status = status;
     }
@@ -249,6 +256,7 @@ public class Agent {
     public LocalDate getActivationDate() {
         return activationDate;
     }
+
     public void setActivationDate(LocalDate activationDate) {
         this.activationDate = activationDate;
     }
@@ -256,6 +264,7 @@ public class Agent {
     public LocalDate getCreationDate() {
         return creationDate;
     }
+
     public void setCreationDate(LocalDate creationDate) {
         this.creationDate = creationDate;
     }
@@ -263,6 +272,7 @@ public class Agent {
     public String getCompanyName() {
         return companyName;
     }
+
     public void setCompanyName(String companyName) {
         this.companyName = companyName;
     }
@@ -270,6 +280,7 @@ public class Agent {
     public String getRegisteredBusinessName() {
         return registeredBusinessName;
     }
+
     public void setRegisteredBusinessName(String registeredBusinessName) {
         this.registeredBusinessName = registeredBusinessName;
     }
@@ -277,6 +288,7 @@ public class Agent {
     public String getBusinessType() {
         return businessType;
     }
+
     public void setBusinessType(String businessType) {
         this.businessType = businessType;
     }
@@ -284,6 +296,7 @@ public class Agent {
     public String getRegistrationNumber() {
         return registrationNumber;
     }
+
     public void setRegistrationNumber(String registrationNumber) {
         this.registrationNumber = registrationNumber;
     }
@@ -291,6 +304,7 @@ public class Agent {
     public String getPanOrGstNumber() {
         return panOrGstNumber;
     }
+
     public void setPanOrGstNumber(String panOrGstNumber) {
         this.panOrGstNumber = panOrGstNumber;
     }
@@ -298,6 +312,7 @@ public class Agent {
     public String getRegisteredOfficeAddress() {
         return registeredOfficeAddress;
     }
+
     public void setRegisteredOfficeAddress(String registeredOfficeAddress) {
         this.registeredOfficeAddress = registeredOfficeAddress;
     }
@@ -305,6 +320,7 @@ public class Agent {
     public String getBranchOfficeAddress() {
         return branchOfficeAddress;
     }
+
     public void setBranchOfficeAddress(String branchOfficeAddress) {
         this.branchOfficeAddress = branchOfficeAddress;
     }
@@ -312,6 +328,7 @@ public class Agent {
     public String getCompanyEmail() {
         return companyEmail;
     }
+
     public void setCompanyEmail(String companyEmail) {
         this.companyEmail = companyEmail;
     }
@@ -319,6 +336,7 @@ public class Agent {
     public String getCompanyContactNo() {
         return companyContactNo;
     }
+
     public void setCompanyContactNo(String companyContactNo) {
         this.companyContactNo = companyContactNo;
     }
@@ -326,6 +344,7 @@ public class Agent {
     public String getWebsite() {
         return website;
     }
+
     public void setWebsite(String website) {
         this.website = website;
     }
@@ -333,6 +352,7 @@ public class Agent {
     public String getUserId() {
         return userId;
     }
+
     public void setUserId(String userId) {
         this.userId = userId;
     }
@@ -340,27 +360,23 @@ public class Agent {
     public String getPassword() {
         return password;
     }
+
     public void setPassword(String password) {
         this.password = password;
     }
 
-    public List<College> getCollegePrivileges() {
-        return collegePrivileges;
-    }
-    public void setCollegePrivileges(List<College> collegePrivileges) {
-        this.collegePrivileges = collegePrivileges;
+    public List<AgentCollegeAccess> getCollegeAccess() {
+        return collegeAccess;
     }
 
-    public List<Location> getAccessibleLocations() {
-        return accessibleLocations;
-    }
-    public void setAccessibleLocations(List<Location> accessibleLocations) {
-        this.accessibleLocations = accessibleLocations;
+    public void setCollegeAccess(List<AgentCollegeAccess> collegeAccess) {
+        this.collegeAccess = collegeAccess;
     }
 
     public List<Student> getStudent() {
         return student;
     }
+
     public void setStudent(List<Student> student) {
         this.student = student;
     }

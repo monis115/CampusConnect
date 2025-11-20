@@ -53,14 +53,6 @@ public class AddmissionManagerController {
         return manager != null ? ResponseEntity.ok(manager) : ResponseEntity.notFound().build();
     }
 
-    // READ BY USERNAME
-    @GetMapping("/userName/{userName}")
-    public ResponseEntity<AddmissionManager> getManagerByUserName(@PathVariable String userName) {
-        return service.getAdmissionManagerByUserName(userName)
-                .map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
-    }
-
     // READ MANAGERS WITH STUDENTS
     @GetMapping("/with-students")
     public ResponseEntity<List<AddmissionManager>> getManagersWithStudents() {
@@ -103,5 +95,58 @@ public class AddmissionManagerController {
     public ResponseEntity<Void> deleteManager(@PathVariable Long id) {
         service.deleteManager(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("userName/{userName}")
+    public ResponseEntity<?> getManagerByUserName(@PathVariable String userName) {
+        try {
+            Optional<AddmissionManager> manager = service.getAdmissionManagerByUserNameWithDetails(userName);
+            if (manager.isPresent()) {
+                return ResponseEntity.ok(manager.get());
+            }
+            return ResponseEntity.status(404).body("Manager not found with username: " + userName);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body("Error fetching manager: " + e.getMessage());
+        }
+    }
+
+    // FORWARD STUDENT TO UNIVERSITY PERSON
+    @PostMapping("/forward-student/{studentId}")
+    public ResponseEntity<?> forwardStudentToUniversityPerson(
+            @PathVariable Long studentId,
+            @RequestBody Map<String, String> request) {
+        try {
+            String admissionManagerUsername = request.get("admissionManagerUsername");
+            if (admissionManagerUsername == null || admissionManagerUsername.isEmpty()) {
+                return ResponseEntity.badRequest().body("admissionManagerUsername is required");
+            }
+
+            Student updatedStudent = service.forwardStudentToUniversityPerson(studentId, admissionManagerUsername);
+            return ResponseEntity.ok(updatedStudent);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body("Error forwarding student: " + e.getMessage());
+        }
+    }
+
+    // -------------------- APPROVE ADMISSION LETTER --------------------
+
+    @PostMapping("/approve-admission-letter/{studentId}")
+    public ResponseEntity<?> approveAdmissionLetter(
+            @PathVariable Long studentId,
+            @RequestBody Map<String, String> request) {
+        try {
+            String admissionManagerUsername = request.get("admissionManagerUsername");
+            if (admissionManagerUsername == null || admissionManagerUsername.isEmpty()) {
+                return ResponseEntity.badRequest().body("admissionManagerUsername is required");
+            }
+
+            Student updatedStudent = service.approveAdmissionLetter(studentId, admissionManagerUsername);
+            return ResponseEntity.ok(updatedStudent);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body("Error approving admission letter: " + e.getMessage());
+        }
     }
 }

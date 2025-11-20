@@ -2,6 +2,9 @@ package com.cc.modals;
 
 import java.time.LocalDateTime;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -15,57 +18,89 @@ import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "student_status_history")
+
+@JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" })
+
 public class StudentStatusHistory {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // Link back to the student
+    // Inside StudentStatusHistory.java
+
     @ManyToOne
-    @JoinColumn(name = "student_id", nullable = false)
+    @JoinColumn(name = "student_id")
+    // 👇 THIS IS THE MISSING LINE 👇
+    @JsonBackReference(value = "student-history")
     private Student student;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private StudentStatus oldStatus;
+    @Column(nullable = false, length = 50)
+    private StudentStatus studentApplicationStatus;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private StudentStatus newStatus;
+    public StudentStatus getStudentApplicationStatus() {
+        return studentApplicationStatus;
+    }
+
+    public void setStudentApplicationStatus(StudentStatus studentApplicationStatus) {
+        this.studentApplicationStatus = studentApplicationStatus;
+    }
 
     @Column(nullable = false)
-    private String updatedBy; // could be "Admin", "Agent", "System", "Student" 
+    private String updatedBy; // could be "Admin", "Agent", "System", "Student"
 
     @Column(nullable = false)
     private LocalDateTime updatedAt;
 
-    public StudentStatusHistory() {}
+    public StudentStatusHistory() {
+    }
 
-    public StudentStatusHistory(Student student, StudentStatus oldStatus, StudentStatus newStatus, String updatedBy) {
+    public StudentStatusHistory(Student student, StudentStatus newStatus, String updatedBy) {
         this.student = student;
-        this.oldStatus = oldStatus;
-        this.newStatus = newStatus;
+        this.studentApplicationStatus = newStatus;
         this.updatedBy = updatedBy;
         this.updatedAt = LocalDateTime.now();
     }
 
     // Getters and Setters
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
+    public Long getId() {
+        return id;
+    }
 
-    public Student getStudent() { return student; }
-    public void setStudent(Student student) { this.student = student; }
+    public void setId(Long id) {
+        this.id = id;
+    }
 
-    public StudentStatus getOldStatus() { return oldStatus; }
-    public void setOldStatus(StudentStatus oldStatus) { this.oldStatus = oldStatus; }
+    public Student getStudent() {
+        return student;
+    }
 
-    public StudentStatus getNewStatus() { return newStatus; }
-    public void setNewStatus(StudentStatus newStatus) { this.newStatus = newStatus; }
+    public void setStudent(Student student) {
+        this.student = student;
+    }
 
-    public String getUpdatedBy() { return updatedBy; }
-    public void setUpdatedBy(String updatedBy) { this.updatedBy = updatedBy; }
+    public StudentStatus getNewStatus() {
+        return studentApplicationStatus;
+    }
 
-    public LocalDateTime getUpdatedAt() { return updatedAt; }
-    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+    public void setNewStatus(StudentStatus newStatus) {
+        this.studentApplicationStatus = newStatus;
+    }
+
+    public String getUpdatedBy() {
+        return updatedBy;
+    }
+
+    public void setUpdatedBy(String updatedBy) {
+        this.updatedBy = updatedBy;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
 }

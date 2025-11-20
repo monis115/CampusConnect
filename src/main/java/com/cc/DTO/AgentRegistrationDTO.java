@@ -31,28 +31,41 @@ public class AgentRegistrationDTO {
     private String companyContactNo;
     private String website;
 
-    
- @Override
-	public String toString() {
-		return "AgentRegistrationDTO [fullName=" + fullName + ", gender=" + gender + ", dob=" + dob + ", age=" + age
-				+ ", email=" + email + ", contactNo=" + contactNo + ", address=" + address + ", identityProofType="
-				+ identityProofType + ", identityProofNumber=" + identityProofNumber + ", designation=" + designation
-				+ ", experience=" + experience + ", status=" + status + ", companyName=" + companyName
-				+ ", registeredBusinessName=" + registeredBusinessName + ", businessType=" + businessType
-				+ ", registrationNumber=" + registrationNumber + ", panOrGstNumber=" + panOrGstNumber
-				+ ", registeredOfficeAddress=" + registeredOfficeAddress + ", branchOfficeAddress="
-				+ branchOfficeAddress + ", companyEmail=" + companyEmail + ", companyContactNo=" + companyContactNo
-				+ ", website=" + website + ", collegeIds=" + collegeIds + ", locationIds=" + locationIds + ", userId="
-				+ userId + ", password=" + password + ", approvedCollegeIds=" + approvedCollegeIds + "]";
-	}
-	// Add these fields to AgentRegistrationDTO.java
+    @Override
+    public String toString() {
+        return "AgentRegistrationDTO [fullName=" + fullName + ", gender=" + gender + ", dob=" + dob + ", age=" + age
+                + ", email=" + email + ", contactNo=" + contactNo + ", address=" + address + ", identityProofType="
+                + identityProofType + ", identityProofNumber=" + identityProofNumber + ", designation=" + designation
+                + ", experience=" + experience + ", status=" + status + ", companyName=" + companyName
+                + ", registeredBusinessName=" + registeredBusinessName + ", businessType=" + businessType
+                + ", registrationNumber=" + registrationNumber + ", panOrGstNumber=" + panOrGstNumber
+                + ", registeredOfficeAddress=" + registeredOfficeAddress + ", branchOfficeAddress="
+                + branchOfficeAddress + ", companyEmail=" + companyEmail + ", companyContactNo=" + companyContactNo
+                + ", website=" + website + ", collegeIds=" + collegeIds + ", locationIds=" + locationIds + ", userId="
+                + userId + ", password=" + password + ", approvedCollegeIds=" + approvedCollegeIds + "]";
+    }
+
+    // Add these fields to AgentRegistrationDTO.java
+    private List<AgentCollegeAccessDTO> collegeAccessList;
+
+    // Deprecated but kept for backward compatibility if needed, though logic will
+    // shift to collegeAccessList
     private List<Long> collegeIds;
     private List<Long> locationIds;
 
     // Add getters and setters
+    public List<AgentCollegeAccessDTO> getCollegeAccessList() {
+        return collegeAccessList;
+    }
+
+    public void setCollegeAccessList(List<AgentCollegeAccessDTO> collegeAccessList) {
+        this.collegeAccessList = collegeAccessList;
+    }
+
     public List<Long> getCollegeIds() {
         return collegeIds;
     }
+
     public void setCollegeIds(List<Long> collegeIds) {
         this.collegeIds = collegeIds;
     }
@@ -60,9 +73,11 @@ public class AgentRegistrationDTO {
     public List<Long> getLocationIds() {
         return locationIds;
     }
+
     public void setLocationIds(List<Long> locationIds) {
         this.locationIds = locationIds;
     }
+
     // --- Login Credentials ---
     private String userId;
     private String password;
@@ -73,6 +88,7 @@ public class AgentRegistrationDTO {
     public String getFullName() {
         return fullName;
     }
+
     public void setFullName(String fullName) {
         this.fullName = fullName;
     }
@@ -80,6 +96,7 @@ public class AgentRegistrationDTO {
     public String getGender() {
         return gender;
     }
+
     public void setGender(String gender) {
         this.gender = gender;
     }
@@ -87,6 +104,7 @@ public class AgentRegistrationDTO {
     public LocalDate getDob() {
         return dob;
     }
+
     public void setDob(LocalDate dob) {
         this.dob = dob;
     }
@@ -94,6 +112,7 @@ public class AgentRegistrationDTO {
     public Integer getAge() {
         return age;
     }
+
     public void setAge(Integer age) {
         this.age = age;
     }
@@ -101,6 +120,7 @@ public class AgentRegistrationDTO {
     public String getEmail() {
         return email;
     }
+
     public void setEmail(String email) {
         this.email = email;
     }
@@ -108,6 +128,7 @@ public class AgentRegistrationDTO {
     public String getContactNo() {
         return contactNo;
     }
+
     public void setContactNo(String contactNo) {
         this.contactNo = contactNo;
     }
@@ -115,6 +136,7 @@ public class AgentRegistrationDTO {
     public String getAddress() {
         return address;
     }
+
     public void setAddress(String address) {
         this.address = address;
     }
@@ -122,6 +144,7 @@ public class AgentRegistrationDTO {
     public String getIdentityProofType() {
         return identityProofType;
     }
+
     public void setIdentityProofType(String identityProofType) {
         this.identityProofType = identityProofType;
     }
@@ -129,6 +152,7 @@ public class AgentRegistrationDTO {
     public String getIdentityProofNumber() {
         return identityProofNumber;
     }
+
     public void setIdentityProofNumber(String identityProofNumber) {
         this.identityProofNumber = identityProofNumber;
     }
@@ -136,6 +160,7 @@ public class AgentRegistrationDTO {
     public String getDesignation() {
         return designation;
     }
+
     public void setDesignation(String designation) {
         this.designation = designation;
     }
@@ -143,6 +168,7 @@ public class AgentRegistrationDTO {
     public String getExperience() {
         return experience;
     }
+
     public void setExperience(String experience) {
         this.experience = experience;
     }
@@ -150,6 +176,7 @@ public class AgentRegistrationDTO {
     public String getStatus() {
         return status;
     }
+
     public void setStatus(String status) {
         this.status = status;
     }
@@ -157,6 +184,7 @@ public class AgentRegistrationDTO {
     public String getCompanyName() {
         return companyName;
     }
+
     public void setCompanyName(String companyName) {
         this.companyName = companyName;
     }
@@ -164,6 +192,7 @@ public class AgentRegistrationDTO {
     public String getRegisteredBusinessName() {
         return registeredBusinessName;
     }
+
     public void setRegisteredBusinessName(String registeredBusinessName) {
         this.registeredBusinessName = registeredBusinessName;
     }
@@ -171,6 +200,7 @@ public class AgentRegistrationDTO {
     public String getBusinessType() {
         return businessType;
     }
+
     public void setBusinessType(String businessType) {
         this.businessType = businessType;
     }
@@ -178,6 +208,7 @@ public class AgentRegistrationDTO {
     public String getRegistrationNumber() {
         return registrationNumber;
     }
+
     public void setRegistrationNumber(String registrationNumber) {
         this.registrationNumber = registrationNumber;
     }
@@ -185,6 +216,7 @@ public class AgentRegistrationDTO {
     public String getPanOrGstNumber() {
         return panOrGstNumber;
     }
+
     public void setPanOrGstNumber(String panOrGstNumber) {
         this.panOrGstNumber = panOrGstNumber;
     }
@@ -192,6 +224,7 @@ public class AgentRegistrationDTO {
     public String getRegisteredOfficeAddress() {
         return registeredOfficeAddress;
     }
+
     public void setRegisteredOfficeAddress(String registeredOfficeAddress) {
         this.registeredOfficeAddress = registeredOfficeAddress;
     }
@@ -199,6 +232,7 @@ public class AgentRegistrationDTO {
     public String getBranchOfficeAddress() {
         return branchOfficeAddress;
     }
+
     public void setBranchOfficeAddress(String branchOfficeAddress) {
         this.branchOfficeAddress = branchOfficeAddress;
     }
@@ -206,6 +240,7 @@ public class AgentRegistrationDTO {
     public String getCompanyEmail() {
         return companyEmail;
     }
+
     public void setCompanyEmail(String companyEmail) {
         this.companyEmail = companyEmail;
     }
@@ -213,6 +248,7 @@ public class AgentRegistrationDTO {
     public String getCompanyContactNo() {
         return companyContactNo;
     }
+
     public void setCompanyContactNo(String companyContactNo) {
         this.companyContactNo = companyContactNo;
     }
@@ -220,6 +256,7 @@ public class AgentRegistrationDTO {
     public String getWebsite() {
         return website;
     }
+
     public void setWebsite(String website) {
         this.website = website;
     }
@@ -227,6 +264,7 @@ public class AgentRegistrationDTO {
     public String getUserId() {
         return userId;
     }
+
     public void setUserId(String userId) {
         this.userId = userId;
     }
@@ -234,6 +272,7 @@ public class AgentRegistrationDTO {
     public String getPassword() {
         return password;
     }
+
     public void setPassword(String password) {
         this.password = password;
     }
@@ -241,6 +280,7 @@ public class AgentRegistrationDTO {
     public List<Long> getApprovedCollegeIds() {
         return approvedCollegeIds;
     }
+
     public void setApprovedCollegeIds(List<Long> approvedCollegeIds) {
         this.approvedCollegeIds = approvedCollegeIds;
     }

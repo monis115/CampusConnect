@@ -14,6 +14,9 @@ public class AdminService {
     @Autowired
     private AdminRepository adminRepository;
 
+    @Autowired
+    private UserService userService;
+
     public List<Admin> getAllAdmins() {
         return adminRepository.findAll();
     }
@@ -23,9 +26,18 @@ public class AdminService {
     }
 
     public Admin createAdmin(Admin admin) {
-    	admin.setStatus("active");
-    	admin.setRole("admin");
-        return adminRepository.save(admin);
+        admin.setStatus("active");
+        admin.setRole("admin");
+        Admin savedAdmin = adminRepository.save(admin);
+
+        // Create User entry
+        com.cc.modals.User user = new com.cc.modals.User();
+        user.setUsername(savedAdmin.getUserId());
+        user.setPassword(savedAdmin.getPassword());
+        user.setRole("admin");
+        userService.createUser(user);
+
+        return savedAdmin;
     }
 
     public Admin updateAdmin(Long id, Admin updatedAdmin) {

@@ -29,7 +29,16 @@ public class AddmissionManagerService {
     @Autowired
     private StudentRepository studentRepo;
 
-     final Random random = new Random();
+    final Random random = new Random();
+
+    @Autowired
+    private UserService userService;
+
+    @Autowired
+    private com.cc.repository.UniversityPersonRepository universityPersonRepo;
+
+    @Autowired
+    private com.cc.repository.StudentStatusHistoryRepository statusHistoryRepo;
 
     // ===================== CREATE =====================
     @Transactional
@@ -58,6 +67,13 @@ public class AddmissionManagerService {
             }
         }
 
+        // Create User entry
+        com.cc.modals.User user = new com.cc.modals.User();
+        user.setUsername(savedManager.getUsername());
+        user.setPassword(savedManager.getPassword());
+        user.setRole("admission_manager");
+        userService.createUser(user);
+
         return savedManager;
     }
 
@@ -77,12 +93,10 @@ public class AddmissionManagerService {
 
             // Link new colleges
             if (dto.getCollegeIds() != null) {
-                dto.getCollegeIds().forEach(cid ->
-                    collegeRepo.findById(cid).ifPresent(college -> {
-                        college.setAdmissionManager(existing);
-                        existing.getColleges().add(college);
-                    })
-                );
+                dto.getCollegeIds().forEach(cid -> collegeRepo.findById(cid).ifPresent(college -> {
+                    college.setAdmissionManager(existing);
+                    existing.getColleges().add(college);
+                }));
             }
 
             return managerRepo.save(existing);
@@ -116,22 +130,21 @@ public class AddmissionManagerService {
         return managerRepo.findByStudentsIsNotEmpty();
     }
 
- // Inside StudentService.java (or AddmissionManagerService.java if you inject StudentRepository)
+    // Inside StudentService.java (or AddmissionManagerService.java if you inject
+    // StudentRepository)
 
     public List<Student> getApprovedStudentsForManager(AddmissionManager manager) {
         // Corrected: Use findByAdmissionManagerAndApplicationStatus
         return studentRepo.findByAdmissionManagerAndApplicationStatus(
-            manager, 
-            StudentStatus.APPROVED
-        );
+                manager,
+                StudentStatus.APPROVED);
     }
 
     public List<Student> getRegisteredOrUnderReviewStudentsForManager(AddmissionManager manager) {
         // Corrected: Use findByAdmissionManagerAndApplicationStatusIn
         return studentRepo.findByAdmissionManagerAndApplicationStatusIn(
-            manager,
-            java.util.Arrays.asList(StudentStatus.REGISTERED, StudentStatus.UNDER_REVIEW)
-        );
+                manager,
+                java.util.Arrays.asList(StudentStatus.REGISTERED, StudentStatus.UNDER_REVIEW));
     }
 
     // ===================== UTILITY =====================
@@ -156,5 +169,84 @@ public class AddmissionManagerService {
         } while (managerRepo.findByUsername(candidate).isPresent());
 
         return candidate;
+    }
+
+    public Optional<AddmissionManager> getAdmissionManagerByUserNameWithDetails(String username) {
+        return managerRepo.findByUsernameWithDetails(username);
+    }
+
+    // ===================== FORWARD STUDENT TO UNIVERSITY PERSON
+    // =====================
+    @Transactional
+    public Student forwardStudentToUniversityPerson(Long studentId, String admissionManagerUsername) {
+        // Find the student
+        Student student = studentRepo.findById(studentId)
+                .orElseThrow(() -> new RuntimeException("Student not found with ID: " + studentId));
+
+        // Validate that student has a college assigned
+        if (student.getCollege() == null) {
+            throw new RuntimeException("Student does not have a college assigned");
+        }
+
+        // Find the UniversityPerson for the student's college
+        com.cc.modals.UniversityPerson universityPerson = universityPersonRepo
+                .findByCollegeId(student.getCollege().getId())
+                .orElseThrow(() -> new RuntimeException("No UniversityPerson found for college: " +
+                        student.getCollege().getCollegeName()));
+
+        // Update student status
+        student.setApplicationStatus(StudentStatus.FORWARDED_TO_UNI);
+
+        // Assign student to UniversityPerson
+        student.setUniversityPerson(universityPerson);
+
+        // Save the student
+        Student updatedStudent = studentRepo.save(student);
+
+        // Create status history entry
+        com.cc.modals.StudentStatusHistory historyEntry = new com.cc.modals.StudentStatusHistory();
+        historyEntry.setStudent(updatedStudent);
+        historyEntry.setStudentApplicationStatus(StudentStatus.FORWARDED_TO_UNI);
+        historyEntry.setUpdatedBy(admissionManagerUsername);
+        historyEntry.setUpdatedAt(java.time.LocalDateTime.now());
+        statusHistoryRepo.save(historyEntry);
+
+        return updatedStudent;
+    }
+
+    // -------------------- APPROVE ADMISSION LETTER --------------------
+
+    @Transactional
+    public Student approveAdmissionLetter(Long studentId, String admissionManagerUsername) {
+
+        // Find student
+        Student student = studentRepo.findById(studentId)
+                .orElseThrow(() -> new RuntimeException("Student not found with ID: " + studentId));
+
+        // Validate admission letter exists (use internal method to bypass security
+        // check)
+        if (student.getAdmissionLetterPathInternal() == null || student.getAdmissionLetterPathInternal().isEmpty()) {
+            throw new RuntimeException("No admission letter found for this student");
+        }
+
+        // Validate current status
+        if (student.getApplicationStatus() != StudentStatus.ADMISSION_LETTER_GENERATED) {
+            throw new RuntimeException("Student status must be ADMISSION_LETTER_GENERATED to approve. Current status: "
+                    + student.getApplicationStatus());
+        }
+
+        // Update student status
+        student.setApplicationStatus(StudentStatus.ADMISSION_LETTER_APPROVED);
+        Student updatedStudent = studentRepo.save(student);
+
+        // Create status history entry
+        com.cc.modals.StudentStatusHistory historyEntry = new com.cc.modals.StudentStatusHistory();
+        historyEntry.setStudent(updatedStudent);
+        historyEntry.setStudentApplicationStatus(StudentStatus.ADMISSION_LETTER_APPROVED);
+        historyEntry.setUpdatedBy(admissionManagerUsername);
+        historyEntry.setUpdatedAt(java.time.LocalDateTime.now());
+        statusHistoryRepo.save(historyEntry);
+
+        return updatedStudent;
     }
 }

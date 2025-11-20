@@ -129,4 +129,18 @@ public class StudentController {
             return ResponseEntity.internalServerError().body("An unexpected error occurred: " + e.getMessage());
         }
     }
+    
+    
+    @GetMapping("/generated-by-manager-username/{username}")
+    public ResponseEntity<?> getStudentsByAdmissionManagerUsername(@PathVariable String username) {
+        try {
+            List<Student> students = studentService.getStudentsByAdmissionManagerUsername(username);
+            return ResponseEntity.ok(students);
+        } catch (RuntimeException e) {
+            // Handle the case where the manager username is not found
+            return ResponseEntity.badRequest().body("Error: " + e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("An unexpected error occurred: " + e.getMessage());
+        }
+    }
 }

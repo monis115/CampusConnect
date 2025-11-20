@@ -3,6 +3,7 @@ package com.cc.modals;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 import jakarta.persistence.CascadeType;
@@ -16,6 +17,8 @@ import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "admission_manager")
+@JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" })
+
 public class AddmissionManager {
 
     @Id
@@ -50,20 +53,20 @@ public class AddmissionManager {
     // and should not be deleted when un-assigned from a manager.
     // We keep CascadeType.ALL to save/update colleges when a manager is saved,
     // but we will manually handle unlinking in the service.
-    @OneToMany(
-    	    mappedBy = "admissionManager",
-    	    cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH, CascadeType.DETACH}
-    	)
-    	@JsonManagedReference(value = "manager-college")
-    	private List<College> colleges = new ArrayList<>();
+    @OneToMany(mappedBy = "admissionManager", cascade = { CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH,
+            CascadeType.DETACH })
+    @JsonIgnoreProperties("admissionManager")
+    private List<College> colleges = new ArrayList<>();
 
     // One manager can issue admission letters to multiple students
-    // --- NOTE: You might also want to remove orphanRemoval here if Students are shared ---
+    // --- NOTE: You might also want to remove orphanRemoval here if Students are
+    // shared ---
     @OneToMany(mappedBy = "admissionManager", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference(value = "manager-student")
     private List<Student> students = new ArrayList<>();
 
-    public AddmissionManager() {}
+    public AddmissionManager() {
+    }
 
     public AddmissionManager(String fullName, String email, String contactNumber) {
         this.fullName = fullName;
@@ -158,4 +161,3 @@ public class AddmissionManager {
     // Relationship helpers
     // (You can add helpers here if needed, e.g., addCollege, removeCollege)
 }
-
