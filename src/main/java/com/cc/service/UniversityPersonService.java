@@ -105,6 +105,11 @@ public class UniversityPersonService {
         return upRepository.findAll();
     }
 
+    public UniversityPerson getByUserName(String userName) {
+        return upRepository.findByUserName(userName)
+                .orElseThrow(() -> new RuntimeException("UniversityPerson not found with username: " + userName));
+    }
+
     // -------------------- DELETE --------------------
 
     public void delete(Long id) {

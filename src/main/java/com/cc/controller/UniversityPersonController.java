@@ -48,6 +48,11 @@ public class UniversityPersonController {
         return ResponseEntity.ok(service.getAll());
     }
 
+    @GetMapping("/username/{username}")
+    public ResponseEntity<UniversityPerson> getByUserName(@PathVariable String username) {
+        return ResponseEntity.ok(service.getByUserName(username));
+    }
+
     // -------------------- DELETE --------------------
 
     @DeleteMapping("/{id}")

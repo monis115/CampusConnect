@@ -8,7 +8,6 @@ import java.nio.file.StandardCopyOption;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Objects;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,6 +44,7 @@ import com.itextpdf.layout.properties.TextAlignment;
 import com.itextpdf.layout.properties.UnitValue;
 
 @Service
+@SuppressWarnings("null")
 public class StudentService {
 
     @Autowired
@@ -67,6 +67,9 @@ public class StudentService {
 
     @Autowired
     private UniversityPersonRepository universityPersonRepository;
+
+    @Autowired
+    private AccountantService accountantService;
 
     // ═══════════════════════════════════════════════════════════════════════════
     // ADD STUDENT WITH FILE UPLOADS
@@ -172,6 +175,7 @@ public class StudentService {
         student.setAdhaarPath(savedAdhaarPath);
         student.setMarkseetPath(savedMarksheetPath);
         student.setProfileImagePath(savedProfilePath);
+        student.setPassportPath(savedPassportPath);
 
         StudentStatusHistory history = new StudentStatusHistory();
 
@@ -182,7 +186,13 @@ public class StudentService {
 
         student.getStudentStatusHistory().add(history);
 
-        // Step 7: Save Student
+        // Step 7: Assign Accountant
+        List<com.cc.modals.Accountant> accountants = accountantService.getAll();
+        if (!accountants.isEmpty()) {
+            student.setAccountant(accountants.get(0));
+        }
+
+        // Step 8: Save Student
         Student savedStudent = studentRepository.save(student);
 
         // Step 8: Generate PDF Confirmation
@@ -451,6 +461,41 @@ public class StudentService {
 
         // Step 6: Persist student assignment
         studentRepository.save(student);
+    }
+
+    @Transactional
+    public Student initiateTelexProcess(Long studentId, MultipartFile passport, String agentUsername) {
+        Student student = studentRepository.findById(studentId)
+                .orElseThrow(() -> new RuntimeException("Student not found"));
+
+        // Validate status
+        if (student.getApplicationStatus() != StudentStatus.ADMISSION_LETTER_APPROVED) {
+            throw new RuntimeException("Student status must be ADMISSION_LETTER_APPROVED to initiate Telex. Current: "
+                    + student.getApplicationStatus());
+        }
+
+        // Validate Agent
+        if (student.getAgent() == null || !student.getAgent().getUserId().equals(agentUsername)) {
+            throw new RuntimeException("Unauthorized: Only the assigned Agent can initiate Telex");
+        }
+
+        // Save Passport
+        String safeName = student.getFullName().replaceAll("\\s+", "_");
+        String savedPassportPath = saveUploadedFile(passport, "passport", safeName + "_passport_telex");
+        student.setPassportPath(savedPassportPath);
+
+        // Update Status
+        student.setApplicationStatus(StudentStatus.APPLIED_FOR_TELEX);
+
+        // Add History
+        StudentStatusHistory history = new StudentStatusHistory();
+        history.setStudent(student);
+        history.setStudentApplicationStatus(StudentStatus.APPLIED_FOR_TELEX);
+        history.setUpdatedBy(agentUsername);
+        history.setUpdatedAt(LocalDateTime.now());
+        student.getStudentStatusHistory().add(history);
+
+        return studentRepository.save(student);
     }
 
 }

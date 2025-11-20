@@ -1,7 +1,5 @@
 package com.cc.modals;
 
-import java.util.List;
-
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
@@ -37,7 +35,7 @@ public class AgentCollegeAccess {
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "agent_college_access_locations", joinColumns = @JoinColumn(name = "access_id"), inverseJoinColumns = @JoinColumn(name = "location_id"))
-    private List<Location> allowedLocations;
+    private java.util.Set<Location> allowedLocations;
 
     @Column(nullable = false)
     private boolean accessAllLocations = false;
@@ -45,7 +43,7 @@ public class AgentCollegeAccess {
     public AgentCollegeAccess() {
     }
 
-    public AgentCollegeAccess(Agent agent, College college, List<Location> allowedLocations,
+    public AgentCollegeAccess(Agent agent, College college, java.util.Set<Location> allowedLocations,
             boolean accessAllLocations) {
         this.agent = agent;
         this.college = college;
@@ -77,11 +75,11 @@ public class AgentCollegeAccess {
         this.college = college;
     }
 
-    public List<Location> getAllowedLocations() {
+    public java.util.Set<Location> getAllowedLocations() {
         return allowedLocations;
     }
 
-    public void setAllowedLocations(List<Location> allowedLocations) {
+    public void setAllowedLocations(java.util.Set<Location> allowedLocations) {
         this.allowedLocations = allowedLocations;
     }
 

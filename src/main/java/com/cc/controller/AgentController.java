@@ -107,4 +107,18 @@ public class AgentController {
         }
     }
 
+    @Autowired
+    private com.cc.service.StudentService studentService;
+
+    @PostMapping("/initiate-telex/{studentId}")
+    public ResponseEntity<?> initiateTelex(@PathVariable Long studentId,
+            @org.springframework.web.bind.annotation.RequestParam("passport") org.springframework.web.multipart.MultipartFile passport,
+            @org.springframework.web.bind.annotation.RequestParam("agentUsername") String agentUsername) {
+        try {
+            return ResponseEntity.ok(studentService.initiateTelexProcess(studentId, passport, agentUsername));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
 }

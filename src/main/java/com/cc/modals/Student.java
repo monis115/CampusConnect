@@ -57,6 +57,9 @@ public class Student {
 	@Column(nullable = false)
 	private LocalDate passportValidTill;
 
+	@Column(name = "passport_path", nullable = true)
+	private String passportPath;
+
 	@Column(nullable = false)
 	private String intake;
 
@@ -140,6 +143,40 @@ public class Student {
 	@JoinColumn(name = "agent_id")
 	@JsonBackReference(value = "agent-student")
 	private Agent agent;
+
+	@Column(nullable = false)
+	private String paymentStatus = "Pending"; // Default to Pending
+
+	// Relationships with Specialized Roles
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "telex_man_id")
+	@JsonIgnoreProperties("students")
+	private TelexMan telexMan;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "visa_man_id")
+	@JsonIgnoreProperties("students")
+	private VisaMan visaMan;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "doc_person_id")
+	@JsonIgnoreProperties("students")
+	private DocPerson docPerson;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "accountant_id")
+	@JsonIgnoreProperties("students")
+	private Accountant accountant;
+
+	// Telex Details
+	@Column(name = "telex_number")
+	private String telexNumber;
+
+	@Column(name = "telex_issue_date")
+	private LocalDate telexIssueDate;
+
+	@Column(name = "telex_documents_path", length = 1000)
+	private String telexDocumentsPath;
 	// Inside Student.java
 
 	@OneToMany(mappedBy = "student", cascade = CascadeType.ALL)
@@ -284,6 +321,14 @@ public class Student {
 
 	public void setPassportValidTill(LocalDate passportValidTill) {
 		this.passportValidTill = passportValidTill;
+	}
+
+	public String getPassportPath() {
+		return passportPath;
+	}
+
+	public void setPassportPath(String passportPath) {
+		this.passportPath = passportPath;
 	}
 
 	public String getIntake() {
@@ -468,5 +513,67 @@ public class Student {
 		this.id = id;
 	}
 
-	// add remaining getters/setters as required by your service logic
+	public String getPaymentStatus() {
+		return paymentStatus;
+	}
+
+	public void setPaymentStatus(String paymentStatus) {
+		this.paymentStatus = paymentStatus;
+	}
+
+	public TelexMan getTelexMan() {
+		return telexMan;
+	}
+
+	public void setTelexMan(TelexMan telexMan) {
+		this.telexMan = telexMan;
+	}
+
+	public VisaMan getVisaMan() {
+		return visaMan;
+	}
+
+	public void setVisaMan(VisaMan visaMan) {
+		this.visaMan = visaMan;
+	}
+
+	public DocPerson getDocPerson() {
+		return docPerson;
+	}
+
+	public void setDocPerson(DocPerson docPerson) {
+		this.docPerson = docPerson;
+	}
+
+	public Accountant getAccountant() {
+		return accountant;
+	}
+
+	public void setAccountant(Accountant accountant) {
+		this.accountant = accountant;
+	}
+
+	public String getTelexNumber() {
+		return telexNumber;
+	}
+
+	public void setTelexNumber(String telexNumber) {
+		this.telexNumber = telexNumber;
+	}
+
+	public LocalDate getTelexIssueDate() {
+		return telexIssueDate;
+	}
+
+	public void setTelexIssueDate(LocalDate telexIssueDate) {
+		this.telexIssueDate = telexIssueDate;
+	}
+
+	public String getTelexDocumentsPath() {
+		return telexDocumentsPath;
+	}
+
+	public void setTelexDocumentsPath(String telexDocumentsPath) {
+		this.telexDocumentsPath = telexDocumentsPath;
+	}
 }

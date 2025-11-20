@@ -3,7 +3,6 @@ package com.cc.service;
 import com.cc.DTO.AddmissionManagerCreateDTO;
 import com.cc.DTO.UpdateAdmissionManagerDTO;
 import com.cc.modals.AddmissionManager;
-import com.cc.modals.College;
 import com.cc.modals.Student;
 import com.cc.modals.StudentStatus;
 import com.cc.repository.AddmissionManagerRepository;
@@ -15,9 +14,9 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
+@SuppressWarnings("null")
 public class AddmissionManagerService {
 
     @Autowired
@@ -39,6 +38,9 @@ public class AddmissionManagerService {
 
     @Autowired
     private com.cc.repository.StudentStatusHistoryRepository statusHistoryRepo;
+
+    @Autowired
+    private DocPersonService docPersonService;
 
     // ===================== CREATE =====================
     @Transactional
@@ -237,6 +239,13 @@ public class AddmissionManagerService {
 
         // Update student status
         student.setApplicationStatus(StudentStatus.ADMISSION_LETTER_APPROVED);
+
+        // Assign DocPerson
+        List<com.cc.modals.DocPerson> docPersons = docPersonService.getAll();
+        if (!docPersons.isEmpty()) {
+            student.setDocPerson(docPersons.get(0));
+        }
+
         Student updatedStudent = studentRepo.save(student);
 
         // Create status history entry

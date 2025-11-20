@@ -81,7 +81,7 @@ public class AgentService {
 
         // === College Access Privileges ===
         List<AgentCollegeAccess> accessList = processCollegeAccess(agentDTO.getCollegeAccessList(), newAgent);
-        newAgent.setCollegeAccess(accessList);
+        newAgent.setCollegeAccess(new java.util.HashSet<>(accessList));
 
         // === Login Credentials ===
         String userId = generateUniqueUserId(agentDTO.getAge(), agentDTO.getDob().getYear());
@@ -144,7 +144,7 @@ public class AgentService {
 
         // === No privileges until approved ===
         // === No privileges until approved ===
-        newAgent.setCollegeAccess(new ArrayList<>());
+        newAgent.setCollegeAccess(new java.util.HashSet<>());
 
         // === Login Credentials ===
         String userId = generateUniqueUserId(agentDTO.getAge(), agentDTO.getDob().getYear());
@@ -205,7 +205,7 @@ public class AgentService {
         agent.setActivationDate(LocalDate.now());
 
         List<AgentCollegeAccess> accessList = processCollegeAccess(accessDTOs, agent);
-        agent.setCollegeAccess(accessList);
+        agent.setCollegeAccess(new java.util.HashSet<>(accessList));
 
         return agentRepository.save(agent);
     }
@@ -256,7 +256,7 @@ public class AgentService {
             access.setAgent(agent);
             access.setCollege(college);
             access.setAccessAllLocations(dto.isAccessAllLocations());
-            access.setAllowedLocations(locations);
+            access.setAllowedLocations(new java.util.HashSet<>(locations));
 
             accessList.add(access);
         }

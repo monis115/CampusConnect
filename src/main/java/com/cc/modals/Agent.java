@@ -123,7 +123,7 @@ public class Agent {
     // -------------------- Relationships --------------------
     @OneToMany(mappedBy = "agent", cascade = jakarta.persistence.CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
-    private List<AgentCollegeAccess> collegeAccess;
+    private java.util.Set<AgentCollegeAccess> collegeAccess;
 
     @OneToMany(mappedBy = "agent")
     @JsonManagedReference(value = "agent-student") // <-- CHANGE TO MANAGED
@@ -365,11 +365,11 @@ public class Agent {
         this.password = password;
     }
 
-    public List<AgentCollegeAccess> getCollegeAccess() {
+    public java.util.Set<AgentCollegeAccess> getCollegeAccess() {
         return collegeAccess;
     }
 
-    public void setCollegeAccess(List<AgentCollegeAccess> collegeAccess) {
+    public void setCollegeAccess(java.util.Set<AgentCollegeAccess> collegeAccess) {
         this.collegeAccess = collegeAccess;
     }
 
