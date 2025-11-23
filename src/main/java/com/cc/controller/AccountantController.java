@@ -69,4 +69,72 @@ public class AccountantController {
         service.delete(id);
         return ResponseEntity.noContent().build();
     }
+
+    // Update Student Payment Status
+    @PostMapping("/update-payment/{studentId}")
+    public ResponseEntity<?> updatePaymentStatus(
+            @PathVariable Long studentId,
+            @RequestBody java.util.Map<String, String> request) {
+        try {
+            String paymentStatus = request.get("paymentStatus");
+            String accountantUsername = request.get("accountantUsername");
+
+            if (paymentStatus == null || paymentStatus.isEmpty()) {
+                return ResponseEntity.badRequest().body("paymentStatus is required");
+            }
+            if (accountantUsername == null || accountantUsername.isEmpty()) {
+                return ResponseEntity.badRequest().body("accountantUsername is required");
+            }
+
+            com.cc.modals.Student updatedStudent = service.updateStudentPaymentStatus(studentId, paymentStatus,
+                    accountantUsername);
+            return ResponseEntity.ok(updatedStudent);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body("Error updating payment status: " + e.getMessage());
+        }
+    }
+
+    @PostMapping("/approve-telex-payment/{studentId}")
+    public ResponseEntity<?> approveTelexPayment(
+            @PathVariable Long studentId,
+            @RequestBody java.util.Map<String, Object> request) {
+        try {
+            Double receivedAmount = Double.valueOf(request.get("receivedAmount").toString());
+            String accountantUsername = (String) request.get("accountantUsername");
+
+            if (receivedAmount == null) {
+                return ResponseEntity.badRequest().body("receivedAmount is required");
+            }
+            if (accountantUsername == null || accountantUsername.isEmpty()) {
+                return ResponseEntity.badRequest().body("accountantUsername is required");
+            }
+
+            com.cc.modals.Student updatedStudent = service.approveTelexPayment(studentId, receivedAmount,
+                    accountantUsername);
+            return ResponseEntity.ok(updatedStudent);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body("Error approving telex payment: " + e.getMessage());
+        }
+    }
+
+    @PostMapping("/confirm-visa-fee/{studentId}")
+    public ResponseEntity<?> confirmVisaFee(
+            @PathVariable Long studentId,
+            @RequestBody java.util.Map<String, String> request) {
+        try {
+            String accountantUsername = request.get("accountantUsername");
+
+            if (accountantUsername == null || accountantUsername.isEmpty()) {
+                return ResponseEntity.badRequest().body("accountantUsername is required");
+            }
+
+            com.cc.modals.Student updatedStudent = service.confirmVisaFee(studentId, accountantUsername);
+            return ResponseEntity.ok(updatedStudent);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body("Error confirming visa fee: " + e.getMessage());
+        }
+    }
 }

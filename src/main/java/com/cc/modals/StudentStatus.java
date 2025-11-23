@@ -10,19 +10,24 @@ public enum StudentStatus {
     UNDER_REVIEW,
     PENDING_APPROVAL,
     APPROVED,
-    FORWARDED_TO_UNI,
 
-    // New Admission Steps
-    CONDITIONAL_OFFER_LETTER_ISSUED,
+    // Admission Process
+    CONDITIONAL_OFFER_LETTER_GENERATED,
     PENDING_ADMISSION_LETTER,
-    ADMISSION_LETTER_RECEIVED,
+    ADMISSION_LETTER_GENERATED, // Approved by Manager
+
+    ADMISSION_LETTER_APPROVED,
 
     // Telex Process
-    ASSIGNED_TO_TELEX_MANAGER,
+    TELEX_PAYMENT_DOCS_SUBMITTED, // Agent submitted
     APPLIED_FOR_TELEX,
+    TELEX_FEE_RECIEVED,
+    TELEX_INITIATED, // Approved by Accountant & Doc
     TELEX_APPLICATION_SUBMITTED_TO_UNIVERSITY,
     TELEX_APPLICATION_SUBMITTED_TO_MEA,
     TELEX_NUMBER_ISSUED,
+    DOCS_VARIFICATION_COMPLETE,
+    DOCS_VARIFICATION_APPROVED, // Legacy - kept for backwards compatibility with old DB records
 
     // Visa Process
     VISA_FEE_PENDING,
@@ -31,15 +36,11 @@ public enum StudentStatus {
     PASSPORT_SUBMITTED_TO_EMBASSY,
     VISA_STAMPED,
 
-    // Legacy/Existing
-    TELEX_MAN_ASSIGNED,
-    ADMISSION_LETTER_WAITING, // Might be redundant with PENDING_ADMISSION_LETTER, keeping for safety
-    ADMISSION_LETTER_GENERATED, // Might be redundant with ADMISSION_LETTER_RECEIVED
-    ADMISSION_LETTER_APPROVED,
-    TELEX_INITIATED, // Legacy
-    TELEX_APPROVED, // Legacy
-    VISA_INITIATED, // Legacy
-    VISA_APPROVED, // Legacy
+    // Legacy/Other
     COMPLETED,
-    REJECTED
+    REJECTED,
+
+    // Keeping some legacy for backward compatibility if needed, or remove if safe
+    FORWARDED_TO_UNI, // Deprecated in new flow but keeping to avoid immediate break
+    PAYMENT_APPROVED // Kept for general payment
 }

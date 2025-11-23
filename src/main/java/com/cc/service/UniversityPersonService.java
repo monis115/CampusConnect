@@ -159,13 +159,74 @@ public class UniversityPersonService {
 
         // Update student
         student.setAdmissionLetterPath(filePath.toString());
-        student.setApplicationStatus(StudentStatus.ADMISSION_LETTER_GENERATED);
+        // update action
+        student.setAction(action.APPROVE_ADMISSION_LETTER);
+        student.setActionOnUser(actionOnUser.admission_manager);
+
+        student.setApplicationStatus(StudentStatus.PENDING_ADMISSION_LETTER);
         Student updatedStudent = studentRepository.save(student);
 
         // Create status history entry
         StudentStatusHistory historyEntry = new StudentStatusHistory();
         historyEntry.setStudent(updatedStudent);
-        historyEntry.setStudentApplicationStatus(StudentStatus.ADMISSION_LETTER_GENERATED);
+        historyEntry.setStudentApplicationStatus(StudentStatus.PENDING_ADMISSION_LETTER);
+        historyEntry.setUpdatedBy(universityPersonUsername);
+        historyEntry.setUpdatedAt(java.time.LocalDateTime.now());
+        statusHistoryRepo.save(historyEntry);
+
+        return updatedStudent;
+    }
+
+    // -------------------- CONDITIONAL OFFER LETTER UPLOAD --------------------
+
+    @org.springframework.transaction.annotation.Transactional
+    public Student uploadConditionalOfferLetter(Long studentId, String universityPersonUsername, MultipartFile file)
+            throws IOException {
+
+        // Find student
+        Student student = studentRepository.findById(studentId)
+                .orElseThrow(() -> new RuntimeException("Student not found with ID: " + studentId));
+
+        // Find UniversityPerson by username
+        UniversityPerson universityPerson = upRepository.findByUserName(universityPersonUsername)
+                .orElseThrow(() -> new RuntimeException(
+                        "UniversityPerson not found with username: " + universityPersonUsername));
+
+        // Validate that this student is assigned to this UniversityPerson
+        if (student.getUniversityPerson() == null ||
+                !student.getUniversityPerson().getId().equals(universityPerson.getId())) {
+            throw new RuntimeException("Student is not assigned to this UniversityPerson");
+        }
+
+        // Validate file
+        if (file.isEmpty()) {
+            throw new RuntimeException("File is empty");
+        }
+
+        // Save file
+        String fileName = "conditional_letter_" + student.getId() + "_" + UUID.randomUUID() + ".pdf";
+        Path uploadPath = Paths.get("uploads/conditional-letters");
+
+        if (!Files.exists(uploadPath)) {
+            Files.createDirectories(uploadPath);
+        }
+
+        Path filePath = uploadPath.resolve(fileName);
+        Files.copy(file.getInputStream(), filePath);
+
+        // update action
+        student.setAction(action.UPLOAD_ADMISSION_LETTER);
+        student.setActionOnUser(actionOnUser.UniversityCoordinator);
+
+        // Update student
+        student.setConditionalOfferLetterPath(filePath.toString());
+        student.setApplicationStatus(StudentStatus.CONDITIONAL_OFFER_LETTER_GENERATED);
+        Student updatedStudent = studentRepository.save(student);
+
+        // Create status history entry
+        StudentStatusHistory historyEntry = new StudentStatusHistory();
+        historyEntry.setStudent(updatedStudent);
+        historyEntry.setStudentApplicationStatus(StudentStatus.CONDITIONAL_OFFER_LETTER_GENERATED);
         historyEntry.setUpdatedBy(universityPersonUsername);
         historyEntry.setUpdatedAt(java.time.LocalDateTime.now());
         statusHistoryRepo.save(historyEntry);

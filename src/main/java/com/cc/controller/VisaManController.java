@@ -30,6 +30,20 @@ public class VisaManController {
         return ResponseEntity.ok(service.getAll());
     }
 
+    // Get One Username (First Available)
+    @GetMapping("/username-only")
+    public ResponseEntity<java.util.Map<String, String>> getOneUsername() {
+        return service.getAll().stream()
+                .map(VisaMan::getUsername)
+                .findFirst()
+                .map(username -> {
+                    java.util.Map<String, String> response = new java.util.HashMap<>();
+                    response.put("username", username);
+                    return ResponseEntity.ok(response);
+                })
+                .orElse(ResponseEntity.notFound().build());
+    }
+
     // Read by ID
     @GetMapping("/{id}")
     public ResponseEntity<VisaMan> getById(@PathVariable Long id) {
@@ -75,5 +89,35 @@ public class VisaManController {
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         service.delete(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/submit-passport/{studentId}")
+    public ResponseEntity<?> submitPassport(
+            @PathVariable Long studentId,
+            @RequestBody java.util.Map<String, String> request) {
+        try {
+            String visaManUsername = request.get("visaManUsername");
+            if (visaManUsername == null || visaManUsername.isEmpty()) {
+                return ResponseEntity.badRequest().body("visaManUsername is required");
+            }
+            return ResponseEntity.ok(service.submitPassport(studentId, visaManUsername));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Error submitting passport: " + e.getMessage());
+        }
+    }
+
+    @PostMapping("/stamp-visa/{studentId}")
+    public ResponseEntity<?> stampVisa(
+            @PathVariable Long studentId,
+            @RequestBody java.util.Map<String, String> request) {
+        try {
+            String visaManUsername = request.get("visaManUsername");
+            if (visaManUsername == null || visaManUsername.isEmpty()) {
+                return ResponseEntity.badRequest().body("visaManUsername is required");
+            }
+            return ResponseEntity.ok(service.stampVisa(studentId, visaManUsername));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Error stamping visa: " + e.getMessage());
+        }
     }
 }

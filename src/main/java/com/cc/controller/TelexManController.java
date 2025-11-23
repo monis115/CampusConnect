@@ -30,6 +30,20 @@ public class TelexManController {
         return ResponseEntity.ok(service.getAll());
     }
 
+    // Get One Username (First Available)
+    @GetMapping("/username-only")
+    public ResponseEntity<java.util.Map<String, String>> getOneUsername() {
+        return service.getAll().stream()
+                .map(TelexMan::getUsername)
+                .findFirst()
+                .map(username -> {
+                    java.util.Map<String, String> response = new java.util.HashMap<>();
+                    response.put("username", username);
+                    return ResponseEntity.ok(response);
+                })
+                .orElse(ResponseEntity.notFound().build());
+    }
+
     // Read by ID
     @GetMapping("/{id}")
     public ResponseEntity<TelexMan> getById(@PathVariable Long id) {
@@ -75,5 +89,61 @@ public class TelexManController {
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         service.delete(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/submit-to-university/{studentId}")
+    public ResponseEntity<?> submitToUniversity(
+            @PathVariable Long studentId,
+            @RequestBody java.util.Map<String, String> request) {
+        try {
+            String telexManUsername = request.get("telexManUsername");
+            if (telexManUsername == null || telexManUsername.isEmpty()) {
+                return ResponseEntity.badRequest().body("telexManUsername is required");
+            }
+            return ResponseEntity.ok(service.submitToUniversity(studentId, telexManUsername));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Error submitting to university: " + e.getMessage());
+        }
+    }
+
+    @PostMapping("/submit-to-mea/{studentId}")
+    public ResponseEntity<?> submitToMEA(
+            @PathVariable Long studentId,
+            @RequestBody java.util.Map<String, String> request) {
+        try {
+            String telexManUsername = request.get("telexManUsername");
+            if (telexManUsername == null || telexManUsername.isEmpty()) {
+                return ResponseEntity.badRequest().body("telexManUsername is required");
+            }
+            return ResponseEntity.ok(service.submitToMEA(studentId, telexManUsername));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Error submitting to MEA: " + e.getMessage());
+        }
+    }
+
+    @PostMapping("/issue-telex-number/{studentId}")
+    public ResponseEntity<?> issueTelexNumber(
+            @PathVariable Long studentId,
+            @RequestBody java.util.Map<String, String> request) {
+        try {
+            String telexNumber = request.get("telexNumber");
+            String issueDateStr = request.get("issueDate");
+            String telexManUsername = request.get("telexManUsername");
+
+            if (telexNumber == null || telexNumber.isEmpty()) {
+                return ResponseEntity.badRequest().body("telexNumber is required");
+            }
+            if (issueDateStr == null || issueDateStr.isEmpty()) {
+                return ResponseEntity.badRequest().body("issueDate is required");
+            }
+            if (telexManUsername == null || telexManUsername.isEmpty()) {
+                return ResponseEntity.badRequest().body("telexManUsername is required");
+            }
+
+            java.time.LocalDate issueDate = java.time.LocalDate.parse(issueDateStr);
+            return ResponseEntity.ok(service.issueTelexNumber(studentId, telexNumber, issueDate, telexManUsername));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Error issuing telex number: " + e.getMessage());
+        }
     }
 }

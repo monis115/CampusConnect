@@ -23,6 +23,9 @@ public class Student {
 	@Column(nullable = false)
 	private String fullName;
 
+	@Column(nullable = false, unique = true)
+	private String applicationId;
+
 	@Column(nullable = false)
 	private LocalDate dob;
 
@@ -128,6 +131,9 @@ public class Student {
 	@Column(name = "admission_letter_path", nullable = true)
 	private String admissionLetterPath;
 
+	@Column(name = "conditional_offer_letter_path", nullable = true)
+	private String conditionalOfferLetterPath;
+
 	@Column(name = "profile_image_path", nullable = true)
 	private String profileImagePath;
 
@@ -177,12 +183,55 @@ public class Student {
 
 	@Column(name = "telex_documents_path", length = 1000)
 	private String telexDocumentsPath;
-	// Inside Student.java
+
+	// New Fields for Telex Process
+	@Column(name = "passport_validation_date")
+	private LocalDate passportValidationDate;
+
+	@Column(name = "telex_payment_amount")
+	private Double telexPaymentAmount;
+
+	@Column(name = "telex_payment_screenshot_path")
+	private String telexPaymentScreenshotPath;
+
+	@Column(name = "telex_payment_tx_id")
+	private String telexPaymentTxId;
+
+	@Column(name = "telex_payment_received_amount")
+	private Double telexPaymentReceivedAmount;
+
+	@Column(name = "is_telex_accountant_approved")
+	private Boolean isTelexAccountantApproved = false;
+
+	@Column(name = "is_telex_doc_approved")
+	private Boolean isTelexDocApproved = false;
+
+	@Column(name = "doc_person_comment")
+	private String docPersonComment;
 
 	@OneToMany(mappedBy = "student", cascade = CascadeType.ALL)
 	// This side was likely already there, which caused the error
 	@JsonManagedReference(value = "student-history")
 	private List<StudentStatusHistory> studentStatusHistory = new java.util.ArrayList<>();
+
+	private Enum action;
+	private Enum actionOnUser;
+
+	public void setAction(Enum action) {
+		this.action = action;
+	}
+
+	public void setActionOnUser(Enum actionOnUser) {
+		this.actionOnUser = actionOnUser;
+	}
+
+	public Enum getAction() {
+		return action;
+	}
+
+	public Enum getActionOnUser() {
+		return actionOnUser;
+	}
 
 	// Constructors, minimal for brevity
 	public Student() {
@@ -201,6 +250,14 @@ public class Student {
 
 	public void setFullName(String fullName) {
 		this.fullName = fullName;
+	}
+
+	public String getApplicationId() {
+		return applicationId;
+	}
+
+	public void setApplicationId(String applicationId) {
+		this.applicationId = applicationId;
 	}
 
 	public LocalDate getDob() {
@@ -469,7 +526,7 @@ public class Student {
 
 	public String getAdmissionLetterPath() {
 		// Only return admission letter path if it's been approved
-		if (this.applicationStatus == StudentStatus.ADMISSION_LETTER_APPROVED) {
+		if (this.applicationStatus == StudentStatus.ADMISSION_LETTER_GENERATED) {
 			return admissionLetterPath;
 		}
 		return null; // Hide from students/agents until approved
@@ -483,6 +540,14 @@ public class Student {
 
 	public void setAdmissionLetterPath(String admissionLetterPath) {
 		this.admissionLetterPath = admissionLetterPath;
+	}
+
+	public String getConditionalOfferLetterPath() {
+		return conditionalOfferLetterPath;
+	}
+
+	public void setConditionalOfferLetterPath(String conditionalOfferLetterPath) {
+		this.conditionalOfferLetterPath = conditionalOfferLetterPath;
 	}
 
 	public String getProfileImagePath() {
@@ -575,5 +640,69 @@ public class Student {
 
 	public void setTelexDocumentsPath(String telexDocumentsPath) {
 		this.telexDocumentsPath = telexDocumentsPath;
+	}
+
+	public LocalDate getPassportValidationDate() {
+		return passportValidationDate;
+	}
+
+	public void setPassportValidationDate(LocalDate passportValidationDate) {
+		this.passportValidationDate = passportValidationDate;
+	}
+
+	public Double getTelexPaymentAmount() {
+		return telexPaymentAmount;
+	}
+
+	public void setTelexPaymentAmount(Double telexPaymentAmount) {
+		this.telexPaymentAmount = telexPaymentAmount;
+	}
+
+	public String getTelexPaymentScreenshotPath() {
+		return telexPaymentScreenshotPath;
+	}
+
+	public void setTelexPaymentScreenshotPath(String telexPaymentScreenshotPath) {
+		this.telexPaymentScreenshotPath = telexPaymentScreenshotPath;
+	}
+
+	public String getTelexPaymentTxId() {
+		return telexPaymentTxId;
+	}
+
+	public void setTelexPaymentTxId(String telexPaymentTxId) {
+		this.telexPaymentTxId = telexPaymentTxId;
+	}
+
+	public Double getTelexPaymentReceivedAmount() {
+		return telexPaymentReceivedAmount;
+	}
+
+	public void setTelexPaymentReceivedAmount(Double telexPaymentReceivedAmount) {
+		this.telexPaymentReceivedAmount = telexPaymentReceivedAmount;
+	}
+
+	public Boolean getIsTelexAccountantApproved() {
+		return isTelexAccountantApproved;
+	}
+
+	public void setIsTelexAccountantApproved(Boolean isTelexAccountantApproved) {
+		this.isTelexAccountantApproved = isTelexAccountantApproved;
+	}
+
+	public Boolean getIsTelexDocApproved() {
+		return isTelexDocApproved;
+	}
+
+	public void setIsTelexDocApproved(Boolean isTelexDocApproved) {
+		this.isTelexDocApproved = isTelexDocApproved;
+	}
+
+	public String getDocPersonComment() {
+		return docPersonComment;
+	}
+
+	public void setDocPersonComment(String docPersonComment) {
+		this.docPersonComment = docPersonComment;
 	}
 }

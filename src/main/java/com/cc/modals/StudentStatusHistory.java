@@ -56,6 +56,18 @@ public class StudentStatusHistory {
     public StudentStatusHistory() {
     }
 
+    @Column(name = "remarks", length = 500, nullable = true)
+    private String remarks;
+
+    // Add getter and setter
+    public String getRemarks() {
+        return remarks;
+    }
+
+    public void setRemarks(String remarks) {
+        this.remarks = remarks;
+    }
+
     public StudentStatusHistory(Student student, StudentStatus newStatus, String updatedBy) {
         this.student = student;
         this.studentApplicationStatus = newStatus;

@@ -10,6 +10,8 @@ import com.cc.modals.Student;
 import com.cc.modals.StudentStatus;
 import com.cc.modals.StudentStatusHistory;
 import com.cc.modals.VisaMan;
+import com.cc.modals.action;
+import com.cc.modals.actionOnUser;
 import com.cc.repository.StudentRepository;
 
 @Service
@@ -31,6 +33,8 @@ public class VisaService {
         VisaMan manager = visaManService.getByUsername(managerUsername)
                 .orElseThrow(() -> new RuntimeException("Visa Manager not found"));
 
+        student.setAction(action.NEED_APPLY_VISA);
+        student.setActionOnUser(actionOnUser.visa_manager);
         student.setVisaMan(manager);
         student.setApplicationStatus(StudentStatus.VISA_FEE_PENDING);
 
@@ -62,6 +66,9 @@ public class VisaService {
             throw new RuntimeException("Unauthorized: Only assigned Visa Manager can perform this action");
         }
 
+        student.setAction(action.NEED_UPDATE_VISA);
+        student.setActionOnUser(actionOnUser.visa_manager);
+        student.setActionOnUser(actionOnUser.visa_manager);
         student.setApplicationStatus(StudentStatus.VISA_APPLIED);
         addHistory(student, StudentStatus.VISA_APPLIED, visaManagerUsername);
         return studentRepository.save(student);
@@ -76,6 +83,9 @@ public class VisaService {
             throw new RuntimeException("Unauthorized: Only assigned Visa Manager can perform this action");
         }
 
+        student.setAction(action.NEED_TO_RETURN_VISA);
+        student.setActionOnUser(actionOnUser.visa_manager);
+
         student.setApplicationStatus(StudentStatus.PASSPORT_SUBMITTED_TO_EMBASSY);
         addHistory(student, StudentStatus.PASSPORT_SUBMITTED_TO_EMBASSY, visaManagerUsername);
         return studentRepository.save(student);
@@ -89,6 +99,9 @@ public class VisaService {
         if (student.getVisaMan() == null || !student.getVisaMan().getUsername().equals(visaManagerUsername)) {
             throw new RuntimeException("Unauthorized: Only assigned Visa Manager can perform this action");
         }
+
+        student.setAction(action.READY_FOR_TRAVEL);
+        student.setActionOnUser(actionOnUser.STUDENT);
 
         student.setApplicationStatus(StudentStatus.VISA_STAMPED);
         addHistory(student, StudentStatus.VISA_STAMPED, visaManagerUsername);

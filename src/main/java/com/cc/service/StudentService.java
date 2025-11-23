@@ -24,6 +24,8 @@ import com.cc.modals.Student;
 import com.cc.modals.StudentStatus;
 import com.cc.modals.StudentStatusHistory;
 import com.cc.modals.UniversityPerson;
+import com.cc.modals.action;
+import com.cc.modals.actionOnUser;
 import com.cc.repository.AddmissionManagerRepository;
 import com.cc.repository.AgentRepository;
 import com.cc.repository.CollegeRepository;
@@ -157,6 +159,9 @@ public class StudentService {
                 dto.getApplicationStatus() != null ? StudentStatus.valueOf(dto.getApplicationStatus())
                         : StudentStatus.REGISTERED);
 
+        // Generate Unique Application ID
+        student.setApplicationId(generateUniqueApplicationId());
+
         // Step 5: Assign Relationships
         student.setCollege(selectedCollege);
 
@@ -176,6 +181,10 @@ public class StudentService {
         student.setMarkseetPath(savedMarksheetPath);
         student.setProfileImagePath(savedProfilePath);
         student.setPassportPath(savedPassportPath);
+
+        // set action
+        student.setAction(action.FORWARD_TO_UNI);
+        student.setActionOnUser(actionOnUser.admission_manager);
 
         StudentStatusHistory history = new StudentStatusHistory();
 
@@ -224,19 +233,35 @@ public class StudentService {
         }
 
         try {
+            // Validate PDF content if extension is .pdf
+            String originalFilename = file.getOriginalFilename();
+            String extension = "";
+            if (originalFilename != null && originalFilename.contains(".")) {
+                extension = originalFilename.substring(originalFilename.lastIndexOf("."));
+            }
+
+            if (".pdf".equalsIgnoreCase(extension)) {
+                try (java.io.InputStream is = file.getInputStream()) {
+                    byte[] header = new byte[4];
+                    int bytesRead = is.read(header);
+                    String headerString = new String(header);
+                    if (bytesRead < 4 || !headerString.startsWith("%PDF")) {
+                        String hexHeader = "";
+                        for (int i = 0; i < bytesRead; i++) {
+                            hexHeader += String.format("%02X ", header[i]);
+                        }
+                        throw new RuntimeException("Invalid PDF file: " + originalFilename +
+                                ". Expected header '%PDF' but found '" + headerString + "' (Hex: " + hexHeader + ")");
+                    }
+                }
+            }
+
             // Create upload directory
             String uploadDir = "uploads/" + folderName;
             Path uploadPath = Paths.get(uploadDir);
 
             if (!Files.exists(uploadPath)) {
                 Files.createDirectories(uploadPath);
-            }
-
-            // Generate unique filename
-            String originalFilename = file.getOriginalFilename();
-            String extension = "";
-            if (originalFilename != null && originalFilename.contains(".")) {
-                extension = originalFilename.substring(originalFilename.lastIndexOf("."));
             }
 
             String newFilename = filePrefix + "_" + UUID.randomUUID().toString() + extension;
@@ -261,91 +286,275 @@ public class StudentService {
         PdfWriter writer = new PdfWriter(outputPath);
         PdfDocument pdf = new PdfDocument(writer);
         Document document = new Document(pdf);
-        document.setMargins(35, 35, 35, 35);
+        document.setMargins(40, 40, 40, 40);
 
         // Create Fonts
         PdfFont fontBold = PdfFontFactory.createFont(StandardFonts.HELVETICA_BOLD);
         PdfFont fontRegular = PdfFontFactory.createFont(StandardFonts.HELVETICA);
+        PdfFont fontLight = PdfFontFactory.createFont(StandardFonts.HELVETICA);
+        PdfFont fontItalic = PdfFontFactory.createFont(StandardFonts.HELVETICA_OBLIQUE);
 
-        // Colors
-        com.itextpdf.kernel.colors.Color CHARCOAL = new com.itextpdf.kernel.colors.DeviceRgb(40, 40, 40);
-        com.itextpdf.kernel.colors.Color DARK_GRAY = new com.itextpdf.kernel.colors.DeviceRgb(70, 70, 70);
-        com.itextpdf.kernel.colors.Color MID_GRAY = new com.itextpdf.kernel.colors.DeviceRgb(120, 120, 120);
-        com.itextpdf.kernel.colors.Color SECTION_BG = new com.itextpdf.kernel.colors.DeviceRgb(245, 247, 250);
-        com.itextpdf.kernel.colors.Color BORDER_LIGHT = new com.itextpdf.kernel.colors.DeviceRgb(230, 232, 235);
-        com.itextpdf.kernel.colors.Color ACCENT = new com.itextpdf.kernel.colors.DeviceRgb(41, 98, 255);
+        // Enhanced Color Palette
+        com.itextpdf.kernel.colors.Color PRIMARY_BLUE = new com.itextpdf.kernel.colors.DeviceRgb(41, 98, 255);
+        com.itextpdf.kernel.colors.Color DARK_BLUE = new com.itextpdf.kernel.colors.DeviceRgb(30, 58, 138);
+        com.itextpdf.kernel.colors.Color CHARCOAL = new com.itextpdf.kernel.colors.DeviceRgb(31, 41, 55);
+        com.itextpdf.kernel.colors.Color DARK_GRAY = new com.itextpdf.kernel.colors.DeviceRgb(75, 85, 99);
+        com.itextpdf.kernel.colors.Color MID_GRAY = new com.itextpdf.kernel.colors.DeviceRgb(156, 163, 175);
+        com.itextpdf.kernel.colors.Color LIGHT_BG = new com.itextpdf.kernel.colors.DeviceRgb(249, 250, 251);
+        com.itextpdf.kernel.colors.Color BLUE_BG = new com.itextpdf.kernel.colors.DeviceRgb(239, 246, 255);
+        com.itextpdf.kernel.colors.Color BORDER = new com.itextpdf.kernel.colors.DeviceRgb(229, 231, 235);
+        com.itextpdf.kernel.colors.Color SUCCESS_GREEN = new com.itextpdf.kernel.colors.DeviceRgb(16, 185, 129);
+        com.itextpdf.kernel.colors.Color WHITE = com.itextpdf.kernel.colors.ColorConstants.WHITE;
 
-        // --- HEADER ---
-        document.add(new Paragraph("APPLICATION CONFIRMATION")
+        // --- HEADER SECTION WITH BANNER ---
+        Table headerBanner = new Table(1);
+        headerBanner.setWidth(UnitValue.createPercentValue(100));
+        headerBanner.setMarginBottom(20);
+
+        Cell bannerCell = new Cell()
+                .setBackgroundColor(PRIMARY_BLUE)
+                .setBorder(null)
+                .setPadding(25)
+                .setTextAlignment(TextAlignment.CENTER);
+
+        bannerCell.add(new Paragraph("✓ APPLICATION CONFIRMED")
+                .setFont(fontBold)
+                .setFontSize(20)
+                .setFontColor(WHITE)
+                .setMarginBottom(5));
+
+        bannerCell.add(new Paragraph("Your application has been successfully registered")
+                .setFont(fontLight)
+                .setFontSize(10)
+                .setFontColor(WHITE));
+
+        headerBanner.addCell(bannerCell);
+        document.add(headerBanner);
+
+        // --- REFERENCE NUMBER BOX ---
+        Table refBox = new Table(1);
+        refBox.setWidth(UnitValue.createPercentValue(100));
+        refBox.setMarginBottom(25);
+
+        Cell refCell = new Cell()
+                .setBackgroundColor(LIGHT_BG)
+                .setBorder(new com.itextpdf.layout.borders.SolidBorder(BORDER, 1))
+                .setPadding(15)
+                .setTextAlignment(TextAlignment.CENTER);
+
+        refCell.add(new Paragraph("Application Reference Number")
+                .setFont(fontRegular)
+                .setFontSize(9)
+                .setFontColor(DARK_GRAY)
+                .setMarginBottom(5));
+
+        refCell.add(new Paragraph(student.getApplicationId())
                 .setFont(fontBold)
                 .setFontSize(16)
-                .setTextAlignment(TextAlignment.CENTER));
+                .setFontColor(DARK_BLUE)
+                .setMarginBottom(3));
 
-        document.add(new Paragraph("REF: " + student.getId() + "" + LocalDate.now().getYear())
+        refCell.add(new Paragraph("Generated: " + LocalDate.now().toString())
                 .setFont(fontRegular)
+                .setFontSize(8)
+                .setFontColor(MID_GRAY));
+
+        refBox.addCell(refCell);
+        document.add(refBox);
+
+        // --- QR CODE SECTION ---
+        Table qrSection = new Table(1);
+        qrSection.setWidth(UnitValue.createPercentValue(100));
+        qrSection.setMarginBottom(25);
+
+        Cell qrCell = new Cell()
+                .setBackgroundColor(BLUE_BG)
+                .setBorder(new com.itextpdf.layout.borders.SolidBorder(PRIMARY_BLUE, 2))
+                .setPadding(20)
+                .setTextAlignment(TextAlignment.CENTER);
+
+        // QR Code Title
+        qrCell.add(new Paragraph("📱 Student Portal Access")
+                .setFont(fontBold)
+                .setFontSize(14)
+                .setFontColor(DARK_BLUE)
+                .setMarginBottom(10));
+
+        // QR Code Image
+        try {
+            String qrCodeUrl = "http://localhost:8080/api/config/qrcode";
+            com.itextpdf.io.image.ImageData qrImageData = com.itextpdf.io.image.ImageDataFactory
+                    .create(new java.net.URL(qrCodeUrl));
+            com.itextpdf.layout.element.Image qrImage = new com.itextpdf.layout.element.Image(qrImageData);
+            qrImage.setWidth(150);
+            qrImage.setHeight(150);
+            qrImage.setMarginBottom(15);
+            qrCell.add(qrImage);
+        } catch (Exception e) {
+            // Fallback if QR code cannot be loaded
+            qrCell.add(new Paragraph("[QR CODE]")
+                    .setFont(fontBold)
+                    .setFontSize(12)
+                    .setFontColor(MID_GRAY)
+                    .setBorder(new com.itextpdf.layout.borders.DashedBorder(BORDER, 2))
+                    .setPadding(40)
+                    .setMarginBottom(15));
+        }
+
+        // Application ID below QR
+        qrCell.add(new Paragraph("Application ID: " + student.getApplicationId())
+                .setFont(fontBold)
+                .setFontSize(11)
+                .setFontColor(CHARCOAL)
+                .setMarginBottom(12));
+
+        // Instructions
+        Paragraph instructions = new Paragraph()
+                .setFont(fontRegular)
+                .setFontSize(9)
+                .setFontColor(DARK_GRAY)
                 .setTextAlignment(TextAlignment.CENTER)
-                .setFontSize(10));
+                .setMarginBottom(8);
 
-        // --- APPLICANT DETAILS ---
-        addCompactSectionTitle(document, "APPLICANT DETAILS", CHARCOAL, fontBold);
-        Table infoGrid = new Table(new float[] { 1, 2, 1, 2 });
+        instructions.add("Please scan the QR code above to generate your\n");
+        instructions.add(new com.itextpdf.layout.element.Text("Student Username and Password")
+                .setFont(fontBold)
+                .setFontColor(PRIMARY_BLUE));
+        instructions.add("\nto track all your application updates.");
+
+        qrCell.add(instructions);
+
+        // Important Note
+        qrCell.add(new Paragraph("⚠ Keep this document safe for future reference")
+                .setFont(fontRegular)
+                .setFontSize(8)
+                .setFontColor(DARK_GRAY)
+                .setFont(fontItalic)
+                .setMarginTop(5));
+
+        qrSection.addCell(qrCell);
+        document.add(qrSection);
+
+        // --- APPLICANT DETAILS SECTION ---
+        document.add(new Paragraph("APPLICANT DETAILS")
+                .setFont(fontBold)
+                .setFontSize(12)
+                .setFontColor(DARK_BLUE)
+                .setMarginBottom(12)
+                .setMarginTop(10));
+
+        Table infoGrid = new Table(new float[] { 1.2f, 2.8f, 1.2f, 2.8f });
         infoGrid.setWidth(UnitValue.createPercentValue(100));
+        infoGrid.setBackgroundColor(LIGHT_BG);
+        infoGrid.setBorder(new com.itextpdf.layout.borders.SolidBorder(BORDER, 1));
 
-        addCompactInfo(infoGrid, "Name", student.getFullName(), DARK_GRAY, CHARCOAL, fontRegular);
-        addCompactInfo(infoGrid, "Email", student.getEmail(), DARK_GRAY, CHARCOAL, fontRegular);
-        addCompactInfo(infoGrid, "Phone", student.getContactNo(), DARK_GRAY, CHARCOAL, fontRegular);
-        addCompactInfo(infoGrid, "Passport", student.getPassportNo(), DARK_GRAY, CHARCOAL, fontRegular);
+        addStyledInfoRow(infoGrid, "Full Name", student.getFullName(), DARK_GRAY, CHARCOAL, fontRegular, fontBold);
+        addStyledInfoRow(infoGrid, "Date of Birth", student.getDob() != null ? student.getDob().toString() : "-",
+                DARK_GRAY, CHARCOAL, fontRegular, fontBold);
+        addStyledInfoRow(infoGrid, "Email", student.getEmail(), DARK_GRAY, CHARCOAL, fontRegular, fontBold);
+        addStyledInfoRow(infoGrid, "Phone", student.getContactNo(), DARK_GRAY, CHARCOAL, fontRegular, fontBold);
+        addStyledInfoRow(infoGrid, "Passport No.", student.getPassportNo(), DARK_GRAY, CHARCOAL, fontRegular, fontBold);
+        addStyledInfoRow(infoGrid, "Passport Valid Till",
+                student.getPassportValidTill() != null ? student.getPassportValidTill().toString() : "-", DARK_GRAY,
+                CHARCOAL, fontRegular, fontBold);
 
         document.add(infoGrid);
 
-        // --- COLLEGE ASSIGNMENT ---
-        addCompactSectionTitle(document, "COLLEGE ASSIGNMENT", CHARCOAL, fontBold);
+        // --- COLLEGE ASSIGNMENT SECTION ---
+        document.add(new Paragraph("COLLEGE ASSIGNMENT")
+                .setFont(fontBold)
+                .setFontSize(12)
+                .setFontColor(DARK_BLUE)
+                .setMarginBottom(12)
+                .setMarginTop(20));
 
-        Table collegeCard = new Table(new float[] { 1 });
+        Table collegeCard = new Table(1);
         collegeCard.setWidth(UnitValue.createPercentValue(100));
-        collegeCard.setBackgroundColor(SECTION_BG);
-        collegeCard.setBorder(new com.itextpdf.layout.borders.SolidBorder(BORDER_LIGHT, 0.5f));
+        collegeCard.setBackgroundColor(LIGHT_BG);
+        collegeCard.setBorder(new com.itextpdf.layout.borders.SolidBorder(SUCCESS_GREEN, 2));
 
-        Cell collegeCell = new Cell().setBorder(null).setPadding(8);
+        Cell collegeCell = new Cell()
+                .setBorder(null)
+                .setPadding(15);
 
-        collegeCell.add(new Paragraph("Primary College")
+        collegeCell.add(new Paragraph("Primary College Assignment")
                 .setFont(fontRegular)
-                .setFontSize(7)
-                .setFontColor(DARK_GRAY));
+                .setFontSize(8)
+                .setFontColor(DARK_GRAY)
+                .setMarginBottom(5));
 
-        collegeCell.add(
-                new Paragraph("▸ " + (student.getCollege() != null ? student.getCollege().getCollegeName() : "N/A"))
-                        .setFont(fontBold)
-                        .setFontSize(8)
-                        .setFontColor(ACCENT)
-                        .setMarginBottom(6));
+        collegeCell.add(new Paragraph(
+                "▸ " + (student.getCollege() != null ? student.getCollege().getCollegeName() : "Not Assigned"))
+                .setFont(fontBold)
+                .setFontSize(11)
+                .setFontColor(SUCCESS_GREEN)
+                .setMarginBottom(8));
+
+        collegeCell
+                .add(new Paragraph("Applied For: " + (student.getAppliedFor() != null ? student.getAppliedFor() : "-"))
+                        .setFont(fontRegular)
+                        .setFontSize(9)
+                        .setFontColor(CHARCOAL));
 
         collegeCard.addCell(collegeCell);
         document.add(collegeCard);
 
+        // --- FOOTER ---
+        document.add(new Paragraph("\n"));
+        Table footerTable = new Table(1);
+        footerTable.setWidth(UnitValue.createPercentValue(100));
+        footerTable.setMarginTop(20);
+
+        Cell footerCell = new Cell()
+                .setBorder(com.itextpdf.layout.borders.Border.NO_BORDER)
+                .setBorderTop(new com.itextpdf.layout.borders.SolidBorder(BORDER, 1))
+                .setPaddingTop(15)
+                .setTextAlignment(TextAlignment.CENTER);
+
+        footerCell.add(new Paragraph("This is an automatically generated confirmation document")
+                .setFont(fontRegular)
+                .setFontSize(8)
+                .setFontColor(MID_GRAY)
+                .setMarginBottom(3));
+
+        footerCell.add(new Paragraph("For queries, please contact your assigned admission manager")
+                .setFont(fontRegular)
+                .setFontSize(8)
+                .setFontColor(MID_GRAY));
+
+        footerTable.addCell(footerCell);
+        document.add(footerTable);
+
         document.close();
     }
 
-    // PDF Helper Methods
-    private void addCompactSectionTitle(Document document, String title,
-            com.itextpdf.kernel.colors.Color color,
-            PdfFont font) throws IOException {
-        document.add(new Paragraph("\n" + title)
-                .setFont(font)
-                .setFontSize(10)
-                .setFontColor(color));
-    }
+    // Enhanced helper method for styled info rows
+    private void addStyledInfoRow(Table table, String label, String value,
+            com.itextpdf.kernel.colors.Color labelColor,
+            com.itextpdf.kernel.colors.Color valueColor,
+            PdfFont fontRegular,
+            PdfFont fontBold) {
 
-    private void addCompactInfo(Table table, String label, String value,
-            com.itextpdf.kernel.colors.Color c1,
-            com.itextpdf.kernel.colors.Color c2,
-            PdfFont font) {
-        table.addCell(new Cell().add(new Paragraph(label)
-                .setFont(font).setFontSize(8).setFontColor(c1))
-                .setBorder(null));
-        table.addCell(new Cell().add(new Paragraph(value != null ? value : "-")
-                .setFont(font).setFontSize(8).setFontColor(c2))
-                .setBorder(null));
+        Cell labelCell = new Cell()
+                .add(new Paragraph(label)
+                        .setFont(fontRegular)
+                        .setFontSize(9)
+                        .setFontColor(labelColor))
+                .setBorder(null)
+                .setPadding(8)
+                .setBackgroundColor(new com.itextpdf.kernel.colors.DeviceRgb(255, 255, 255));
+
+        Cell valueCell = new Cell()
+                .add(new Paragraph(value != null ? value : "-")
+                        .setFont(fontBold)
+                        .setFontSize(9)
+                        .setFontColor(valueColor))
+                .setBorder(null)
+                .setPadding(8)
+                .setBackgroundColor(new com.itextpdf.kernel.colors.DeviceRgb(255, 255, 255));
+
+        table.addCell(labelCell);
+        table.addCell(valueCell);
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -469,8 +678,8 @@ public class StudentService {
                 .orElseThrow(() -> new RuntimeException("Student not found"));
 
         // Validate status
-        if (student.getApplicationStatus() != StudentStatus.ADMISSION_LETTER_APPROVED) {
-            throw new RuntimeException("Student status must be ADMISSION_LETTER_APPROVED to initiate Telex. Current: "
+        if (student.getApplicationStatus() != StudentStatus.ADMISSION_LETTER_GENERATED) {
+            throw new RuntimeException("Student status must be ADMISSION_LETTER_GENERATED to initiate Telex. Current: "
                     + student.getApplicationStatus());
         }
 
@@ -485,17 +694,39 @@ public class StudentService {
         student.setPassportPath(savedPassportPath);
 
         // Update Status
-        student.setApplicationStatus(StudentStatus.APPLIED_FOR_TELEX);
+        student.setApplicationStatus(StudentStatus.TELEX_PAYMENT_DOCS_SUBMITTED);
 
         // Add History
         StudentStatusHistory history = new StudentStatusHistory();
         history.setStudent(student);
-        history.setStudentApplicationStatus(StudentStatus.APPLIED_FOR_TELEX);
+        history.setStudentApplicationStatus(StudentStatus.TELEX_PAYMENT_DOCS_SUBMITTED);
         history.setUpdatedBy(agentUsername);
         history.setUpdatedAt(LocalDateTime.now());
         student.getStudentStatusHistory().add(history);
 
         return studentRepository.save(student);
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // HELPER METHODS
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    private String generateUniqueApplicationId() {
+        LocalDate now = LocalDate.now();
+        int yearLastDigit = now.getYear() % 10;
+        String datePart = String.format("%02d%02d", now.getMonthValue(), now.getDayOfMonth());
+        String prefix = yearLastDigit + datePart;
+
+        java.util.Random random = new java.util.Random();
+        String applicationId;
+
+        do {
+            int randomNum = random.nextInt(1000); // 0 to 999
+            String randomPart = String.format("%03d", randomNum);
+            applicationId = prefix + randomPart;
+        } while (studentRepository.existsByApplicationId(applicationId));
+
+        return applicationId;
     }
 
 }

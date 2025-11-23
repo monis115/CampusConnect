@@ -38,22 +38,21 @@ public class StudentController {
             @RequestParam(value = "passportFile", required = false) MultipartFile passportFile,
             @RequestParam(value = "marksheetFile", required = false) MultipartFile marksheetFile,
             @RequestParam(value = "profileImage", required = false) MultipartFile profileImage) {
-        
+
         try {
             // Parse JSON string to StudentDTO
             StudentDTO studentDTO = objectMapper.readValue(studentJson, StudentDTO.class);
-            
+
             // Call service with DTO and files
             Student savedStudent = studentService.addStudent(
-                studentDTO, 
-                adhaarFile, 
-                passportFile, 
-                marksheetFile, 
-                profileImage
-            );
-            
+                    studentDTO,
+                    adhaarFile,
+                    passportFile,
+                    marksheetFile,
+                    profileImage);
+
             return ResponseEntity.ok(savedStudent);
-            
+
         } catch (IOException e) {
             return ResponseEntity.badRequest().body("JSON Parsing Error: " + e.getMessage());
         } catch (RuntimeException e) {
@@ -95,14 +94,14 @@ public class StudentController {
      */
     @PostMapping("/upload-admission-letter/{studentId}")
     public ResponseEntity<?> uploadAdmissionLetter(
-            @PathVariable Long studentId, 
+            @PathVariable Long studentId,
             @RequestParam("file") MultipartFile file) {
-        
+
         try {
             if (file.isEmpty()) {
                 return ResponseEntity.badRequest().body("File is empty");
             }
-            
+
             // Validate file type (PDF only)
             if (!file.getContentType().equals("application/pdf")) {
                 return ResponseEntity.badRequest().body("Only PDF files allowed");
@@ -110,17 +109,17 @@ public class StudentController {
 
             String fileName = "admission_" + studentId + "_" + UUID.randomUUID() + ".pdf";
             Path uploadPath = Paths.get("uploads/admission-letters");
-            
+
             if (!Files.exists(uploadPath)) {
                 Files.createDirectories(uploadPath);
             }
-            
+
             Path filePath = uploadPath.resolve(fileName);
             Files.copy(file.getInputStream(), filePath);
 
             Student updatedStudent = studentService.uploadAdmissionLetter(studentId, fileName);
             return ResponseEntity.ok(updatedStudent);
-            
+
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body("Upload Error: " + e.getMessage());
         } catch (IOException e) {
@@ -129,8 +128,7 @@ public class StudentController {
             return ResponseEntity.internalServerError().body("An unexpected error occurred: " + e.getMessage());
         }
     }
-    
-    
+
     @GetMapping("/generated-by-manager-username/{username}")
     public ResponseEntity<?> getStudentsByAdmissionManagerUsername(@PathVariable String username) {
         try {

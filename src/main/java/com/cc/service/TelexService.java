@@ -13,6 +13,8 @@ import com.cc.modals.Student;
 import com.cc.modals.StudentStatus;
 import com.cc.modals.StudentStatusHistory;
 import com.cc.modals.TelexMan;
+import com.cc.modals.action;
+import com.cc.modals.actionOnUser;
 import com.cc.repository.StudentRepository;
 
 @Service
@@ -34,9 +36,12 @@ public class TelexService {
                 .orElseThrow(() -> new RuntimeException("Telex Manager not found"));
 
         student.setTelexMan(manager);
-        student.setApplicationStatus(StudentStatus.APPLIED_FOR_TELEX);
+        student.setApplicationStatus(StudentStatus.TELEX_INITIATED);
 
-        addHistory(student, StudentStatus.APPLIED_FOR_TELEX, "System (Assigned to " + managerUsername + ")");
+        student.setAction(action.NEED_TO_APPLY_TELEX);
+        student.setActionOnUser(actionOnUser.telex_manager);
+
+        addHistory(student, StudentStatus.TELEX_INITIATED, "System (Assigned to " + managerUsername + ")");
 
         return studentRepository.save(student);
     }
@@ -52,6 +57,10 @@ public class TelexService {
         }
 
         student.setApplicationStatus(StudentStatus.TELEX_APPLICATION_SUBMITTED_TO_UNIVERSITY);
+
+        student.setAction(action.NEED_TO_UPDATE_MEA);
+        student.setActionOnUser(actionOnUser.telex_manager);
+
         addHistory(student, StudentStatus.TELEX_APPLICATION_SUBMITTED_TO_UNIVERSITY, telexManagerUsername);
         return studentRepository.save(student);
     }
@@ -66,6 +75,8 @@ public class TelexService {
         }
 
         student.setApplicationStatus(StudentStatus.TELEX_APPLICATION_SUBMITTED_TO_MEA);
+        student.setAction(action.NEED_TO_ISSUE_TELEX);
+        student.setActionOnUser(actionOnUser.telex_manager);
         addHistory(student, StudentStatus.TELEX_APPLICATION_SUBMITTED_TO_MEA, telexManagerUsername);
         return studentRepository.save(student);
     }
@@ -82,6 +93,9 @@ public class TelexService {
         student.setTelexNumber(telexNumber);
         student.setTelexIssueDate(java.time.LocalDate.now());
         student.setApplicationStatus(StudentStatus.TELEX_NUMBER_ISSUED);
+
+        student.setAction(action.ASSIGN_TO_VISA_MAN);
+        student.setActionOnUser(actionOnUser.admission_manager);
 
         addHistory(student, StudentStatus.TELEX_NUMBER_ISSUED, telexManagerUsername);
 
@@ -112,6 +126,9 @@ public class TelexService {
                 paths.append(path);
             }
         }
+
+        student.setAction(action.NEED_TO_UPDATE_MEA);
+        student.setActionOnUser(actionOnUser.telex_manager);
 
         student.setTelexDocumentsPath(paths.toString());
         addHistory(student, student.getApplicationStatus(), managerUsername + " (Uploaded Documents)");

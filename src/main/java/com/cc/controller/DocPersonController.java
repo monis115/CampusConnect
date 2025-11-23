@@ -76,4 +76,29 @@ public class DocPersonController {
         service.delete(id);
         return ResponseEntity.noContent().build();
     }
+
+    @PostMapping("/verify-telex-docs/{studentId}")
+    public ResponseEntity<?> verifyTelexDocs(
+            @PathVariable Long studentId,
+            @RequestBody java.util.Map<String, Object> request) {
+        try {
+            Boolean approved = (Boolean) request.get("approved");
+            String comment = (String) request.get("comment");
+            String docPersonUsername = (String) request.get("docPersonUsername");
+
+            if (approved == null) {
+                return ResponseEntity.badRequest().body("approved status is required");
+            }
+            if (docPersonUsername == null || docPersonUsername.isEmpty()) {
+                return ResponseEntity.badRequest().body("docPersonUsername is required");
+            }
+
+            com.cc.modals.Student updatedStudent = service.verifyTelexDocs(studentId, approved, comment,
+                    docPersonUsername);
+            return ResponseEntity.ok(updatedStudent);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body("Error verifying telex docs: " + e.getMessage());
+        }
+    }
 }

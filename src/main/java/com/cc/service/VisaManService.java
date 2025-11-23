@@ -56,4 +56,50 @@ public class VisaManService {
     public void delete(Long id) {
         repository.deleteById(id);
     }
+
+    @Autowired
+    private com.cc.repository.StudentRepository studentRepository;
+
+    @Autowired
+    private com.cc.repository.StudentStatusHistoryRepository studentStatusHistoryRepository;
+
+    @org.springframework.transaction.annotation.Transactional
+    public com.cc.modals.Student submitPassport(Long studentId, String visaManUsername) {
+        com.cc.modals.Student student = studentRepository.findById(studentId)
+                .orElseThrow(() -> new RuntimeException("Student not found with ID: " + studentId));
+
+        student.setApplicationStatus(com.cc.modals.StudentStatus.PASSPORT_SUBMITTED_TO_EMBASSY);
+
+        com.cc.modals.Student savedStudent = studentRepository.save(student);
+
+        // History
+        com.cc.modals.StudentStatusHistory history = new com.cc.modals.StudentStatusHistory();
+        history.setStudent(savedStudent);
+        history.setStudentApplicationStatus(com.cc.modals.StudentStatus.PASSPORT_SUBMITTED_TO_EMBASSY);
+        history.setUpdatedBy(visaManUsername);
+        history.setUpdatedAt(java.time.LocalDateTime.now());
+        studentStatusHistoryRepository.save(history);
+
+        return savedStudent;
+    }
+
+    @org.springframework.transaction.annotation.Transactional
+    public com.cc.modals.Student stampVisa(Long studentId, String visaManUsername) {
+        com.cc.modals.Student student = studentRepository.findById(studentId)
+                .orElseThrow(() -> new RuntimeException("Student not found with ID: " + studentId));
+
+        student.setApplicationStatus(com.cc.modals.StudentStatus.VISA_STAMPED);
+
+        com.cc.modals.Student savedStudent = studentRepository.save(student);
+
+        // History
+        com.cc.modals.StudentStatusHistory history = new com.cc.modals.StudentStatusHistory();
+        history.setStudent(savedStudent);
+        history.setStudentApplicationStatus(com.cc.modals.StudentStatus.VISA_STAMPED);
+        history.setUpdatedBy(visaManUsername);
+        history.setUpdatedAt(java.time.LocalDateTime.now());
+        studentStatusHistoryRepository.save(history);
+
+        return savedStudent;
+    }
 }

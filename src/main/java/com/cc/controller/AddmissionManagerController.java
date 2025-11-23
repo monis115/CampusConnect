@@ -118,6 +118,7 @@ public class AddmissionManagerController {
             @RequestBody Map<String, String> request) {
         try {
             String admissionManagerUsername = request.get("admissionManagerUsername");
+
             if (admissionManagerUsername == null || admissionManagerUsername.isEmpty()) {
                 return ResponseEntity.badRequest().body("admissionManagerUsername is required");
             }
@@ -147,6 +148,20 @@ public class AddmissionManagerController {
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(500).body("Error approving admission letter: " + e.getMessage());
+        }
+    }
+
+    // -------------------- DASHBOARD --------------------
+    @GetMapping("/dashboard/stats/{username}")
+    public ResponseEntity<?> getDashboardStats(@PathVariable String username) {
+        try {
+            com.cc.DTO.AdmissionDashboardStatsDTO stats = service.getDashboardStats(username);
+            return ResponseEntity.ok(stats);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body("Error: " + e.getMessage());
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body("Error fetching dashboard stats: " + e.getMessage());
         }
     }
 }

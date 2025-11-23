@@ -19,6 +19,8 @@ import com.cc.modals.Agent;
 import com.cc.modals.AgentCollegeAccess;
 import com.cc.modals.College;
 import com.cc.modals.Location;
+import com.cc.modals.action;
+import com.cc.modals.actionOnUser;
 import com.cc.repository.AgentRepository;
 import com.cc.repository.CollegeRepository;
 import com.cc.repository.LocationRepository;
@@ -353,5 +355,62 @@ public class AgentService {
 
     public Optional<Agent> getAgentByUserIdWithDetails(String userId) {
         return agentRepository.findByUserIdWithDetails(userId);
+    }
+
+    @Autowired
+    private com.cc.repository.StudentRepository studentRepository;
+
+    @Autowired
+    private com.cc.repository.StudentStatusHistoryRepository studentStatusHistoryRepository;
+
+    public com.cc.modals.Student submitTelexDetails(Long studentId, com.cc.DTO.TelexDetailsDTO details,
+            String screenshotPath, String passportPath) {
+        com.cc.modals.Student student = studentRepository.findById(studentId)
+                .orElseThrow(() -> new RuntimeException("Student not found with ID: " + studentId));
+
+        // Validate Agent
+        if (details.getAgentUsername() != null
+                && (student.getAgent() == null || !student.getAgent().getUserId().equals(details.getAgentUsername()))) {
+            // Optional: Enforce agent check if username is provided
+            // throw new RuntimeException("Unauthorized: Agent username does not match
+            // assigned agent.");
+        }
+
+        // Update Student Details
+        if (details.getPassportNumber() != null) {
+            student.setPassportNo(details.getPassportNumber());
+        }
+        student.setPassportValidationDate(details.getPassportValidationDate());
+        student.setTelexPaymentAmount(details.getTelexPaymentAmount());
+        student.setTelexPaymentTxId(details.getTelexPaymentTxId());
+
+        if (screenshotPath != null) {
+            student.setTelexPaymentScreenshotPath(screenshotPath);
+        }
+        if (passportPath != null) {
+            student.setPassportPath(passportPath);
+        }
+
+        // Update Status
+        student.setApplicationStatus(com.cc.modals.StudentStatus.TELEX_INITIATED);
+
+        // Reset approvals if they were previously set (re-submission case)
+        student.setIsTelexAccountantApproved(false);
+        student.setIsTelexDocApproved(false);
+
+        student.setAction(action.CONFIRM_DOCS);
+        student.setActionOnUser(actionOnUser.doc_manager);
+
+        com.cc.modals.Student savedStudent = studentRepository.save(student);
+
+        // History
+        com.cc.modals.StudentStatusHistory history = new com.cc.modals.StudentStatusHistory();
+        history.setStudent(savedStudent);
+        history.setStudentApplicationStatus(com.cc.modals.StudentStatus.TELEX_PAYMENT_DOCS_SUBMITTED);
+        history.setUpdatedBy(details.getAgentUsername() != null ? details.getAgentUsername() : "Agent");
+        history.setUpdatedAt(java.time.LocalDateTime.now());
+        studentStatusHistoryRepository.save(history);
+
+        return savedStudent;
     }
 }

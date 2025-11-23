@@ -107,18 +107,40 @@ public class AgentController {
         }
     }
 
-    @Autowired
-    private com.cc.service.StudentService studentService;
-
-    @PostMapping("/initiate-telex/{studentId}")
-    public ResponseEntity<?> initiateTelex(@PathVariable Long studentId,
-            @org.springframework.web.bind.annotation.RequestParam("passport") org.springframework.web.multipart.MultipartFile passport,
-            @org.springframework.web.bind.annotation.RequestParam("agentUsername") String agentUsername) {
+    @PostMapping("/apply-for-telex/{studentId}")
+    public ResponseEntity<?> applyForTelex(
+            @PathVariable Long studentId,
+            @org.springframework.web.bind.annotation.RequestParam("details") String detailsJson,
+            @org.springframework.web.bind.annotation.RequestPart(value = "passport", required = true) org.springframework.web.multipart.MultipartFile passport,
+            @org.springframework.web.bind.annotation.RequestPart(value = "screenshot", required = false) org.springframework.web.multipart.MultipartFile screenshot) {
         try {
-            return ResponseEntity.ok(studentService.initiateTelexProcess(studentId, passport, agentUsername));
+            // Parse JSON string to DTO
+            com.fasterxml.jackson.databind.ObjectMapper objectMapper = new com.fasterxml.jackson.databind.ObjectMapper();
+            objectMapper.registerModule(new com.fasterxml.jackson.datatype.jsr310.JavaTimeModule());
+            com.cc.DTO.TelexDetailsDTO details = objectMapper.readValue(detailsJson, com.cc.DTO.TelexDetailsDTO.class);
+
+            String screenshotPath = null;
+            if (screenshot != null && !screenshot.isEmpty()) {
+                String fileName = System.currentTimeMillis() + "_" + screenshot.getOriginalFilename();
+                java.nio.file.Path path = java.nio.file.Paths.get("uploads/telex-payments/" + fileName);
+                java.nio.file.Files.createDirectories(path.getParent());
+                java.nio.file.Files.write(path, screenshot.getBytes());
+                screenshotPath = path.toString();
+            }
+
+            String passportPath = null;
+            if (passport != null && !passport.isEmpty()) {
+                String fileName = System.currentTimeMillis() + "_" + passport.getOriginalFilename();
+                java.nio.file.Path path = java.nio.file.Paths.get("uploads/passports/" + fileName);
+                java.nio.file.Files.createDirectories(path.getParent());
+                java.nio.file.Files.write(path, passport.getBytes());
+                passportPath = path.toString();
+            }
+
+            return ResponseEntity.ok(agentService.submitTelexDetails(studentId, details, screenshotPath, passportPath));
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.badRequest().body("Error applying for telex: " + e.getMessage());
         }
     }
-
 }

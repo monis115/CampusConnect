@@ -11,6 +11,8 @@ import com.cc.service.UniversityPersonService;
 
 @RestController
 @RequestMapping("/api/universityPerson")
+@CrossOrigin("*")
+
 public class UniversityPersonController {
 
     private final UniversityPersonService service;
@@ -81,6 +83,24 @@ public class UniversityPersonController {
             return ResponseEntity.ok(updatedStudent);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Error uploading admission letter: " + e.getMessage());
+        }
+    }
+
+    // -------------------- CONDITIONAL OFFER LETTER UPLOAD --------------------
+
+    @PostMapping("/upload-conditional-letter/{studentId}")
+    public ResponseEntity<?> uploadConditionalOfferLetter(
+            @PathVariable Long studentId,
+            @RequestParam("file") org.springframework.web.multipart.MultipartFile file,
+            @RequestParam("universityPersonUsername") String universityPersonUsername) {
+
+        try {
+            com.cc.modals.Student updatedStudent = service.uploadConditionalOfferLetter(studentId,
+                    universityPersonUsername,
+                    file);
+            return ResponseEntity.ok(updatedStudent);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Error uploading conditional offer letter: " + e.getMessage());
         }
     }
 

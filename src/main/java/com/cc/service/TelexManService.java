@@ -56,4 +56,73 @@ public class TelexManService {
     public void delete(Long id) {
         repository.deleteById(id);
     }
+
+    @Autowired
+    private com.cc.repository.StudentRepository studentRepository;
+
+    @Autowired
+    private com.cc.repository.StudentStatusHistoryRepository studentStatusHistoryRepository;
+
+    @org.springframework.transaction.annotation.Transactional
+    public com.cc.modals.Student submitToUniversity(Long studentId, String telexManUsername) {
+        com.cc.modals.Student student = studentRepository.findById(studentId)
+                .orElseThrow(() -> new RuntimeException("Student not found with ID: " + studentId));
+
+        student.setApplicationStatus(com.cc.modals.StudentStatus.TELEX_APPLICATION_SUBMITTED_TO_UNIVERSITY);
+
+        com.cc.modals.Student savedStudent = studentRepository.save(student);
+
+        // History
+        com.cc.modals.StudentStatusHistory history = new com.cc.modals.StudentStatusHistory();
+        history.setStudent(savedStudent);
+        history.setStudentApplicationStatus(com.cc.modals.StudentStatus.TELEX_APPLICATION_SUBMITTED_TO_UNIVERSITY);
+        history.setUpdatedBy(telexManUsername);
+        history.setUpdatedAt(java.time.LocalDateTime.now());
+        studentStatusHistoryRepository.save(history);
+
+        return savedStudent;
+    }
+
+    @org.springframework.transaction.annotation.Transactional
+    public com.cc.modals.Student submitToMEA(Long studentId, String telexManUsername) {
+        com.cc.modals.Student student = studentRepository.findById(studentId)
+                .orElseThrow(() -> new RuntimeException("Student not found with ID: " + studentId));
+
+        student.setApplicationStatus(com.cc.modals.StudentStatus.TELEX_APPLICATION_SUBMITTED_TO_MEA);
+
+        com.cc.modals.Student savedStudent = studentRepository.save(student);
+
+        // History
+        com.cc.modals.StudentStatusHistory history = new com.cc.modals.StudentStatusHistory();
+        history.setStudent(savedStudent);
+        history.setStudentApplicationStatus(com.cc.modals.StudentStatus.TELEX_APPLICATION_SUBMITTED_TO_MEA);
+        history.setUpdatedBy(telexManUsername);
+        history.setUpdatedAt(java.time.LocalDateTime.now());
+        studentStatusHistoryRepository.save(history);
+
+        return savedStudent;
+    }
+
+    @org.springframework.transaction.annotation.Transactional
+    public com.cc.modals.Student issueTelexNumber(Long studentId, String telexNumber, java.time.LocalDate issueDate,
+            String telexManUsername) {
+        com.cc.modals.Student student = studentRepository.findById(studentId)
+                .orElseThrow(() -> new RuntimeException("Student not found with ID: " + studentId));
+
+        student.setTelexNumber(telexNumber);
+        student.setTelexIssueDate(issueDate);
+        student.setApplicationStatus(com.cc.modals.StudentStatus.TELEX_NUMBER_ISSUED);
+
+        com.cc.modals.Student savedStudent = studentRepository.save(student);
+
+        // History
+        com.cc.modals.StudentStatusHistory history = new com.cc.modals.StudentStatusHistory();
+        history.setStudent(savedStudent);
+        history.setStudentApplicationStatus(com.cc.modals.StudentStatus.TELEX_NUMBER_ISSUED);
+        history.setUpdatedBy(telexManUsername);
+        history.setUpdatedAt(java.time.LocalDateTime.now());
+        studentStatusHistoryRepository.save(history);
+
+        return savedStudent;
+    }
 }
