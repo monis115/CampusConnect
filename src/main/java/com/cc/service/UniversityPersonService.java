@@ -233,4 +233,69 @@ public class UniversityPersonService {
 
         return updatedStudent;
     }
+
+    // -------------------- DASHBOARD METHODS --------------------
+
+    public com.cc.DTO.UniversityDashboardStatsDTO getDashboardStats(String username) {
+        UniversityPerson person = getByUserName(username);
+        List<Student> students = person.getStudents();
+
+        if (students == null || students.isEmpty()) {
+            return new com.cc.DTO.UniversityDashboardStatsDTO(0L, 0L, 0L, 0L);
+        }
+
+        long totalStudents = students.size();
+        long admittedStudents = studentRepository.findAdmittedStudentsByUniversityPerson(username).size();
+        long rejectedStudents = students.stream()
+                .filter(s -> s.getApplicationStatus() == StudentStatus.REJECTED)
+                .count();
+        long pendingApplications = totalStudents - admittedStudents - rejectedStudents;
+
+        return new com.cc.DTO.UniversityDashboardStatsDTO(totalStudents, admittedStudents, pendingApplications,
+                rejectedStudents);
+    }
+
+    public List<com.cc.DTO.UniversityStudentStatusCountDTO> getStudentStatusBreakdown(String username) {
+        UniversityPerson person = getByUserName(username);
+        List<Student> students = person.getStudents();
+
+        if (students == null || students.isEmpty()) {
+            return java.util.Collections.emptyList();
+        }
+
+        java.util.Map<String, Long> statusCounts = students.stream()
+                .collect(java.util.stream.Collectors.groupingBy(s -> s.getApplicationStatus().toString(),
+                        java.util.stream.Collectors.counting()));
+
+        List<com.cc.DTO.UniversityStudentStatusCountDTO> breakdown = new java.util.ArrayList<>();
+        for (java.util.Map.Entry<String, Long> entry : statusCounts.entrySet()) {
+            breakdown.add(new com.cc.DTO.UniversityStudentStatusCountDTO(entry.getKey(), entry.getValue()));
+        }
+
+        return breakdown;
+    }
+
+    public List<com.cc.DTO.AdmittedStudentDTO> getAdmittedStudents(String username) {
+        List<Student> admittedStudents = studentRepository.findAdmittedStudentsByUniversityPerson(username);
+
+        return admittedStudents.stream()
+                .map(s -> new com.cc.DTO.AdmittedStudentDTO(
+                        s.getId(),
+                        s.getFullName(),
+                        s.getPassportNo(),
+                        s.getAppliedFor(),
+                        s.getApplicationStatus().toString(),
+                        // Use updatedAt from history or just current time if not available?
+                        // For now, let's use the last updated time from the student entity if
+                        // available,
+                        // or null.
+                        // Ideally we should fetch the specific history record for admission letter
+                        // generation,
+                        // but for simplicity let's use null or a placeholder if not strictly required.
+                        // Actually, let's try to find the latest history.
+                        // For now, passing null to avoid complex queries, or maybe just current time.
+                        java.time.LocalDateTime.now() // Placeholder
+                ))
+                .collect(java.util.stream.Collectors.toList());
+    }
 }

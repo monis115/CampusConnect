@@ -104,4 +104,33 @@ public class UniversityPersonController {
         }
     }
 
+    // -------------------- DASHBOARD ENDPOINTS --------------------
+
+    @GetMapping("/{username}/dashboard/stats")
+    public ResponseEntity<?> getDashboardStats(@PathVariable String username) {
+        try {
+            return ResponseEntity.ok(service.getDashboardStats(username));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Error fetching dashboard stats: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/{username}/dashboard/status-breakdown")
+    public ResponseEntity<?> getStudentStatusBreakdown(@PathVariable String username) {
+        try {
+            return ResponseEntity.ok(service.getStudentStatusBreakdown(username));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Error fetching status breakdown: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/{username}/dashboard/admitted-students")
+    public ResponseEntity<?> getAdmittedStudents(@PathVariable String username) {
+        try {
+            return ResponseEntity.ok(service.getAdmittedStudents(username));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Error fetching admitted students: " + e.getMessage());
+        }
+    }
+
 }

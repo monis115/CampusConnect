@@ -41,4 +41,26 @@ public interface StudentRepository extends JpaRepository<Student, Long> {
 
         // Recent Activity
         List<Student> findTop5ByAdmissionManagerOrderByIdDesc(AddmissionManager admissionManager);
+
+        @org.springframework.data.jpa.repository.Query("SELECT s FROM Student s WHERE s.universityPerson.userName = :username AND s.applicationStatus IN ("
+                        +
+                        "com.cc.modals.StudentStatus.ADMISSION_LETTER_GENERATED, " +
+                        "com.cc.modals.StudentStatus.ADMISSION_LETTER_APPROVED, " +
+                        "com.cc.modals.StudentStatus.TELEX_PAYMENT_DOCS_SUBMITTED, " +
+                        "com.cc.modals.StudentStatus.APPLIED_FOR_TELEX, " +
+                        "com.cc.modals.StudentStatus.TELEX_FEE_RECIEVED, " +
+                        "com.cc.modals.StudentStatus.TELEX_INITIATED, " +
+                        "com.cc.modals.StudentStatus.TELEX_APPLICATION_SUBMITTED_TO_UNIVERSITY, " +
+                        "com.cc.modals.StudentStatus.TELEX_APPLICATION_SUBMITTED_TO_MEA, " +
+                        "com.cc.modals.StudentStatus.TELEX_NUMBER_ISSUED, " +
+                        "com.cc.modals.StudentStatus.DOCS_VARIFICATION_COMPLETE, " +
+                        "com.cc.modals.StudentStatus.DOCS_VARIFICATION_APPROVED, " +
+                        "com.cc.modals.StudentStatus.VISA_FEE_PENDING, " +
+                        "com.cc.modals.StudentStatus.VISA_FEE_RECEIVED, " +
+                        "com.cc.modals.StudentStatus.VISA_APPLIED, " +
+                        "com.cc.modals.StudentStatus.PASSPORT_SUBMITTED_TO_EMBASSY, " +
+                        "com.cc.modals.StudentStatus.VISA_STAMPED, " +
+                        "com.cc.modals.StudentStatus.COMPLETED)")
+        List<Student> findAdmittedStudentsByUniversityPerson(
+                        @org.springframework.data.repository.query.Param("username") String username);
 }

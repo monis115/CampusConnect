@@ -143,4 +143,32 @@ public class AgentController {
             return ResponseEntity.badRequest().body("Error applying for telex: " + e.getMessage());
         }
     }
+
+    // ======================= DASHBOARD ENDPOINTS =======================
+    @GetMapping("/{username}/dashboard/stats")
+    public ResponseEntity<?> getAgentDashboardStats(@PathVariable String username) {
+        try {
+            return ResponseEntity.ok(agentService.getAgentDashboardStats(username));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Error fetching dashboard stats: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/{username}/dashboard/status-breakdown")
+    public ResponseEntity<?> getStudentStatusBreakdown(@PathVariable String username) {
+        try {
+            return ResponseEntity.ok(agentService.getStudentStatusBreakdown(username));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Error fetching status breakdown: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/{username}/dashboard/activities")
+    public ResponseEntity<?> getRecentActivities(@PathVariable String username) {
+        try {
+            return ResponseEntity.ok(agentService.getRecentActivities(username));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Error fetching recent activities: " + e.getMessage());
+        }
+    }
 }

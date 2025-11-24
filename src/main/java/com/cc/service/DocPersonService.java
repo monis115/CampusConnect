@@ -71,28 +71,41 @@ public class DocPersonService {
         com.cc.modals.Student student = studentRepository.findById(studentId)
                 .orElseThrow(() -> new RuntimeException("Student not found with ID: " + studentId));
 
+        // Assign DocPerson to student
+        DocPerson docPerson = repository.findByUsername(docPersonUsername)
+                .orElseThrow(() -> new RuntimeException("DocPerson not found with username: " + docPersonUsername));
+        student.setDocPerson(docPerson);
+
         student.setIsTelexDocApproved(approved);
         student.setDocPersonComment(comment);
 
         if (approved) {
-            // Check if Accountant also approved
-            if (Boolean.TRUE.equals(student.getIsTelexAccountantApproved())) {
-                student.setApplicationStatus(com.cc.modals.StudentStatus.TELEX_INITIATED);
-                student.setAction(action.ASSIGN_TELEX_MAN);
-                student.setActionOnUser(actionOnUser.admission_manager);
+            // DocPerson approved - set status to TELEX_INITIATED
+            student.setApplicationStatus(com.cc.modals.StudentStatus.TELEX_INITIATED);
+            student.setAction(action.ASSIGN_TELEX_MAN);
+            student.setActionOnUser(actionOnUser.admission_manager);
 
-                // History for Telex Initiated
-                com.cc.modals.StudentStatusHistory history = new com.cc.modals.StudentStatusHistory();
-                history.setStudent(student);
-                history.setStudentApplicationStatus(com.cc.modals.StudentStatus.DOCS_VARIFICATION_COMPLETE);
-                history.setUpdatedBy("System");
-                history.setUpdatedAt(java.time.LocalDateTime.now());
-                studentStatusHistoryRepository.save(history);
-            }
+            // History for Telex Initiated
+            com.cc.modals.StudentStatusHistory history = new com.cc.modals.StudentStatusHistory();
+            history.setStudent(student);
+            history.setStudentApplicationStatus(com.cc.modals.StudentStatus.TELEX_INITIATED);
+            history.setUpdatedBy(docPersonUsername);
+            history.setUpdatedAt(java.time.LocalDateTime.now());
+            history.setRemarks(comment != null ? comment : "Documents verified and approved");
+            studentStatusHistoryRepository.save(history);
         } else {
-            // If rejected, maybe revert status or just leave it as is but with flag false?
-            // Usually if rejected, we might want to notify agent.
-            // For now, we just save the state.
+            // If rejected, set action back to agent
+            student.setAction(action.CONFIRM_DOCS);
+            student.setActionOnUser(actionOnUser.agent);
+
+            // Create history entry for rejection
+            com.cc.modals.StudentStatusHistory history = new com.cc.modals.StudentStatusHistory();
+            history.setStudent(student);
+            history.setStudentApplicationStatus(student.getApplicationStatus());
+            history.setUpdatedBy(docPersonUsername);
+            history.setUpdatedAt(java.time.LocalDateTime.now());
+            history.setRemarks("Document verification rejected: " + (comment != null ? comment : "No comment"));
+            studentStatusHistoryRepository.save(history);
         }
 
         return studentRepository.save(student);

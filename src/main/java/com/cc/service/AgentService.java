@@ -18,6 +18,7 @@ import com.cc.DTO.AgentRegistrationDTO;
 import com.cc.modals.Agent;
 import com.cc.modals.AgentCollegeAccess;
 import com.cc.modals.College;
+import com.cc.modals.DocPerson;
 import com.cc.modals.Location;
 import com.cc.modals.action;
 import com.cc.modals.actionOnUser;
@@ -363,6 +364,9 @@ public class AgentService {
     @Autowired
     private com.cc.repository.StudentStatusHistoryRepository studentStatusHistoryRepository;
 
+    @Autowired
+    private DocPersonService docPersonService;
+
     public com.cc.modals.Student submitTelexDetails(Long studentId, com.cc.DTO.TelexDetailsDTO details,
             String screenshotPath, String passportPath) {
         com.cc.modals.Student student = studentRepository.findById(studentId)
@@ -391,6 +395,16 @@ public class AgentService {
             student.setPassportPath(passportPath);
         }
 
+        // Get and assign DocPerson to student
+        Optional<DocPerson> docPersonOpt = docPersonService.getOne();
+        if (docPersonOpt.isPresent()) {
+            student.setDocPerson(docPersonOpt.get());
+            logger.info("Assigned DocPerson: {} to student ID: {}",
+                    docPersonOpt.get().getUsername(), studentId);
+        } else {
+            logger.warn("No DocPerson available to assign to student ID: {}", studentId);
+        }
+
         // Update Status
         student.setApplicationStatus(com.cc.modals.StudentStatus.TELEX_INITIATED);
 
@@ -412,5 +426,72 @@ public class AgentService {
         studentStatusHistoryRepository.save(history);
 
         return savedStudent;
+    }
+
+    // ======================= DASHBOARD METHODS =======================
+    public com.cc.DTO.AgentDashboardStatsDTO getAgentDashboardStats(String username) {
+        Agent agent = agentRepository.findByUserId(username)
+                .orElseThrow(() -> new RuntimeException("Agent not found with username: " + username));
+
+        List<com.cc.modals.Student> students = agent.getStudent();
+        if (students == null) {
+            return new com.cc.DTO.AgentDashboardStatsDTO(0L, 0L, 0L, 0L, 0L);
+        }
+
+        long totalStudents = students.size();
+        long activeStudents = students.stream()
+                .filter(s -> s.getApplicationStatus() != com.cc.modals.StudentStatus.REJECTED
+                        && s.getApplicationStatus() != com.cc.modals.StudentStatus.VISA_STAMPED
+                        && s.getApplicationStatus() != com.cc.modals.StudentStatus.COMPLETED)
+                .count();
+        long pendingApplications = students.stream()
+                .filter(s -> s.getApplicationStatus() == com.cc.modals.StudentStatus.Submitted
+                        || s.getApplicationStatus() == com.cc.modals.StudentStatus.REGISTERED
+                        || s.getApplicationStatus() == com.cc.modals.StudentStatus.UNDER_REVIEW)
+                .count();
+        long visaApproved = students.stream()
+                .filter(s -> s.getApplicationStatus() == com.cc.modals.StudentStatus.VISA_STAMPED)
+                .count();
+        long rejected = students.stream()
+                .filter(s -> s.getApplicationStatus() == com.cc.modals.StudentStatus.REJECTED)
+                .count();
+
+        return new com.cc.DTO.AgentDashboardStatsDTO(totalStudents, activeStudents, pendingApplications, visaApproved,
+                rejected);
+    }
+
+    public List<com.cc.DTO.StudentStatusCountDTO> getStudentStatusBreakdown(String username) {
+        Agent agent = agentRepository.findByUserId(username)
+                .orElseThrow(() -> new RuntimeException("Agent not found with username: " + username));
+
+        List<com.cc.modals.Student> students = agent.getStudent();
+        if (students == null) {
+            return new ArrayList<>();
+        }
+
+        java.util.Map<String, Long> statusCounts = students.stream()
+                .collect(java.util.stream.Collectors.groupingBy(s -> s.getApplicationStatus().toString(),
+                        java.util.stream.Collectors.counting()));
+
+        List<com.cc.DTO.StudentStatusCountDTO> breakdown = new ArrayList<>();
+        for (java.util.Map.Entry<String, Long> entry : statusCounts.entrySet()) {
+            breakdown.add(new com.cc.DTO.StudentStatusCountDTO(entry.getKey(), entry.getValue()));
+        }
+
+        return breakdown;
+    }
+
+    public List<com.cc.DTO.AgentDashboardActivityDTO> getRecentActivities(String username) {
+        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(0, 10);
+        List<com.cc.modals.StudentStatusHistory> historyList = studentStatusHistoryRepository
+                .findRecentActivitiesByAgentUsername(username, pageable);
+
+        return historyList.stream()
+                .map(h -> new com.cc.DTO.AgentDashboardActivityDTO(
+                        h.getStudent().getFullName(),
+                        h.getStudentApplicationStatus().toString(),
+                        h.getUpdatedAt(),
+                        h.getRemarks()))
+                .collect(java.util.stream.Collectors.toList());
     }
 }

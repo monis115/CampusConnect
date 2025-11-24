@@ -109,4 +109,9 @@ public class UniversityPerson {
     public void setStudents(List<Student> students) {
         this.students = students;
     }
+
+    public String getFullName() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'getFullName'");
+    }
 }
