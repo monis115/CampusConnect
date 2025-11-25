@@ -13,7 +13,7 @@ import com.cc.modals.CompanyLogo;
 import com.cc.service.ConfigService;
 
 @RestController
-@RequestMapping("/config")  // Base path for config endpoints; adjust if needed (e.g., "/api/config")
+@RequestMapping("/config") // Base path for config endpoints; adjust if needed (e.g., "/api/config")
 public class ConfigController {
 
     @Autowired
@@ -34,9 +34,8 @@ public class ConfigController {
             return ResponseEntity.internalServerError().body("Upload failed: " + e.getMessage());
         }
     }
-    
-    
-    @GetMapping("/export-logo")  // GET http://localhost:8080/config/export-logo
+
+    @GetMapping("/export-logo") // GET http://localhost:8080/config/export-logo
     public ResponseEntity<?> exportLogo() {
         try {
             configService.exportLogoToFile();

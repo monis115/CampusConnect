@@ -165,7 +165,24 @@ public class StudentService {
         // Step 5: Assign Relationships
         student.setCollege(selectedCollege);
 
-        student.setAdmissionManager(selectedCollege.getAdmissionManager());
+        // Assign Admission Manager (Robust Logic)
+        AddmissionManager manager = selectedCollege.getAdmissionManager();
+        if (manager == null) {
+            System.out.println(
+                    "LOG: Admission Manager not found in College entity. Attempting fallback lookup for College ID: "
+                            + selectedCollege.getId());
+            // Fallback: Try to find manager by college ID
+            manager = addmissionManagerRepository.findByCollegesId(selectedCollege.getId()).orElse(null);
+        }
+
+        if (manager != null) {
+            System.out.println("LOG: Assigned Admission Manager: " + manager.getUsername()
+                    + " to Student Application ID: " + student.getApplicationId());
+        } else {
+            System.err.println("LOG: FAILED to assign Admission Manager for College ID: " + selectedCollege.getId());
+        }
+
+        student.setAdmissionManager(manager);
         student.setAgent(agent);
 
         // Step 6: SAVE FILES

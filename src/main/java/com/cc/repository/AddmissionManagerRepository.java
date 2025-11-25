@@ -16,12 +16,15 @@ public interface AddmissionManagerRepository extends JpaRepository<AddmissionMan
     Optional<AddmissionManager> findByUsername(String username);
 
     Optional<AddmissionManager> findByEmail(String email);
-    
+
     List<AddmissionManager> findByStudentsIsNotEmpty();
-    
+
     // ADD THIS METHOD - Fetch manager with all related data eagerly
     @Query("SELECT DISTINCT m FROM AddmissionManager m " +
-           "LEFT JOIN FETCH m.colleges " +
-           "WHERE m.username = :username")
+            "LEFT JOIN FETCH m.colleges " +
+            "WHERE m.username = :username")
     Optional<AddmissionManager> findByUsernameWithDetails(@Param("username") String username);
+
+    // Find manager by college ID
+    Optional<AddmissionManager> findByCollegesId(Long collegeId);
 }

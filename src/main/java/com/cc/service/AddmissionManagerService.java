@@ -47,6 +47,9 @@ public class AddmissionManagerService {
         @Autowired
         private DocPersonService docPersonService;
 
+        @Autowired
+        private com.cc.repository.UniversityPersonRepository universityPersonRepo;
+
         // ===================== CREATE =====================
         @Transactional
         public AddmissionManager createAddmissionManager(AddmissionManagerCreateDTO dto) {
@@ -199,8 +202,27 @@ public class AddmissionManagerService {
                         throw new RuntimeException("Student does not have a college assigned");
                 }
 
-                // Get the UniversityPerson from the college
+                // Get the UniversityPerson from the college (Robust Logic)
                 UniversityPerson universityPerson = student.getCollege().getUniversityPerson();
+                if (universityPerson == null) {
+                        System.out.println(
+                                        "LOG: University Person not found in College entity. Attempting fallback lookup for College ID: "
+                                                        + student.getCollege().getId());
+                        // Fallback: Try to find person by college ID
+                        universityPerson = student.getCollege().getId() != null
+                                        ? universityPersonRepo.findByCollegeId(student.getCollege().getId())
+                                                        .orElse(null)
+                                        : null;
+                }
+
+                if (universityPerson != null) {
+                        System.out.println("LOG: Assigned University Person: " + universityPerson.getUserName()
+                                        + " to Student ID: " + studentId);
+                } else {
+                        System.err.println("LOG: FAILED to assign University Person for College ID: "
+                                        + student.getCollege().getId());
+                }
+
                 if (universityPerson == null) {
                         throw new RuntimeException(
                                         "No University Person assigned to college: "

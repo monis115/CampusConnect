@@ -111,7 +111,6 @@ public class UniversityPerson {
     }
 
     public String getFullName() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getFullName'");
+        return this.userName;
     }
 }
