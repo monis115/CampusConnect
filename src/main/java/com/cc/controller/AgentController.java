@@ -171,4 +171,13 @@ public class AgentController {
             return ResponseEntity.status(500).body("Error fetching recent activities: " + e.getMessage());
         }
     }
+
+    @GetMapping("/{username}/students")
+    public ResponseEntity<List<com.cc.DTO.AgentStudentDTO>> getAgentStudents(@PathVariable String username) {
+        try {
+            return ResponseEntity.ok(agentService.getStudentsByAgentUsername(username));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).build();
+        }
+    }
 }

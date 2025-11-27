@@ -494,4 +494,21 @@ public class AgentService {
                         h.getRemarks()))
                 .collect(java.util.stream.Collectors.toList());
     }
+
+    public List<com.cc.DTO.AgentStudentDTO> getStudentsByAgentUsername(String username) {
+        Agent agent = agentRepository.findByUserId(username)
+                .orElseThrow(() -> new RuntimeException("Agent not found with username: " + username));
+
+        List<com.cc.modals.Student> students = agent.getStudent();
+        if (students == null) {
+            return new ArrayList<>();
+        }
+
+        return students.stream()
+                .map(student -> new com.cc.DTO.AgentStudentDTO(
+                        student.getId(),
+                        student.getFullName(),
+                        student.getApplicationId()))
+                .collect(java.util.stream.Collectors.toList());
+    }
 }
