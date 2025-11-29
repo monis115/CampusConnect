@@ -38,7 +38,7 @@ public class TelexService {
         student.setTelexMan(manager);
         student.setApplicationStatus(StudentStatus.TELEX_INITIATED);
 
-        student.setAction(action.NEED_TO_APPLY_TELEX);
+        student.setAction(action.UPLOAD_TELEX_DOCS);
         student.setActionOnUser(actionOnUser.telex_manager);
 
         addHistory(student, StudentStatus.TELEX_INITIATED, "System (Assigned to " + managerUsername + ")");
@@ -58,7 +58,7 @@ public class TelexService {
 
         student.setApplicationStatus(StudentStatus.TELEX_APPLICATION_SUBMITTED_TO_UNIVERSITY);
 
-        student.setAction(action.NEED_TO_UPDATE_MEA);
+        student.setAction(action.SUBMIT_TELEX_TO_MEA);
         student.setActionOnUser(actionOnUser.telex_manager);
 
         addHistory(student, StudentStatus.TELEX_APPLICATION_SUBMITTED_TO_UNIVERSITY, telexManagerUsername);
@@ -127,7 +127,7 @@ public class TelexService {
             }
         }
 
-        student.setAction(action.NEED_TO_UPDATE_MEA);
+        student.setAction(action.SUBMIT_TELEX_TO_UNIVERSITY);
         student.setActionOnUser(actionOnUser.telex_manager);
 
         student.setTelexDocumentsPath(paths.toString());

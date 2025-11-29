@@ -26,4 +26,10 @@ public enum action {
     NEED_TO_RETURN_VISA,
     READY_FOR_TRAVEL,
 
+    UPLOAD_TELEX_DOCS,
+
+    SUBMIT_TELEX_TO_UNIVERSITY,
+
+    SUBMIT_TELEX_TO_MEA,
+
 }
