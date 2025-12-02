@@ -15,7 +15,7 @@ public class StudentDTO {
     private Integer districtId; // Used for validation
     private String emergencyContactNo;
     private String emergencyRelation;
-    
+
     // Parents
     private String mothersName;
     private String fathersName;
@@ -25,6 +25,7 @@ public class StudentDTO {
     private LocalDate passportValidTill;
     private String adhaarCardNo;
     private String adhaarPath;
+    private String passportPath;
 
     // Academic (12th)
     private String class12thPassingYear;
@@ -37,12 +38,13 @@ public class StudentDTO {
     private boolean hasGivenNEET;
     private Integer neetYear;
     private Integer neetScore;
+    private String neetMarksheetPath;
 
     // Application Details
     private String intake;
     private String appliedFor;
     private String applicationStatus; // Optional (default to REGISTERED in service)
-    
+
     // File Paths (Optional for input, usually set by system)
     private String confirmationPagePath;
     private String admissionLetterPath;
@@ -51,97 +53,264 @@ public class StudentDTO {
     private List<Long> collegeIds;
     private String userNameAgent;
 
-    public StudentDTO() {}
+    public StudentDTO() {
+    }
 
     // Getters and Setters
 
-    public String getFullName() { return fullName; }
-    public void setFullName(String fullName) { this.fullName = fullName; }
+    public String getFullName() {
+        return fullName;
+    }
 
-    public LocalDate getDob() { return dob; }
-    public void setDob(LocalDate dob) { this.dob = dob; }
+    public void setFullName(String fullName) {
+        this.fullName = fullName;
+    }
 
-    public Integer getAge() { return age; }
-    public void setAge(Integer age) { this.age = age; }
+    public LocalDate getDob() {
+        return dob;
+    }
 
-    public String getEmail() { return email; }
-    public void setEmail(String email) { this.email = email; }
+    public void setDob(LocalDate dob) {
+        this.dob = dob;
+    }
 
-    public String getContactNo() { return contactNo; }
-    public void setContactNo(String contactNo) { this.contactNo = contactNo; }
+    public Integer getAge() {
+        return age;
+    }
 
-    public String getAddress() { return address; }
-    public void setAddress(String address) { this.address = address; }
+    public void setAge(Integer age) {
+        this.age = age;
+    }
 
-    public Integer getDistrictId() { return districtId; }
-    public void setDistrictId(Integer districtId) { this.districtId = districtId; }
+    public String getEmail() {
+        return email;
+    }
 
-    public String getEmergencyContactNo() { return emergencyContactNo; }
-    public void setEmergencyContactNo(String emergencyContactNo) { this.emergencyContactNo = emergencyContactNo; }
+    public void setEmail(String email) {
+        this.email = email;
+    }
 
-    public String getEmergencyRelation() { return emergencyRelation; }
-    public void setEmergencyRelation(String emergencyRelation) { this.emergencyRelation = emergencyRelation; }
+    public String getContactNo() {
+        return contactNo;
+    }
 
-    public String getMothersName() { return mothersName; }
-    public void setMothersName(String mothersName) { this.mothersName = mothersName; }
+    public void setContactNo(String contactNo) {
+        this.contactNo = contactNo;
+    }
 
-    public String getFathersName() { return fathersName; }
-    public void setFathersName(String fathersName) { this.fathersName = fathersName; }
+    public String getAddress() {
+        return address;
+    }
 
-    public String getPassportNo() { return passportNo; }
-    public void setPassportNo(String passportNo) { this.passportNo = passportNo; }
+    public void setAddress(String address) {
+        this.address = address;
+    }
 
-    public LocalDate getPassportValidTill() { return passportValidTill; }
-    public void setPassportValidTill(LocalDate passportValidTill) { this.passportValidTill = passportValidTill; }
+    public Integer getDistrictId() {
+        return districtId;
+    }
 
-    public String getAdhaarCardNo() { return adhaarCardNo; }
-    public void setAdhaarCardNo(String adhaarCardNo) { this.adhaarCardNo = adhaarCardNo; }
+    public void setDistrictId(Integer districtId) {
+        this.districtId = districtId;
+    }
 
-    public String getAdhaarPath() { return adhaarPath; }
-    public void setAdhaarPath(String adhaarPath) { this.adhaarPath = adhaarPath; }
+    public String getEmergencyContactNo() {
+        return emergencyContactNo;
+    }
 
-    public String getClass12thPassingYear() { return class12thPassingYear; }
-    public void setClass12thPassingYear(String class12thPassingYear) { this.class12thPassingYear = class12thPassingYear; }
+    public void setEmergencyContactNo(String emergencyContactNo) {
+        this.emergencyContactNo = emergencyContactNo;
+    }
 
-    public String getBaords() { return baords; }
-    public void setBaords(String baords) { this.baords = baords; }
+    public String getEmergencyRelation() {
+        return emergencyRelation;
+    }
 
-    public Double getClass12thMarks() { return class12thMarks; }
-    public void setClass12thMarks(Double class12thMarks) { this.class12thMarks = class12thMarks; }
+    public void setEmergencyRelation(String emergencyRelation) {
+        this.emergencyRelation = emergencyRelation;
+    }
 
-    public Double getMaxMarks() { return maxMarks; }
-    public void setMaxMarks(Double maxMarks) { this.maxMarks = maxMarks; }
+    public String getMothersName() {
+        return mothersName;
+    }
 
-    public String getMarkseetPath() { return markseetPath; }
-    public void setMarkseetPath(String markseetPath) { this.markseetPath = markseetPath; }
+    public void setMothersName(String mothersName) {
+        this.mothersName = mothersName;
+    }
 
-    public boolean isHasGivenNEET() { return hasGivenNEET; }
-    public void setHasGivenNEET(boolean hasGivenNEET) { this.hasGivenNEET = hasGivenNEET; }
+    public String getFathersName() {
+        return fathersName;
+    }
 
-    public Integer getNeetYear() { return neetYear; }
-    public void setNeetYear(Integer neetYear) { this.neetYear = neetYear; }
+    public void setFathersName(String fathersName) {
+        this.fathersName = fathersName;
+    }
 
-    public Integer getNeetScore() { return neetScore; }
-    public void setNeetScore(Integer neetScore) { this.neetScore = neetScore; }
+    public String getPassportNo() {
+        return passportNo;
+    }
 
-    public String getIntake() { return intake; }
-    public void setIntake(String intake) { this.intake = intake; }
+    public void setPassportNo(String passportNo) {
+        this.passportNo = passportNo;
+    }
 
-    public String getAppliedFor() { return appliedFor; }
-    public void setAppliedFor(String appliedFor) { this.appliedFor = appliedFor; }
+    public LocalDate getPassportValidTill() {
+        return passportValidTill;
+    }
 
-    public String getApplicationStatus() { return applicationStatus; }
-    public void setApplicationStatus(String applicationStatus) { this.applicationStatus = applicationStatus; }
+    public void setPassportValidTill(LocalDate passportValidTill) {
+        this.passportValidTill = passportValidTill;
+    }
 
-    public String getConfirmationPagePath() { return confirmationPagePath; }
-    public void setConfirmationPagePath(String confirmationPagePath) { this.confirmationPagePath = confirmationPagePath; }
+    public String getAdhaarCardNo() {
+        return adhaarCardNo;
+    }
 
-    public String getAdmissionLetterPath() { return admissionLetterPath; }
-    public void setAdmissionLetterPath(String admissionLetterPath) { this.admissionLetterPath = admissionLetterPath; }
+    public void setAdhaarCardNo(String adhaarCardNo) {
+        this.adhaarCardNo = adhaarCardNo;
+    }
 
-    public List<Long> getCollegeIds() { return collegeIds; }
-    public void setCollegeIds(List<Long> collegeIds) { this.collegeIds = collegeIds; }
+    public String getAdhaarPath() {
+        return adhaarPath;
+    }
 
-    public String getUserNameAgent() { return userNameAgent; }
-    public void setUserNameAgent(String userNameAgent) { this.userNameAgent = userNameAgent; }
+    public void setAdhaarPath(String adhaarPath) {
+        this.adhaarPath = adhaarPath;
+    }
+
+    public String getPassportPath() {
+        return passportPath;
+    }
+
+    public void setPassportPath(String passportPath) {
+        this.passportPath = passportPath;
+    }
+
+    public String getClass12thPassingYear() {
+        return class12thPassingYear;
+    }
+
+    public void setClass12thPassingYear(String class12thPassingYear) {
+        this.class12thPassingYear = class12thPassingYear;
+    }
+
+    public String getBaords() {
+        return baords;
+    }
+
+    public void setBaords(String baords) {
+        this.baords = baords;
+    }
+
+    public Double getClass12thMarks() {
+        return class12thMarks;
+    }
+
+    public void setClass12thMarks(Double class12thMarks) {
+        this.class12thMarks = class12thMarks;
+    }
+
+    public Double getMaxMarks() {
+        return maxMarks;
+    }
+
+    public void setMaxMarks(Double maxMarks) {
+        this.maxMarks = maxMarks;
+    }
+
+    public String getMarkseetPath() {
+        return markseetPath;
+    }
+
+    public void setMarkseetPath(String markseetPath) {
+        this.markseetPath = markseetPath;
+    }
+
+    public boolean isHasGivenNEET() {
+        return hasGivenNEET;
+    }
+
+    public void setHasGivenNEET(boolean hasGivenNEET) {
+        this.hasGivenNEET = hasGivenNEET;
+    }
+
+    public Integer getNeetYear() {
+        return neetYear;
+    }
+
+    public void setNeetYear(Integer neetYear) {
+        this.neetYear = neetYear;
+    }
+
+    public Integer getNeetScore() {
+        return neetScore;
+    }
+
+    public void setNeetScore(Integer neetScore) {
+        this.neetScore = neetScore;
+    }
+
+    public String getNeetMarksheetPath() {
+        return neetMarksheetPath;
+    }
+
+    public void setNeetMarksheetPath(String neetMarksheetPath) {
+        this.neetMarksheetPath = neetMarksheetPath;
+    }
+
+    public String getIntake() {
+        return intake;
+    }
+
+    public void setIntake(String intake) {
+        this.intake = intake;
+    }
+
+    public String getAppliedFor() {
+        return appliedFor;
+    }
+
+    public void setAppliedFor(String appliedFor) {
+        this.appliedFor = appliedFor;
+    }
+
+    public String getApplicationStatus() {
+        return applicationStatus;
+    }
+
+    public void setApplicationStatus(String applicationStatus) {
+        this.applicationStatus = applicationStatus;
+    }
+
+    public String getConfirmationPagePath() {
+        return confirmationPagePath;
+    }
+
+    public void setConfirmationPagePath(String confirmationPagePath) {
+        this.confirmationPagePath = confirmationPagePath;
+    }
+
+    public String getAdmissionLetterPath() {
+        return admissionLetterPath;
+    }
+
+    public void setAdmissionLetterPath(String admissionLetterPath) {
+        this.admissionLetterPath = admissionLetterPath;
+    }
+
+    public List<Long> getCollegeIds() {
+        return collegeIds;
+    }
+
+    public void setCollegeIds(List<Long> collegeIds) {
+        this.collegeIds = collegeIds;
+    }
+
+    public String getUserNameAgent() {
+        return userNameAgent;
+    }
+
+    public void setUserNameAgent(String userNameAgent) {
+        this.userNameAgent = userNameAgent;
+    }
 }

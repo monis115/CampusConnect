@@ -60,7 +60,7 @@ public class Student {
 	@Column(nullable = false)
 	private LocalDate passportValidTill;
 
-	@Column(name = "passport_path", nullable = true)
+	@Column(name = "passport_path", nullable = false)
 	private String passportPath;
 
 	@Column(nullable = false)
@@ -75,7 +75,7 @@ public class Student {
 	@Column(nullable = false)
 	private String adhaarCardNo;
 
-	@Column(nullable = false)
+	@Column(nullable = true)
 	private String adhaarPath;
 
 	// preferences: a student can prefer multiple colleges
@@ -106,6 +106,9 @@ public class Student {
 
 	@Column(nullable = true)
 	private Integer neetScore;
+
+	@Column(nullable = true)
+	private String neetMarksheetPath;
 
 	@Column(nullable = false)
 	private String appliedFor;
@@ -490,6 +493,14 @@ public class Student {
 
 	public void setNeetScore(Integer neetScore) {
 		this.neetScore = neetScore;
+	}
+
+	public String getNeetMarksheetPath() {
+		return neetMarksheetPath;
+	}
+
+	public void setNeetMarksheetPath(String neetMarksheetPath) {
+		this.neetMarksheetPath = neetMarksheetPath;
 	}
 
 	public String getAppliedFor() {

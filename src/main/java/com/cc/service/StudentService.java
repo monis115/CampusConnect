@@ -82,6 +82,7 @@ public class StudentService {
             MultipartFile adhaarFile,
             MultipartFile passportFile,
             MultipartFile marksheetFile,
+            MultipartFile neetMarksheetFile,
             MultipartFile profileImage) {
 
         // Step 1: Fetch Agent
@@ -191,11 +192,13 @@ public class StudentService {
         String savedAdhaarPath = saveUploadedFile(adhaarFile, "adhaar", safeName + "_adhaar");
         String savedPassportPath = saveUploadedFile(passportFile, "passport", safeName + "_passport");
         String savedMarksheetPath = saveUploadedFile(marksheetFile, "marksheet", safeName + "_marks");
+        String savedNeetMarksheetPath = saveUploadedFile(neetMarksheetFile, "neet_marksheet", safeName + "_neet_marks");
         String savedProfilePath = saveUploadedFile(profileImage, "profile", safeName + "_profile");
 
         // Set File Paths to Entity
         student.setAdhaarPath(savedAdhaarPath);
         student.setMarkseetPath(savedMarksheetPath);
+        student.setNeetMarksheetPath(savedNeetMarksheetPath);
         student.setProfileImagePath(savedProfilePath);
         student.setPassportPath(savedPassportPath);
 
