@@ -367,8 +367,8 @@ public class AgentService {
     @Autowired
     private DocPersonService docPersonService;
 
-    public com.cc.modals.Student submitTelexDetails(Long studentId, com.cc.DTO.TelexDetailsDTO details,
-            String screenshotPath, String passportPath) {
+    public com.cc.modals.Student submitTelexDetails(Long studentId, com.cc.DTO.TelexApplicationDTO details,
+            String visaPhotoPath, String visaPassportCopyPath, String ttCopyPath, String paymentConfirmationPath) {
         com.cc.modals.Student student = studentRepository.findById(studentId)
                 .orElseThrow(() -> new RuntimeException("Student not found with ID: " + studentId));
 
@@ -376,23 +376,110 @@ public class AgentService {
         if (details.getAgentUsername() != null
                 && (student.getAgent() == null || !student.getAgent().getUserId().equals(details.getAgentUsername()))) {
             // Optional: Enforce agent check if username is provided
-            // throw new RuntimeException("Unauthorized: Agent username does not match
-            // assigned agent.");
+            logger.warn("Agent username mismatch for student ID: {}", studentId);
         }
 
-        // Update Student Details
-        if (details.getPassportNumber() != null) {
+        // ======================= DOCUMENT TRACKING =======================
+        if (details.getOriginalDocLocation() != null)
+            student.setOriginalDocLocation(details.getOriginalDocLocation());
+        if (details.getOriginalDocsSent() != null)
+            student.setOriginalDocsSent(details.getOriginalDocsSent());
+        if (details.getDocDeliveryMethod() != null)
+            student.setDocDeliveryMethod(details.getDocDeliveryMethod());
+
+        // Combine Courier Partner and Tracking ID if both exist
+        String trackingId = details.getCourierTrackingId();
+        if (trackingId == null || trackingId.isEmpty()) {
+            trackingId = details.getCourierTrackingNumber();
+        }
+
+        if (details.getCourierPartner() != null && !details.getCourierPartner().isEmpty()) {
+            if (trackingId != null && !trackingId.isEmpty()) {
+                trackingId = details.getCourierPartner() + " - " + trackingId;
+            } else {
+                trackingId = details.getCourierPartner();
+            }
+        }
+        if (trackingId != null)
+            student.setCourierTrackingId(trackingId);
+
+        if (details.getSelfPersonContact() != null)
+            student.setSelfPersonContact(details.getSelfPersonContact());
+        if (details.getDocTentativeReachDate() != null)
+            student.setDocTentativeReachDate(details.getDocTentativeReachDate());
+
+        // ======================= PAYMENT DETAILS =======================
+        if (details.getHasPaid() != null)
+            student.setHasPaid(details.getHasPaid());
+        if (details.getPaidAmount() != null)
+            student.setPaidAmount(details.getPaidAmount());
+        if (details.getPaidTo() != null)
+            student.setPaidTo(details.getPaidTo());
+        if (details.getPaymentDueDate() != null)
+            student.setPaymentDueDate(details.getPaymentDueDate());
+        if (details.getPaymentType() != null)
+            student.setPaymentType(details.getPaymentType());
+
+        // Set payment document paths
+        if (ttCopyPath != null) {
+            student.setTtCopyPath(ttCopyPath);
+        }
+        if (paymentConfirmationPath != null) {
+            student.setPaymentConfirmationPath(paymentConfirmationPath);
+        }
+
+        // ======================= PERSONAL/VISA INFORMATION =======================
+        if (details.getSurname() != null)
+            student.setSurname(details.getSurname());
+        if (details.getFirstName() != null)
+            student.setFirstName(details.getFirstName());
+        if (details.getMiddleName() != null)
+            student.setMiddleName(details.getMiddleName());
+        if (details.getSex() != null)
+            student.setSex(details.getSex());
+        if (details.getCountryOfBirth() != null)
+            student.setCountryOfBirth(details.getCountryOfBirth());
+        if (details.getDateOfBirth() != null)
+            student.setDob(details.getDateOfBirth());
+        if (details.getPlaceOfBirth() != null)
+            student.setPlaceOfBirth(details.getPlaceOfBirth());
+        if (details.getMaritalStatus() != null)
+            student.setMaritalStatus(details.getMaritalStatus());
+        if (details.getCitizenship() != null)
+            student.setCitizenship(details.getCitizenship());
+        if (details.getPreviousCitizenship() != null)
+            student.setPreviousCitizenship(details.getPreviousCitizenship());
+        if (details.getPassportType() != null)
+            student.setPassportType(details.getPassportType());
+        if (details.getPassportIssueDate() != null)
+            student.setPassportIssueDate(details.getPassportIssueDate());
+        if (details.getPassportExpirationDate() != null)
+            student.setPassportExpirationDate(details.getPassportExpirationDate());
+        if (details.getPassportIssuedBy() != null)
+            student.setPassportIssuedBy(details.getPassportIssuedBy());
+        if (details.getPassportNumber() != null)
             student.setPassportNo(details.getPassportNumber());
-        }
-        student.setPassportValidationDate(details.getPassportValidationDate());
-        student.setTelexPaymentAmount(details.getTelexPaymentAmount());
-        student.setTelexPaymentTxId(details.getTelexPaymentTxId());
+        if (details.getAddressInUzbekistan() != null)
+            student.setAddressInUzbekistan(details.getAddressInUzbekistan());
+        if (details.getPreviousVisitsToUzbekistan() != null)
+            student.setPreviousVisitsToUzbekistan(details.getPreviousVisitsToUzbekistan());
+        if (details.getAccompaniedPersons() != null)
+            student.setAccompaniedPersons(details.getAccompaniedPersons());
+        if (details.getOccupation() != null)
+            student.setOccupation(details.getOccupation());
+        if (details.getPlaceOfWorkStudyPosition() != null)
+            student.setPlaceOfWorkStudyPosition(details.getPlaceOfWorkStudyPosition());
+        if (details.getWorkStudyAddressTelephone() != null)
+            student.setWorkStudyAddressTelephone(details.getWorkStudyAddressTelephone());
+        if (details.getHomeAddress() != null)
+            student.setHomeAddress(details.getHomeAddress());
 
-        if (screenshotPath != null) {
-            student.setTelexPaymentScreenshotPath(screenshotPath);
+        // Set required document paths
+        if (visaPhotoPath != null) {
+            student.setVisaPhotoPath(visaPhotoPath);
         }
-        if (passportPath != null) {
-            student.setPassportPath(passportPath);
+        if (visaPassportCopyPath != null) {
+            student.setVisaPassportCopyPath(visaPassportCopyPath);
         }
 
         // Get and assign DocPerson to student
@@ -425,6 +512,7 @@ public class AgentService {
         history.setUpdatedAt(java.time.LocalDateTime.now());
         studentStatusHistoryRepository.save(history);
 
+        logger.info("Telex application submitted successfully for student ID: {}", studentId);
         return savedStudent;
     }
 

@@ -111,33 +111,93 @@ public class AgentController {
     public ResponseEntity<?> applyForTelex(
             @PathVariable Long studentId,
             @org.springframework.web.bind.annotation.RequestParam("details") String detailsJson,
-            @org.springframework.web.bind.annotation.RequestPart(value = "passport", required = true) org.springframework.web.multipart.MultipartFile passport,
-            @org.springframework.web.bind.annotation.RequestPart(value = "screenshot", required = false) org.springframework.web.multipart.MultipartFile screenshot) {
+            @org.springframework.web.bind.annotation.RequestPart(value = "visaPhoto", required = false) org.springframework.web.multipart.MultipartFile visaPhoto,
+            @org.springframework.web.bind.annotation.RequestPart(value = "visaPassportCopy", required = false) org.springframework.web.multipart.MultipartFile visaPassportCopy,
+            @org.springframework.web.bind.annotation.RequestPart(value = "ttCopy", required = false) org.springframework.web.multipart.MultipartFile ttCopy,
+            @org.springframework.web.bind.annotation.RequestPart(value = "paymentConfirmation", required = false) org.springframework.web.multipart.MultipartFile paymentConfirmation) {
         try {
-            // Parse JSON string to DTO
+            // Parse JSON string to TelexApplicationDTO
             com.fasterxml.jackson.databind.ObjectMapper objectMapper = new com.fasterxml.jackson.databind.ObjectMapper();
             objectMapper.registerModule(new com.fasterxml.jackson.datatype.jsr310.JavaTimeModule());
-            com.cc.DTO.TelexDetailsDTO details = objectMapper.readValue(detailsJson, com.cc.DTO.TelexDetailsDTO.class);
+            com.cc.DTO.TelexApplicationDTO details = objectMapper.readValue(detailsJson,
+                    com.cc.DTO.TelexApplicationDTO.class);
 
-            String screenshotPath = null;
-            if (screenshot != null && !screenshot.isEmpty()) {
-                String fileName = System.currentTimeMillis() + "_" + screenshot.getOriginalFilename();
-                java.nio.file.Path path = java.nio.file.Paths.get("uploads/telex-payments/" + fileName);
-                java.nio.file.Files.createDirectories(path.getParent());
-                java.nio.file.Files.write(path, screenshot.getBytes());
-                screenshotPath = path.toString();
+            // ======================= FILE SIZE VALIDATION =======================
+            final long MAX_PHOTO_SIZE = 128 * 1024; // 128 KB
+            final long MAX_PASSPORT_SIZE = 256 * 1024; // 256 KB
+            final long MAX_DOCUMENT_SIZE = 5 * 1024 * 1024; // 5 MB for other documents
+
+            // Validate visa photo size and format
+            if (visaPhoto != null && !visaPhoto.isEmpty()) {
+                if (visaPhoto.getSize() > MAX_PHOTO_SIZE) {
+                    return ResponseEntity.badRequest()
+                            .body("Visa photo size exceeds maximum limit of 128KB. Current size: "
+                                    + (visaPhoto.getSize() / 1024) + "KB");
+                }
+                String contentType = visaPhoto.getContentType();
+                if (contentType == null || !contentType.equals("image/jpeg")) {
+                    return ResponseEntity.badRequest()
+                            .body("Visa photo must be in JPEG format");
+                }
             }
 
-            String passportPath = null;
-            if (passport != null && !passport.isEmpty()) {
-                String fileName = System.currentTimeMillis() + "_" + passport.getOriginalFilename();
-                java.nio.file.Path path = java.nio.file.Paths.get("uploads/passports/" + fileName);
-                java.nio.file.Files.createDirectories(path.getParent());
-                java.nio.file.Files.write(path, passport.getBytes());
-                passportPath = path.toString();
+            // Validate passport copy size
+            if (visaPassportCopy != null && !visaPassportCopy.isEmpty()) {
+                if (visaPassportCopy.getSize() > MAX_PASSPORT_SIZE) {
+                    return ResponseEntity.badRequest()
+                            .body("Passport copy size exceeds maximum limit of 256KB. Current size: "
+                                    + (visaPassportCopy.getSize() / 1024) + "KB");
+                }
             }
 
-            return ResponseEntity.ok(agentService.submitTelexDetails(studentId, details, screenshotPath, passportPath));
+            // ======================= FILE UPLOADS =======================
+            String visaPhotoPath = null;
+            if (visaPhoto != null && !visaPhoto.isEmpty()) {
+                String fileName = System.currentTimeMillis() + "_" + visaPhoto.getOriginalFilename();
+                java.nio.file.Path path = java.nio.file.Paths.get("uploads/visa-photos/" + fileName);
+                java.nio.file.Files.createDirectories(path.getParent());
+                java.nio.file.Files.write(path, visaPhoto.getBytes());
+                visaPhotoPath = path.toString();
+            }
+
+            String visaPassportCopyPath = null;
+            if (visaPassportCopy != null && !visaPassportCopy.isEmpty()) {
+                String fileName = System.currentTimeMillis() + "_" + visaPassportCopy.getOriginalFilename();
+                java.nio.file.Path path = java.nio.file.Paths.get("uploads/visa-passports/" + fileName);
+                java.nio.file.Files.createDirectories(path.getParent());
+                java.nio.file.Files.write(path, visaPassportCopy.getBytes());
+                visaPassportCopyPath = path.toString();
+            }
+
+            String ttCopyPath = null;
+            if (ttCopy != null && !ttCopy.isEmpty()) {
+                if (ttCopy.getSize() > MAX_DOCUMENT_SIZE) {
+                    return ResponseEntity.badRequest()
+                            .body("TT copy size exceeds maximum limit");
+                }
+                String fileName = System.currentTimeMillis() + "_" + ttCopy.getOriginalFilename();
+                java.nio.file.Path path = java.nio.file.Paths.get("uploads/tt-copies/" + fileName);
+                java.nio.file.Files.createDirectories(path.getParent());
+                java.nio.file.Files.write(path, ttCopy.getBytes());
+                ttCopyPath = path.toString();
+            }
+
+            String paymentConfirmationPath = null;
+            if (paymentConfirmation != null && !paymentConfirmation.isEmpty()) {
+                if (paymentConfirmation.getSize() > MAX_DOCUMENT_SIZE) {
+                    return ResponseEntity.badRequest()
+                            .body("Payment confirmation size exceeds maximum limit");
+                }
+                String fileName = System.currentTimeMillis() + "_" + paymentConfirmation.getOriginalFilename();
+                java.nio.file.Path path = java.nio.file.Paths.get("uploads/payment-confirmations/" + fileName);
+                java.nio.file.Files.createDirectories(path.getParent());
+                java.nio.file.Files.write(path, paymentConfirmation.getBytes());
+                paymentConfirmationPath = path.toString();
+            }
+
+            // Submit telex details with all paths
+            return ResponseEntity.ok(agentService.submitTelexDetails(
+                    studentId, details, visaPhotoPath, visaPassportCopyPath, ttCopyPath, paymentConfirmationPath));
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.badRequest().body("Error applying for telex: " + e.getMessage());

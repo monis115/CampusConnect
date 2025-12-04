@@ -60,7 +60,7 @@ public class Student {
 	@Column(nullable = false)
 	private LocalDate passportValidTill;
 
-	@Column(name = "passport_path", nullable = false)
+	@Column(name = "passport_path", nullable = true)
 	private String passportPath;
 
 	@Column(nullable = false)
@@ -95,7 +95,7 @@ public class Student {
 	@Column(nullable = false)
 	private Double maxMarks;
 
-	@Column(nullable = false)
+	@Column(nullable = true)
 	private String markseetPath;
 
 	@Column(nullable = false)
@@ -216,6 +216,119 @@ public class Student {
 	// This side was likely already there, which caused the error
 	@JsonManagedReference(value = "student-history")
 	private List<StudentStatusHistory> studentStatusHistory = new java.util.ArrayList<>();
+
+	// ======================= DOCUMENT TRACKING FIELDS =======================
+	@Column(name = "original_doc_location")
+	private String originalDocLocation;
+
+	@Column(name = "original_docs_sent")
+	private Boolean originalDocsSent = false;
+
+	@Enumerated(EnumType.STRING)
+	@Column(name = "doc_delivery_method")
+	private DocDeliveryMethod docDeliveryMethod;
+
+	@Column(name = "courier_tracking_id")
+	private String courierTrackingId;
+
+	@Column(name = "self_person_contact")
+	private String selfPersonContact;
+
+	@Column(name = "doc_tentative_reach_date")
+	private LocalDate docTentativeReachDate;
+
+	// ======================= PAYMENT DETAILS =======================
+	@Column(name = "has_paid")
+	private Boolean hasPaid = false;
+
+	@Column(name = "paid_amount")
+	private Double paidAmount;
+
+	@Enumerated(EnumType.STRING)
+	@Column(name = "paid_to")
+	private PaymentRecipient paidTo;
+
+	@Column(name = "tt_copy_path")
+	private String ttCopyPath;
+
+	@Column(name = "payment_confirmation_path")
+	private String paymentConfirmationPath;
+
+	@Column(name = "payment_due_date")
+	private LocalDate paymentDueDate;
+
+	@Enumerated(EnumType.STRING)
+	@Column(name = "payment_type")
+	private PaymentType paymentType;
+
+	// ======================= PERSONAL/VISA INFORMATION =======================
+	@Column(name = "surname")
+	private String surname;
+
+	@Column(name = "first_name")
+	private String firstName;
+
+	@Column(name = "middle_name")
+	private String middleName;
+
+	@Column(name = "sex")
+	private String sex;
+
+	@Column(name = "country_of_birth")
+	private String countryOfBirth;
+
+	@Column(name = "place_of_birth")
+	private String placeOfBirth;
+
+	@Enumerated(EnumType.STRING)
+	@Column(name = "marital_status")
+	private MaritalStatus maritalStatus;
+
+	@Column(name = "citizenship")
+	private String citizenship;
+
+	@Column(name = "previous_citizenship")
+	private String previousCitizenship;
+
+	@Enumerated(EnumType.STRING)
+	@Column(name = "passport_type")
+	private PassportType passportType;
+
+	@Column(name = "passport_issued_by")
+	private String passportIssuedBy;
+
+	@Column(name = "passport_issue_date")
+	private LocalDate passportIssueDate;
+
+	@Column(name = "passport_expiration_date")
+	private LocalDate passportExpirationDate;
+
+	@Column(name = "address_in_uzbekistan")
+	private String addressInUzbekistan;
+
+	@Column(name = "previous_visits_to_uzbekistan")
+	private String previousVisitsToUzbekistan;
+
+	@Column(name = "accompanied_persons")
+	private String accompaniedPersons;
+
+	@Column(name = "occupation")
+	private String occupation;
+
+	@Column(name = "place_of_work_study_position")
+	private String placeOfWorkStudyPosition;
+
+	@Column(name = "work_study_address_telephone")
+	private String workStudyAddressTelephone;
+
+	@Column(name = "home_address")
+	private String homeAddress;
+
+	@Column(name = "visa_photo_path")
+	private String visaPhotoPath;
+
+	@Column(name = "visa_passport_copy_path")
+	private String visaPassportCopyPath;
 
 	private Enum action;
 	private Enum actionOnUser;
@@ -715,5 +828,291 @@ public class Student {
 
 	public void setDocPersonComment(String docPersonComment) {
 		this.docPersonComment = docPersonComment;
+	}
+
+	// ======================= DOCUMENT TRACKING GETTERS/SETTERS
+	// =======================
+	public String getOriginalDocLocation() {
+		return originalDocLocation;
+	}
+
+	public void setOriginalDocLocation(String originalDocLocation) {
+		this.originalDocLocation = originalDocLocation;
+	}
+
+	public Boolean getOriginalDocsSent() {
+		return originalDocsSent;
+	}
+
+	public void setOriginalDocsSent(Boolean originalDocsSent) {
+		this.originalDocsSent = originalDocsSent;
+	}
+
+	public DocDeliveryMethod getDocDeliveryMethod() {
+		return docDeliveryMethod;
+	}
+
+	public void setDocDeliveryMethod(DocDeliveryMethod docDeliveryMethod) {
+		this.docDeliveryMethod = docDeliveryMethod;
+	}
+
+	public String getCourierTrackingId() {
+		return courierTrackingId;
+	}
+
+	public void setCourierTrackingId(String courierTrackingId) {
+		this.courierTrackingId = courierTrackingId;
+	}
+
+	public String getSelfPersonContact() {
+		return selfPersonContact;
+	}
+
+	public void setSelfPersonContact(String selfPersonContact) {
+		this.selfPersonContact = selfPersonContact;
+	}
+
+	public LocalDate getDocTentativeReachDate() {
+		return docTentativeReachDate;
+	}
+
+	public void setDocTentativeReachDate(LocalDate docTentativeReachDate) {
+		this.docTentativeReachDate = docTentativeReachDate;
+	}
+
+	// ======================= PAYMENT DETAILS GETTERS/SETTERS
+	// =======================
+	public Boolean getHasPaid() {
+		return hasPaid;
+	}
+
+	public void setHasPaid(Boolean hasPaid) {
+		this.hasPaid = hasPaid;
+	}
+
+	public Double getPaidAmount() {
+		return paidAmount;
+	}
+
+	public void setPaidAmount(Double paidAmount) {
+		this.paidAmount = paidAmount;
+	}
+
+	public PaymentRecipient getPaidTo() {
+		return paidTo;
+	}
+
+	public void setPaidTo(PaymentRecipient paidTo) {
+		this.paidTo = paidTo;
+	}
+
+	public String getTtCopyPath() {
+		return ttCopyPath;
+	}
+
+	public void setTtCopyPath(String ttCopyPath) {
+		this.ttCopyPath = ttCopyPath;
+	}
+
+	public String getPaymentConfirmationPath() {
+		return paymentConfirmationPath;
+	}
+
+	public void setPaymentConfirmationPath(String paymentConfirmationPath) {
+		this.paymentConfirmationPath = paymentConfirmationPath;
+	}
+
+	public LocalDate getPaymentDueDate() {
+		return paymentDueDate;
+	}
+
+	public void setPaymentDueDate(LocalDate paymentDueDate) {
+		this.paymentDueDate = paymentDueDate;
+	}
+
+	public PaymentType getPaymentType() {
+		return paymentType;
+	}
+
+	public void setPaymentType(PaymentType paymentType) {
+		this.paymentType = paymentType;
+	}
+
+	// ======================= PERSONAL/VISA INFO GETTERS/SETTERS
+	// =======================
+	public String getSurname() {
+		return surname;
+	}
+
+	public void setSurname(String surname) {
+		this.surname = surname;
+	}
+
+	public String getFirstName() {
+		return firstName;
+	}
+
+	public void setFirstName(String firstName) {
+		this.firstName = firstName;
+	}
+
+	public String getMiddleName() {
+		return middleName;
+	}
+
+	public void setMiddleName(String middleName) {
+		this.middleName = middleName;
+	}
+
+	public String getSex() {
+		return sex;
+	}
+
+	public void setSex(String sex) {
+		this.sex = sex;
+	}
+
+	public String getCountryOfBirth() {
+		return countryOfBirth;
+	}
+
+	public void setCountryOfBirth(String countryOfBirth) {
+		this.countryOfBirth = countryOfBirth;
+	}
+
+	public String getPlaceOfBirth() {
+		return placeOfBirth;
+	}
+
+	public void setPlaceOfBirth(String placeOfBirth) {
+		this.placeOfBirth = placeOfBirth;
+	}
+
+	public MaritalStatus getMaritalStatus() {
+		return maritalStatus;
+	}
+
+	public void setMaritalStatus(MaritalStatus maritalStatus) {
+		this.maritalStatus = maritalStatus;
+	}
+
+	public String getCitizenship() {
+		return citizenship;
+	}
+
+	public void setCitizenship(String citizenship) {
+		this.citizenship = citizenship;
+	}
+
+	public String getPreviousCitizenship() {
+		return previousCitizenship;
+	}
+
+	public void setPreviousCitizenship(String previousCitizenship) {
+		this.previousCitizenship = previousCitizenship;
+	}
+
+	public PassportType getPassportType() {
+		return passportType;
+	}
+
+	public void setPassportType(PassportType passportType) {
+		this.passportType = passportType;
+	}
+
+	public String getPassportIssuedBy() {
+		return passportIssuedBy;
+	}
+
+	public void setPassportIssuedBy(String passportIssuedBy) {
+		this.passportIssuedBy = passportIssuedBy;
+	}
+
+	public LocalDate getPassportIssueDate() {
+		return passportIssueDate;
+	}
+
+	public void setPassportIssueDate(LocalDate passportIssueDate) {
+		this.passportIssueDate = passportIssueDate;
+	}
+
+	public LocalDate getPassportExpirationDate() {
+		return passportExpirationDate;
+	}
+
+	public void setPassportExpirationDate(LocalDate passportExpirationDate) {
+		this.passportExpirationDate = passportExpirationDate;
+	}
+
+	public String getAddressInUzbekistan() {
+		return addressInUzbekistan;
+	}
+
+	public void setAddressInUzbekistan(String addressInUzbekistan) {
+		this.addressInUzbekistan = addressInUzbekistan;
+	}
+
+	public String getPreviousVisitsToUzbekistan() {
+		return previousVisitsToUzbekistan;
+	}
+
+	public void setPreviousVisitsToUzbekistan(String previousVisitsToUzbekistan) {
+		this.previousVisitsToUzbekistan = previousVisitsToUzbekistan;
+	}
+
+	public String getAccompaniedPersons() {
+		return accompaniedPersons;
+	}
+
+	public void setAccompaniedPersons(String accompaniedPersons) {
+		this.accompaniedPersons = accompaniedPersons;
+	}
+
+	public String getOccupation() {
+		return occupation;
+	}
+
+	public void setOccupation(String occupation) {
+		this.occupation = occupation;
+	}
+
+	public String getPlaceOfWorkStudyPosition() {
+		return placeOfWorkStudyPosition;
+	}
+
+	public void setPlaceOfWorkStudyPosition(String placeOfWorkStudyPosition) {
+		this.placeOfWorkStudyPosition = placeOfWorkStudyPosition;
+	}
+
+	public String getWorkStudyAddressTelephone() {
+		return workStudyAddressTelephone;
+	}
+
+	public void setWorkStudyAddressTelephone(String workStudyAddressTelephone) {
+		this.workStudyAddressTelephone = workStudyAddressTelephone;
+	}
+
+	public String getHomeAddress() {
+		return homeAddress;
+	}
+
+	public void setHomeAddress(String homeAddress) {
+		this.homeAddress = homeAddress;
+	}
+
+	public String getVisaPhotoPath() {
+		return visaPhotoPath;
+	}
+
+	public void setVisaPhotoPath(String visaPhotoPath) {
+		this.visaPhotoPath = visaPhotoPath;
+	}
+
+	public String getVisaPassportCopyPath() {
+		return visaPassportCopyPath;
+	}
+
+	public void setVisaPassportCopyPath(String visaPassportCopyPath) {
+		this.visaPassportCopyPath = visaPassportCopyPath;
 	}
 }
