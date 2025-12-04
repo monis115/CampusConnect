@@ -58,20 +58,6 @@ public class TelexApplicationDTO {
 
     private String passportNumber; // *
 
-    private String addressInUzbekistan; // *
-
-    private String previousVisitsToUzbekistan;
-
-    private String accompaniedPersons; // *
-
-    private String occupation; // *
-
-    private String placeOfWorkStudyPosition; // *
-
-    private String workStudyAddressTelephone; // *
-
-    private String homeAddress; // *
-
     // ======================= GETTERS & SETTERS =======================
 
     public String getAgentUsername() {
@@ -306,59 +292,4 @@ public class TelexApplicationDTO {
         this.passportNumber = passportNumber;
     }
 
-    public String getAddressInUzbekistan() {
-        return addressInUzbekistan;
-    }
-
-    public void setAddressInUzbekistan(String addressInUzbekistan) {
-        this.addressInUzbekistan = addressInUzbekistan;
-    }
-
-    public String getPreviousVisitsToUzbekistan() {
-        return previousVisitsToUzbekistan;
-    }
-
-    public void setPreviousVisitsToUzbekistan(String previousVisitsToUzbekistan) {
-        this.previousVisitsToUzbekistan = previousVisitsToUzbekistan;
-    }
-
-    public String getAccompaniedPersons() {
-        return accompaniedPersons;
-    }
-
-    public void setAccompaniedPersons(String accompaniedPersons) {
-        this.accompaniedPersons = accompaniedPersons;
-    }
-
-    public String getOccupation() {
-        return occupation;
-    }
-
-    public void setOccupation(String occupation) {
-        this.occupation = occupation;
-    }
-
-    public String getPlaceOfWorkStudyPosition() {
-        return placeOfWorkStudyPosition;
-    }
-
-    public void setPlaceOfWorkStudyPosition(String placeOfWorkStudyPosition) {
-        this.placeOfWorkStudyPosition = placeOfWorkStudyPosition;
-    }
-
-    public String getWorkStudyAddressTelephone() {
-        return workStudyAddressTelephone;
-    }
-
-    public void setWorkStudyAddressTelephone(String workStudyAddressTelephone) {
-        this.workStudyAddressTelephone = workStudyAddressTelephone;
-    }
-
-    public String getHomeAddress() {
-        return homeAddress;
-    }
-
-    public void setHomeAddress(String homeAddress) {
-        this.homeAddress = homeAddress;
-    }
 }

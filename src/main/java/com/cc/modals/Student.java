@@ -303,27 +303,6 @@ public class Student {
 	@Column(name = "passport_expiration_date")
 	private LocalDate passportExpirationDate;
 
-	@Column(name = "address_in_uzbekistan")
-	private String addressInUzbekistan;
-
-	@Column(name = "previous_visits_to_uzbekistan")
-	private String previousVisitsToUzbekistan;
-
-	@Column(name = "accompanied_persons")
-	private String accompaniedPersons;
-
-	@Column(name = "occupation")
-	private String occupation;
-
-	@Column(name = "place_of_work_study_position")
-	private String placeOfWorkStudyPosition;
-
-	@Column(name = "work_study_address_telephone")
-	private String workStudyAddressTelephone;
-
-	@Column(name = "home_address")
-	private String homeAddress;
-
 	@Column(name = "visa_photo_path")
 	private String visaPhotoPath;
 
@@ -1042,62 +1021,6 @@ public class Student {
 
 	public void setPassportExpirationDate(LocalDate passportExpirationDate) {
 		this.passportExpirationDate = passportExpirationDate;
-	}
-
-	public String getAddressInUzbekistan() {
-		return addressInUzbekistan;
-	}
-
-	public void setAddressInUzbekistan(String addressInUzbekistan) {
-		this.addressInUzbekistan = addressInUzbekistan;
-	}
-
-	public String getPreviousVisitsToUzbekistan() {
-		return previousVisitsToUzbekistan;
-	}
-
-	public void setPreviousVisitsToUzbekistan(String previousVisitsToUzbekistan) {
-		this.previousVisitsToUzbekistan = previousVisitsToUzbekistan;
-	}
-
-	public String getAccompaniedPersons() {
-		return accompaniedPersons;
-	}
-
-	public void setAccompaniedPersons(String accompaniedPersons) {
-		this.accompaniedPersons = accompaniedPersons;
-	}
-
-	public String getOccupation() {
-		return occupation;
-	}
-
-	public void setOccupation(String occupation) {
-		this.occupation = occupation;
-	}
-
-	public String getPlaceOfWorkStudyPosition() {
-		return placeOfWorkStudyPosition;
-	}
-
-	public void setPlaceOfWorkStudyPosition(String placeOfWorkStudyPosition) {
-		this.placeOfWorkStudyPosition = placeOfWorkStudyPosition;
-	}
-
-	public String getWorkStudyAddressTelephone() {
-		return workStudyAddressTelephone;
-	}
-
-	public void setWorkStudyAddressTelephone(String workStudyAddressTelephone) {
-		this.workStudyAddressTelephone = workStudyAddressTelephone;
-	}
-
-	public String getHomeAddress() {
-		return homeAddress;
-	}
-
-	public void setHomeAddress(String homeAddress) {
-		this.homeAddress = homeAddress;
 	}
 
 	public String getVisaPhotoPath() {

@@ -459,20 +459,6 @@ public class AgentService {
             student.setPassportIssuedBy(details.getPassportIssuedBy());
         if (details.getPassportNumber() != null)
             student.setPassportNo(details.getPassportNumber());
-        if (details.getAddressInUzbekistan() != null)
-            student.setAddressInUzbekistan(details.getAddressInUzbekistan());
-        if (details.getPreviousVisitsToUzbekistan() != null)
-            student.setPreviousVisitsToUzbekistan(details.getPreviousVisitsToUzbekistan());
-        if (details.getAccompaniedPersons() != null)
-            student.setAccompaniedPersons(details.getAccompaniedPersons());
-        if (details.getOccupation() != null)
-            student.setOccupation(details.getOccupation());
-        if (details.getPlaceOfWorkStudyPosition() != null)
-            student.setPlaceOfWorkStudyPosition(details.getPlaceOfWorkStudyPosition());
-        if (details.getWorkStudyAddressTelephone() != null)
-            student.setWorkStudyAddressTelephone(details.getWorkStudyAddressTelephone());
-        if (details.getHomeAddress() != null)
-            student.setHomeAddress(details.getHomeAddress());
 
         // Set required document paths
         if (visaPhotoPath != null) {
