@@ -237,6 +237,22 @@ public class Student {
 	@Column(name = "doc_tentative_reach_date")
 	private LocalDate docTentativeReachDate;
 
+	@Column(name = "doc_received_date")
+	private LocalDate docReceivedDate;
+
+	@Column(name = "doc_returned_date")
+	private LocalDate docReturnedDate;
+
+	@Enumerated(EnumType.STRING)
+	@Column(name = "doc_return_method")
+	private DocDeliveryMethod docReturnMethod;
+
+	@Column(name = "doc_return_tracking_id")
+	private String docReturnTrackingId;
+
+	@Column(name = "ready_for_doc_return")
+	private Boolean readyForDocReturn = false;
+
 	// ======================= PAYMENT DETAILS =======================
 	@Column(name = "has_paid")
 	private Boolean hasPaid = false;
@@ -1037,5 +1053,45 @@ public class Student {
 
 	public void setVisaPassportCopyPath(String visaPassportCopyPath) {
 		this.visaPassportCopyPath = visaPassportCopyPath;
+	}
+
+	public LocalDate getDocReceivedDate() {
+		return docReceivedDate;
+	}
+
+	public void setDocReceivedDate(LocalDate docReceivedDate) {
+		this.docReceivedDate = docReceivedDate;
+	}
+
+	public LocalDate getDocReturnedDate() {
+		return docReturnedDate;
+	}
+
+	public void setDocReturnedDate(LocalDate docReturnedDate) {
+		this.docReturnedDate = docReturnedDate;
+	}
+
+	public DocDeliveryMethod getDocReturnMethod() {
+		return docReturnMethod;
+	}
+
+	public void setDocReturnMethod(DocDeliveryMethod docReturnMethod) {
+		this.docReturnMethod = docReturnMethod;
+	}
+
+	public String getDocReturnTrackingId() {
+		return docReturnTrackingId;
+	}
+
+	public void setDocReturnTrackingId(String docReturnTrackingId) {
+		this.docReturnTrackingId = docReturnTrackingId;
+	}
+
+	public Boolean getReadyForDocReturn() {
+		return readyForDocReturn;
+	}
+
+	public void setReadyForDocReturn(Boolean readyForDocReturn) {
+		this.readyForDocReturn = readyForDocReturn;
 	}
 }

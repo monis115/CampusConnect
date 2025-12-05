@@ -31,5 +31,7 @@ public enum action {
     SUBMIT_TELEX_TO_UNIVERSITY,
 
     SUBMIT_TELEX_TO_MEA,
-
+    DOCS_RECEIVED,
+    DOCS_RETURNED,
+    VERIFY_DOCS,
 }

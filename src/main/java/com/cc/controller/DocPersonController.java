@@ -77,6 +77,30 @@ public class DocPersonController {
         return ResponseEntity.noContent().build();
     }
 
+    @PostMapping("/receive-docs/{studentId}")
+    public ResponseEntity<?> receiveDocs(
+            @PathVariable Long studentId,
+            @RequestBody java.util.Map<String, Object> request) {
+        try {
+            String receivedDateStr = (String) request.get("receivedDate");
+            String docPersonUsername = (String) request.get("docPersonUsername");
+
+            if (receivedDateStr == null) {
+                return ResponseEntity.badRequest().body("receivedDate is required");
+            }
+            if (docPersonUsername == null || docPersonUsername.isEmpty()) {
+                return ResponseEntity.badRequest().body("docPersonUsername is required");
+            }
+
+            java.time.LocalDate receivedDate = java.time.LocalDate.parse(receivedDateStr);
+            com.cc.modals.Student updatedStudent = service.receiveDocs(studentId, receivedDate, docPersonUsername);
+            return ResponseEntity.ok(updatedStudent);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body("Error receiving docs: " + e.getMessage());
+        }
+    }
+
     @PostMapping("/verify-telex-docs/{studentId}")
     public ResponseEntity<?> verifyTelexDocs(
             @PathVariable Long studentId,
@@ -99,6 +123,38 @@ public class DocPersonController {
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(500).body("Error verifying telex docs: " + e.getMessage());
+        }
+    }
+
+    @PostMapping("/return-docs/{studentId}")
+    public ResponseEntity<?> returnDocs(
+            @PathVariable Long studentId,
+            @RequestBody java.util.Map<String, Object> request) {
+        try {
+            String methodStr = (String) request.get("method");
+            String trackingId = (String) request.get("trackingId");
+            String returnedDateStr = (String) request.get("returnedDate");
+            String docPersonUsername = (String) request.get("docPersonUsername");
+
+            if (methodStr == null) {
+                return ResponseEntity.badRequest().body("method is required");
+            }
+            if (returnedDateStr == null) {
+                return ResponseEntity.badRequest().body("returnedDate is required");
+            }
+            if (docPersonUsername == null || docPersonUsername.isEmpty()) {
+                return ResponseEntity.badRequest().body("docPersonUsername is required");
+            }
+
+            com.cc.modals.DocDeliveryMethod method = com.cc.modals.DocDeliveryMethod.valueOf(methodStr);
+            java.time.LocalDate returnedDate = java.time.LocalDate.parse(returnedDateStr);
+
+            com.cc.modals.Student updatedStudent = service.returnDocs(studentId, method, trackingId, returnedDate,
+                    docPersonUsername);
+            return ResponseEntity.ok(updatedStudent);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body("Error returning docs: " + e.getMessage());
         }
     }
 }
