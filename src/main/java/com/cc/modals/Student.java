@@ -203,6 +203,9 @@ public class Student {
 	@Column(name = "telex_payment_received_amount")
 	private Double telexPaymentReceivedAmount;
 
+	@Column(name = "telex_payment_received_date")
+	private LocalDate telexPaymentReceivedDate;
+
 	@Column(name = "is_telex_accountant_approved")
 	private Boolean isTelexAccountantApproved = false;
 
@@ -799,6 +802,14 @@ public class Student {
 
 	public void setTelexPaymentReceivedAmount(Double telexPaymentReceivedAmount) {
 		this.telexPaymentReceivedAmount = telexPaymentReceivedAmount;
+	}
+
+	public LocalDate getTelexPaymentReceivedDate() {
+		return telexPaymentReceivedDate;
+	}
+
+	public void setTelexPaymentReceivedDate(LocalDate telexPaymentReceivedDate) {
+		this.telexPaymentReceivedDate = telexPaymentReceivedDate;
 	}
 
 	public Boolean getIsTelexAccountantApproved() {

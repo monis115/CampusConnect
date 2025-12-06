@@ -102,6 +102,7 @@ public class AccountantController {
         try {
             Double receivedAmount = Double.valueOf(request.get("receivedAmount").toString());
             String accountantUsername = (String) request.get("accountantUsername");
+            String receivedDateStr = (String) request.get("receivedDate");
 
             if (receivedAmount == null) {
                 return ResponseEntity.badRequest().body("receivedAmount is required");
@@ -109,13 +110,37 @@ public class AccountantController {
             if (accountantUsername == null || accountantUsername.isEmpty()) {
                 return ResponseEntity.badRequest().body("accountantUsername is required");
             }
+            if (receivedDateStr == null || receivedDateStr.isEmpty()) {
+                return ResponseEntity.badRequest().body("receivedDate is required");
+            }
 
-            com.cc.modals.Student updatedStudent = service.approveTelexPayment(studentId, receivedAmount,
+            java.time.LocalDate receivedDate = java.time.LocalDate.parse(receivedDateStr);
+
+            com.cc.modals.Student updatedStudent = service.approveTelexPayment(studentId, receivedAmount, receivedDate,
                     accountantUsername);
             return ResponseEntity.ok(updatedStudent);
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(500).body("Error approving telex payment: " + e.getMessage());
+        }
+    }
+
+    @PostMapping("/payment-not-received/{studentId}")
+    public ResponseEntity<?> markPaymentNotReceived(
+            @PathVariable Long studentId,
+            @RequestBody java.util.Map<String, String> request) {
+        try {
+            String accountantUsername = request.get("accountantUsername");
+
+            if (accountantUsername == null || accountantUsername.isEmpty()) {
+                return ResponseEntity.badRequest().body("accountantUsername is required");
+            }
+
+            com.cc.modals.Student updatedStudent = service.markTelexPaymentNotReceived(studentId, accountantUsername);
+            return ResponseEntity.ok(updatedStudent);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body("Error marking payment not received: " + e.getMessage());
         }
     }
 
@@ -135,6 +160,49 @@ public class AccountantController {
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(500).body("Error confirming visa fee: " + e.getMessage());
+        }
+    }
+
+    // ======================= DASHBOARD ENDPOINTS =======================
+
+    @GetMapping("/dashboard/stats/{username}")
+    public ResponseEntity<?> getDashboardStats(@PathVariable String username) {
+        try {
+            return ResponseEntity.ok(service.getDashboardStats(username));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body("Error fetching dashboard stats: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/dashboard/collections/{username}")
+    public ResponseEntity<?> getCollectionSummary(@PathVariable String username) {
+        try {
+            return ResponseEntity.ok(service.getCollectionSummary(username));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body("Error fetching collection summary: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/dashboard/activities/{username}")
+    public ResponseEntity<?> getRecentActivities(@PathVariable String username,
+            @RequestParam(defaultValue = "10") int limit) {
+        try {
+            return ResponseEntity.ok(service.getRecentActivities(username, limit));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body("Error fetching activities: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/dashboard/students/{username}")
+    public ResponseEntity<?> getAssignedStudents(@PathVariable String username) {
+        try {
+            return ResponseEntity.ok(service.getAssignedStudents(username));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body("Error fetching students: " + e.getMessage());
         }
     }
 }

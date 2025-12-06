@@ -367,6 +367,9 @@ public class AgentService {
     @Autowired
     private DocPersonService docPersonService;
 
+    @Autowired
+    private AccountantService accountantService;
+
     public com.cc.modals.Student submitTelexDetails(Long studentId, com.cc.DTO.TelexApplicationDTO details,
             String visaPhotoPath, String visaPassportCopyPath, String ttCopyPath, String paymentConfirmationPath) {
         com.cc.modals.Student student = studentRepository.findById(studentId)
@@ -476,6 +479,16 @@ public class AgentService {
                     docPersonOpt.get().getUsername(), studentId);
         } else {
             logger.warn("No DocPerson available to assign to student ID: {}", studentId);
+        }
+
+        // Get and assign Accountant to student
+        Optional<com.cc.modals.Accountant> accountantOpt = accountantService.getOne();
+        if (accountantOpt.isPresent()) {
+            student.setAccountant(accountantOpt.get());
+            logger.info("Assigned Accountant: {} to student ID: {}",
+                    accountantOpt.get().getUsername(), studentId);
+        } else {
+            logger.warn("No Accountant available to assign to student ID: {}", studentId);
         }
 
         // Update Status

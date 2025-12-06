@@ -29,6 +29,8 @@ public enum StudentStatus {
     DOCS_VARIFICATION_COMPLETE,
     DOCS_VARIFICATION_APPROVED, // Legacy - kept for backwards compatibility with old DB records
 
+    FEE_RECEIVED,
+
     // Visa Process
     VISA_FEE_PENDING,
     VISA_FEE_RECEIVED,
