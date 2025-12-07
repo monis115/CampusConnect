@@ -54,10 +54,10 @@ public class Student {
 	@Column(nullable = false)
 	private String emergencyRelation;
 
-	@Column(nullable = false)
+	@Column(nullable = true)
 	private String passportNo;
 
-	@Column(nullable = false)
+	@Column(nullable = true)
 	private LocalDate passportValidTill;
 
 	@Column(name = "passport_path", nullable = true)
@@ -231,6 +231,9 @@ public class Student {
 	@Column(name = "doc_delivery_method")
 	private DocDeliveryMethod docDeliveryMethod;
 
+	@Column(name = "courier_partner")
+	private String courierPartner;
+
 	@Column(name = "courier_tracking_id")
 	private String courierTrackingId;
 
@@ -242,6 +245,19 @@ public class Student {
 
 	@Column(name = "doc_received_date")
 	private LocalDate docReceivedDate;
+
+	// Document Receipt Tracking - which specific documents were received
+	@Column(name = "received_12th_marksheet")
+	private Boolean received12thMarksheet = false;
+
+	@Column(name = "received_10th_marksheet")
+	private Boolean received10thMarksheet = false;
+
+	@Column(name = "received_neet_scorecard")
+	private Boolean receivedNeetScorecard = false;
+
+	@Column(name = "received_passport")
+	private Boolean receivedPassport = false;
 
 	@Column(name = "doc_returned_date")
 	private LocalDate docReturnedDate;
@@ -313,14 +329,17 @@ public class Student {
 	@Column(name = "passport_type")
 	private PassportType passportType;
 
-	@Column(name = "passport_issued_by")
-	private String passportIssuedBy;
-
 	@Column(name = "passport_issue_date")
 	private LocalDate passportIssueDate;
 
 	@Column(name = "passport_expiration_date")
 	private LocalDate passportExpirationDate;
+
+	@Column(name = "duration_of_visa_procedure")
+	private String durationOfVisaProcedure;
+
+	@Column(name = "place_of_visa_issuance")
+	private String placeOfVisaIssuance;
 
 	@Column(name = "visa_photo_path")
 	private String visaPhotoPath;
@@ -862,6 +881,14 @@ public class Student {
 		this.docDeliveryMethod = docDeliveryMethod;
 	}
 
+	public String getCourierPartner() {
+		return courierPartner;
+	}
+
+	public void setCourierPartner(String courierPartner) {
+		this.courierPartner = courierPartner;
+	}
+
 	public String getCourierTrackingId() {
 		return courierTrackingId;
 	}
@@ -884,6 +911,38 @@ public class Student {
 
 	public void setDocTentativeReachDate(LocalDate docTentativeReachDate) {
 		this.docTentativeReachDate = docTentativeReachDate;
+	}
+
+	public Boolean getReceived12thMarksheet() {
+		return received12thMarksheet;
+	}
+
+	public void setReceived12thMarksheet(Boolean received12thMarksheet) {
+		this.received12thMarksheet = received12thMarksheet;
+	}
+
+	public Boolean getReceived10thMarksheet() {
+		return received10thMarksheet;
+	}
+
+	public void setReceived10thMarksheet(Boolean received10thMarksheet) {
+		this.received10thMarksheet = received10thMarksheet;
+	}
+
+	public Boolean getReceivedNeetScorecard() {
+		return receivedNeetScorecard;
+	}
+
+	public void setReceivedNeetScorecard(Boolean receivedNeetScorecard) {
+		this.receivedNeetScorecard = receivedNeetScorecard;
+	}
+
+	public Boolean getReceivedPassport() {
+		return receivedPassport;
+	}
+
+	public void setReceivedPassport(Boolean receivedPassport) {
+		this.receivedPassport = receivedPassport;
 	}
 
 	// ======================= PAYMENT DETAILS GETTERS/SETTERS
@@ -1026,14 +1085,6 @@ public class Student {
 		this.passportType = passportType;
 	}
 
-	public String getPassportIssuedBy() {
-		return passportIssuedBy;
-	}
-
-	public void setPassportIssuedBy(String passportIssuedBy) {
-		this.passportIssuedBy = passportIssuedBy;
-	}
-
 	public LocalDate getPassportIssueDate() {
 		return passportIssueDate;
 	}
@@ -1048,6 +1099,22 @@ public class Student {
 
 	public void setPassportExpirationDate(LocalDate passportExpirationDate) {
 		this.passportExpirationDate = passportExpirationDate;
+	}
+
+	public String getDurationOfVisaProcedure() {
+		return durationOfVisaProcedure;
+	}
+
+	public void setDurationOfVisaProcedure(String durationOfVisaProcedure) {
+		this.durationOfVisaProcedure = durationOfVisaProcedure;
+	}
+
+	public String getPlaceOfVisaIssuance() {
+		return placeOfVisaIssuance;
+	}
+
+	public void setPlaceOfVisaIssuance(String placeOfVisaIssuance) {
+		this.placeOfVisaIssuance = placeOfVisaIssuance;
 	}
 
 	public String getVisaPhotoPath() {

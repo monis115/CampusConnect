@@ -390,21 +390,22 @@ public class AgentService {
         if (details.getDocDeliveryMethod() != null)
             student.setDocDeliveryMethod(details.getDocDeliveryMethod());
 
-        // Combine Courier Partner and Tracking ID if both exist
+        // Store Courier Partner and Tracking ID separately
+        String courierPartner = details.getCourierPartner();
+        if ("OTHER".equals(courierPartner) && details.getOtherCourierDetails() != null) {
+            courierPartner = details.getOtherCourierDetails();
+        }
+        if (courierPartner != null && !courierPartner.isEmpty()) {
+            student.setCourierPartner(courierPartner);
+        }
+
         String trackingId = details.getCourierTrackingId();
         if (trackingId == null || trackingId.isEmpty()) {
             trackingId = details.getCourierTrackingNumber();
         }
-
-        if (details.getCourierPartner() != null && !details.getCourierPartner().isEmpty()) {
-            if (trackingId != null && !trackingId.isEmpty()) {
-                trackingId = details.getCourierPartner() + " - " + trackingId;
-            } else {
-                trackingId = details.getCourierPartner();
-            }
-        }
-        if (trackingId != null)
+        if (trackingId != null && !trackingId.isEmpty()) {
             student.setCourierTrackingId(trackingId);
+        }
 
         if (details.getSelfPersonContact() != null)
             student.setSelfPersonContact(details.getSelfPersonContact());
@@ -458,10 +459,13 @@ public class AgentService {
             student.setPassportIssueDate(details.getPassportIssueDate());
         if (details.getPassportExpirationDate() != null)
             student.setPassportExpirationDate(details.getPassportExpirationDate());
-        if (details.getPassportIssuedBy() != null)
-            student.setPassportIssuedBy(details.getPassportIssuedBy());
+
         if (details.getPassportNumber() != null)
             student.setPassportNo(details.getPassportNumber());
+        if (details.getDurationOfVisaProcedure() != null)
+            student.setDurationOfVisaProcedure(details.getDurationOfVisaProcedure());
+        if (details.getPlaceOfVisaIssuance() != null)
+            student.setPlaceOfVisaIssuance(details.getPlaceOfVisaIssuance());
 
         // Set required document paths
         if (visaPhotoPath != null) {

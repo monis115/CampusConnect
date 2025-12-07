@@ -35,7 +35,7 @@ public class StudentController {
     public ResponseEntity<?> addStudent(
             @RequestParam("student") String studentJson,
             @RequestParam(value = "adhaarFile", required = false) MultipartFile adhaarFile,
-            @RequestParam(value = "passportFile", required = true) MultipartFile passportFile,
+            @RequestParam(value = "passportFile", required = false) MultipartFile passportFile,
             @RequestParam(value = "marksheetFile", required = false) MultipartFile marksheetFile,
             @RequestParam(value = "neetMarksheetFile", required = false) MultipartFile neetMarksheetFile,
             @RequestParam(value = "profileImage", required = false) MultipartFile profileImage) {

@@ -17,6 +17,7 @@ public class TelexApplicationDTO {
     private String courierPartner; // Added to handle frontend payload
     private String selfPersonContact;
     private LocalDate docTentativeReachDate;
+    private String otherCourierDetails; // For "Other" courier partner selection
 
     // ======================= PAYMENT DETAILS =======================
     private Boolean hasPaid;
@@ -54,9 +55,10 @@ public class TelexApplicationDTO {
 
     private LocalDate passportExpirationDate; // *
 
-    private String passportIssuedBy; // *
-
     private String passportNumber; // *
+
+    private String durationOfVisaProcedure;
+    private String placeOfVisaIssuance;
 
     // ======================= GETTERS & SETTERS =======================
 
@@ -130,6 +132,14 @@ public class TelexApplicationDTO {
 
     public void setDocTentativeReachDate(LocalDate docTentativeReachDate) {
         this.docTentativeReachDate = docTentativeReachDate;
+    }
+
+    public String getOtherCourierDetails() {
+        return otherCourierDetails;
+    }
+
+    public void setOtherCourierDetails(String otherCourierDetails) {
+        this.otherCourierDetails = otherCourierDetails;
     }
 
     public Boolean getHasPaid() {
@@ -276,20 +286,28 @@ public class TelexApplicationDTO {
         this.passportExpirationDate = passportExpirationDate;
     }
 
-    public String getPassportIssuedBy() {
-        return passportIssuedBy;
-    }
-
-    public void setPassportIssuedBy(String passportIssuedBy) {
-        this.passportIssuedBy = passportIssuedBy;
-    }
-
     public String getPassportNumber() {
         return passportNumber;
     }
 
     public void setPassportNumber(String passportNumber) {
         this.passportNumber = passportNumber;
+    }
+
+    public String getDurationOfVisaProcedure() {
+        return durationOfVisaProcedure;
+    }
+
+    public void setDurationOfVisaProcedure(String durationOfVisaProcedure) {
+        this.durationOfVisaProcedure = durationOfVisaProcedure;
+    }
+
+    public String getPlaceOfVisaIssuance() {
+        return placeOfVisaIssuance;
+    }
+
+    public void setPlaceOfVisaIssuance(String placeOfVisaIssuance) {
+        this.placeOfVisaIssuance = placeOfVisaIssuance;
     }
 
 }

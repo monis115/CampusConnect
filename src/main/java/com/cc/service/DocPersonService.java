@@ -66,7 +66,11 @@ public class DocPersonService {
     private com.cc.repository.StudentStatusHistoryRepository studentStatusHistoryRepository;
 
     public com.cc.modals.Student receiveDocs(Long studentId, java.time.LocalDate receivedDate,
-            String docPersonUsername) {
+            String docPersonUsername,
+            Boolean received12thMarksheet,
+            Boolean received10thMarksheet,
+            Boolean receivedNeetScorecard,
+            Boolean receivedPassport) {
         com.cc.modals.Student student = studentRepository.findById(studentId)
                 .orElseThrow(() -> new RuntimeException("Student not found with ID: " + studentId));
 
@@ -78,16 +82,40 @@ public class DocPersonService {
         }
 
         student.setDocReceivedDate(receivedDate);
+
+        // Set document receipt flags
+        if (received12thMarksheet != null)
+            student.setReceived12thMarksheet(received12thMarksheet);
+        if (received10thMarksheet != null)
+            student.setReceived10thMarksheet(received10thMarksheet);
+        if (receivedNeetScorecard != null)
+            student.setReceivedNeetScorecard(receivedNeetScorecard);
+        if (receivedPassport != null)
+            student.setReceivedPassport(receivedPassport);
+
         student.setAction(action.VERIFY_DOCS);
         student.setActionOnUser(actionOnUser.doc_manager);
+
+        // Build remarks with received documents
+        StringBuilder docsReceived = new StringBuilder();
+        if (Boolean.TRUE.equals(received12thMarksheet))
+            docsReceived.append("12th Marksheet, ");
+        if (Boolean.TRUE.equals(received10thMarksheet))
+            docsReceived.append("10th Marksheet, ");
+        if (Boolean.TRUE.equals(receivedNeetScorecard))
+            docsReceived.append("NEET Scorecard, ");
+        if (Boolean.TRUE.equals(receivedPassport))
+            docsReceived.append("Passport, ");
+        String docsReceivedStr = docsReceived.length() > 0 ? docsReceived.substring(0, docsReceived.length() - 2)
+                : "None specified";
 
         // History
         com.cc.modals.StudentStatusHistory history = new com.cc.modals.StudentStatusHistory();
         history.setStudent(student);
         history.setStudentApplicationStatus(student.getApplicationStatus());
-        history.setUpdatedBy("Received by " + docPersonUsername);
+        history.setUpdatedBy("Received by " + docPersonUsername + "Docs " + docsReceivedStr);
         history.setUpdatedAt(java.time.LocalDateTime.now());
-        history.setRemarks("Documents received on " + receivedDate);
+        history.setRemarks("Documents received on " + receivedDate + ". Docs: " + docsReceivedStr);
         studentStatusHistoryRepository.save(history);
 
         return studentRepository.save(student);

@@ -85,6 +85,12 @@ public class DocPersonController {
             String receivedDateStr = (String) request.get("receivedDate");
             String docPersonUsername = (String) request.get("docPersonUsername");
 
+            // Document checkboxes
+            Boolean received12thMarksheet = (Boolean) request.get("received12thMarksheet");
+            Boolean received10thMarksheet = (Boolean) request.get("received10thMarksheet");
+            Boolean receivedNeetScorecard = (Boolean) request.get("receivedNeetScorecard");
+            Boolean receivedPassport = (Boolean) request.get("receivedPassport");
+
             if (receivedDateStr == null) {
                 return ResponseEntity.badRequest().body("receivedDate is required");
             }
@@ -93,7 +99,14 @@ public class DocPersonController {
             }
 
             java.time.LocalDate receivedDate = java.time.LocalDate.parse(receivedDateStr);
-            com.cc.modals.Student updatedStudent = service.receiveDocs(studentId, receivedDate, docPersonUsername);
+            com.cc.modals.Student updatedStudent = service.receiveDocs(
+                    studentId,
+                    receivedDate,
+                    docPersonUsername,
+                    received12thMarksheet,
+                    received10thMarksheet,
+                    receivedNeetScorecard,
+                    receivedPassport);
             return ResponseEntity.ok(updatedStudent);
         } catch (Exception e) {
             e.printStackTrace();
