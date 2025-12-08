@@ -22,17 +22,23 @@ public class VisaController {
     @Autowired
     private VisaService visaService;
 
-    // 1. Assign Visa Manager
+    // 1. Assign Visa Manager (called by Admission Manager)
     @PostMapping("/assign/{studentId}")
     public ResponseEntity<?> assignVisaManager(
             @PathVariable Long studentId,
             @RequestBody Map<String, String> request) {
         try {
-            String managerUsername = request.get("managerUsername");
-            if (managerUsername == null || managerUsername.isEmpty()) {
-                return ResponseEntity.badRequest().body("managerUsername is required");
+            String admissionManagerUsername = request.get("admissionManagerUsername");
+            String visaPersonUsername = request.get("visaPersonUsername");
+
+            if (admissionManagerUsername == null || admissionManagerUsername.isEmpty()) {
+                return ResponseEntity.badRequest().body("admissionManagerUsername is required");
             }
-            Student student = visaService.assignVisaManager(studentId, managerUsername);
+            if (visaPersonUsername == null || visaPersonUsername.isEmpty()) {
+                return ResponseEntity.badRequest().body("visaPersonUsername is required");
+            }
+
+            Student student = visaService.assignVisaManager(studentId, admissionManagerUsername, visaPersonUsername);
             return ResponseEntity.ok(student);
         } catch (Exception e) {
             return ResponseEntity.status(500).body("Error assigning Visa Manager: " + e.getMessage());
@@ -104,6 +110,134 @@ public class VisaController {
             return ResponseEntity.ok(student);
         } catch (Exception e) {
             return ResponseEntity.status(500).body("Error applying for Visa: " + e.getMessage());
+        }
+    }
+
+    // ======================= VISA PAYMENT WORKFLOW =======================
+
+    // Step 1: VisaMan requests payment from Accountant
+    @PostMapping("/request-payment/{studentId}")
+    public ResponseEntity<?> requestPaymentFromAccountant(
+            @PathVariable Long studentId,
+            @RequestBody Map<String, Object> request) {
+        try {
+            String visaManUsername = (String) request.get("visaManUsername");
+            Double amount = Double.valueOf(request.get("amount").toString());
+            String currency = (String) request.get("currency");
+
+            if (visaManUsername == null || visaManUsername.isEmpty()) {
+                return ResponseEntity.badRequest().body("visaManUsername is required");
+            }
+            if (amount == null) {
+                return ResponseEntity.badRequest().body("amount is required");
+            }
+            if (currency == null || currency.isEmpty()) {
+                return ResponseEntity.badRequest().body("currency is required");
+            }
+
+            Student student = visaService.requestPaymentFromAccountant(studentId, visaManUsername, amount, currency);
+            return ResponseEntity.ok(student);
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Error requesting payment: " + e.getMessage());
+        }
+    }
+
+    // Step 2: Accountant (in Uzbekistan) sends bank details to Agent (in India)
+    @PostMapping("/send-bank-details/{studentId}")
+    public ResponseEntity<?> sendBankDetailsToAgent(
+            @PathVariable Long studentId,
+            @RequestBody Map<String, Object> request) {
+        try {
+            String accountantUsername = (String) request.get("accountantUsername");
+            Double amount = Double.valueOf(request.get("amount").toString());
+            String currency = (String) request.get("currency");
+            String bankName = (String) request.get("bankName");
+            String accountNumber = (String) request.get("accountNumber");
+            String swiftCode = (String) request.get("swiftCode");
+            String beneficiaryName = (String) request.get("beneficiaryName");
+            String branchAddress = (String) request.get("branchAddress");
+
+            if (accountantUsername == null || accountantUsername.isEmpty()) {
+                return ResponseEntity.badRequest().body("accountantUsername is required");
+            }
+            if (amount == null) {
+                return ResponseEntity.badRequest().body("amount is required");
+            }
+            if (currency == null || currency.isEmpty()) {
+                return ResponseEntity.badRequest().body("currency is required");
+            }
+            if (bankName == null || bankName.isEmpty()) {
+                return ResponseEntity.badRequest().body("bankName is required");
+            }
+            if (accountNumber == null || accountNumber.isEmpty()) {
+                return ResponseEntity.badRequest().body("accountNumber is required");
+            }
+
+            Student student = visaService.sendBankDetailsToAgent(studentId, accountantUsername, amount, currency,
+                    bankName, accountNumber, swiftCode, beneficiaryName, branchAddress);
+            return ResponseEntity.ok(student);
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Error sending bank details: " + e.getMessage());
+        }
+    }
+
+    // Step 3: Agent sends payment confirmation (transactionId and
+    // confirmationPagePath are optional)
+    @PostMapping("/submit-payment-confirmation/{studentId}")
+    public ResponseEntity<?> submitPaymentConfirmation(
+            @PathVariable Long studentId,
+            @RequestBody Map<String, Object> request) {
+        try {
+            String agentUsername = (String) request.get("agentUsername");
+            Double amount = Double.valueOf(request.get("amount").toString());
+            String currency = (String) request.get("currency");
+            String transactionId = (String) request.get("transactionId"); // Optional
+            String confirmationPagePath = (String) request.get("confirmationPagePath"); // Optional
+
+            if (agentUsername == null || agentUsername.isEmpty()) {
+                return ResponseEntity.badRequest().body("agentUsername is required");
+            }
+            if (amount == null) {
+                return ResponseEntity.badRequest().body("amount is required");
+            }
+            if (currency == null || currency.isEmpty()) {
+                return ResponseEntity.badRequest().body("currency is required");
+            }
+
+            Student student = visaService.submitPaymentConfirmation(studentId, agentUsername, amount, currency,
+                    transactionId, confirmationPagePath);
+            return ResponseEntity.ok(student);
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Error submitting payment confirmation: " + e.getMessage());
+        }
+    }
+
+    // Step 4: Accountant confirms payment received
+    @PostMapping("/confirm-payment/{studentId}")
+    public ResponseEntity<?> confirmVisaPaymentReceived(
+            @PathVariable Long studentId,
+            @RequestBody Map<String, Object> request) {
+        try {
+            String accountantUsername = (String) request.get("accountantUsername");
+            Double receivedAmount = Double.valueOf(request.get("receivedAmount").toString());
+            String receivedDateStr = (String) request.get("receivedDate");
+
+            if (accountantUsername == null || accountantUsername.isEmpty()) {
+                return ResponseEntity.badRequest().body("accountantUsername is required");
+            }
+            if (receivedAmount == null) {
+                return ResponseEntity.badRequest().body("receivedAmount is required");
+            }
+            if (receivedDateStr == null || receivedDateStr.isEmpty()) {
+                return ResponseEntity.badRequest().body("receivedDate is required");
+            }
+
+            java.time.LocalDate receivedDate = java.time.LocalDate.parse(receivedDateStr);
+            Student student = visaService.confirmVisaPaymentReceived(studentId, accountantUsername, receivedAmount,
+                    receivedDate);
+            return ResponseEntity.ok(student);
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Error confirming visa payment: " + e.getMessage());
         }
     }
 }

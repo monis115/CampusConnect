@@ -347,6 +347,45 @@ public class Student {
 	@Column(name = "visa_passport_copy_path")
 	private String visaPassportCopyPath;
 
+	// ======================= VISA PAYMENT FIELDS =======================
+	@Column(name = "visa_payment_requested_amount")
+	private Double visaPaymentRequestedAmount;
+
+	@Column(name = "visa_payment_requested_currency")
+	private String visaPaymentRequestedCurrency;
+
+	@Column(name = "visa_bank_details_sent_date")
+	private LocalDate visaBankDetailsSentDate;
+
+	@Column(name = "visa_payment_tx_id")
+	private String visaPaymentTxId;
+
+	@Column(name = "visa_payment_confirmation_path")
+	private String visaPaymentConfirmationPath;
+
+	@Column(name = "visa_payment_received_amount")
+	private Double visaPaymentReceivedAmount;
+
+	@Column(name = "visa_payment_received_date")
+	private LocalDate visaPaymentReceivedDate;
+
+	// ======================= BANK DETAILS (Uzbekistan → India Transfer)
+	// =======================
+	@Column(name = "visa_bank_name")
+	private String visaBankName;
+
+	@Column(name = "visa_bank_account_number")
+	private String visaBankAccountNumber;
+
+	@Column(name = "visa_bank_swift_code")
+	private String visaBankSwiftCode;
+
+	@Column(name = "visa_bank_beneficiary_name")
+	private String visaBankBeneficiaryName;
+
+	@Column(name = "visa_bank_branch_address")
+	private String visaBankBranchAddress;
+
 	private Enum action;
 	private Enum actionOnUser;
 
@@ -1171,5 +1210,103 @@ public class Student {
 
 	public void setReadyForDocReturn(Boolean readyForDocReturn) {
 		this.readyForDocReturn = readyForDocReturn;
+	}
+
+	// ======================= VISA PAYMENT GETTERS/SETTERS =======================
+	public Double getVisaPaymentRequestedAmount() {
+		return visaPaymentRequestedAmount;
+	}
+
+	public void setVisaPaymentRequestedAmount(Double visaPaymentRequestedAmount) {
+		this.visaPaymentRequestedAmount = visaPaymentRequestedAmount;
+	}
+
+	public String getVisaPaymentRequestedCurrency() {
+		return visaPaymentRequestedCurrency;
+	}
+
+	public void setVisaPaymentRequestedCurrency(String visaPaymentRequestedCurrency) {
+		this.visaPaymentRequestedCurrency = visaPaymentRequestedCurrency;
+	}
+
+	public LocalDate getVisaBankDetailsSentDate() {
+		return visaBankDetailsSentDate;
+	}
+
+	public void setVisaBankDetailsSentDate(LocalDate visaBankDetailsSentDate) {
+		this.visaBankDetailsSentDate = visaBankDetailsSentDate;
+	}
+
+	public String getVisaPaymentTxId() {
+		return visaPaymentTxId;
+	}
+
+	public void setVisaPaymentTxId(String visaPaymentTxId) {
+		this.visaPaymentTxId = visaPaymentTxId;
+	}
+
+	public String getVisaPaymentConfirmationPath() {
+		return visaPaymentConfirmationPath;
+	}
+
+	public void setVisaPaymentConfirmationPath(String visaPaymentConfirmationPath) {
+		this.visaPaymentConfirmationPath = visaPaymentConfirmationPath;
+	}
+
+	public Double getVisaPaymentReceivedAmount() {
+		return visaPaymentReceivedAmount;
+	}
+
+	public void setVisaPaymentReceivedAmount(Double visaPaymentReceivedAmount) {
+		this.visaPaymentReceivedAmount = visaPaymentReceivedAmount;
+	}
+
+	public LocalDate getVisaPaymentReceivedDate() {
+		return visaPaymentReceivedDate;
+	}
+
+	public void setVisaPaymentReceivedDate(LocalDate visaPaymentReceivedDate) {
+		this.visaPaymentReceivedDate = visaPaymentReceivedDate;
+	}
+
+	// ======================= BANK DETAILS GETTERS/SETTERS =======================
+	public String getVisaBankName() {
+		return visaBankName;
+	}
+
+	public void setVisaBankName(String visaBankName) {
+		this.visaBankName = visaBankName;
+	}
+
+	public String getVisaBankAccountNumber() {
+		return visaBankAccountNumber;
+	}
+
+	public void setVisaBankAccountNumber(String visaBankAccountNumber) {
+		this.visaBankAccountNumber = visaBankAccountNumber;
+	}
+
+	public String getVisaBankSwiftCode() {
+		return visaBankSwiftCode;
+	}
+
+	public void setVisaBankSwiftCode(String visaBankSwiftCode) {
+		this.visaBankSwiftCode = visaBankSwiftCode;
+	}
+
+	public String getVisaBankBeneficiaryName() {
+		return visaBankBeneficiaryName;
+	}
+
+	public void setVisaBankBeneficiaryName(String visaBankBeneficiaryName) {
+		this.visaBankBeneficiaryName = visaBankBeneficiaryName;
+	}
+
+	public String getVisaBankBranchAddress() {
+		return visaBankBranchAddress;
+	}
+
+	public void setVisaBankBranchAddress(String visaBankBranchAddress) {
+		this.visaBankBranchAddress = visaBankBranchAddress;
 	}
 }
