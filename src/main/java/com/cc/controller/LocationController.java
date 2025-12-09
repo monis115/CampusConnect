@@ -25,6 +25,41 @@ public class LocationController {
         return ResponseEntity.ok(locations);
     }
 
+    // ✅ 1b. Get all locations grouped by state with "Whole State" option
+    @GetMapping("/grouped")
+    public ResponseEntity<List<com.cc.DTO.StateLocationDTO>> getGroupedLocations() {
+        List<Location> allLocations = locationRepository.findAll();
+
+        // Group by state
+        java.util.Map<String, List<Location>> locationsByState = allLocations.stream()
+                .collect(java.util.stream.Collectors.groupingBy(Location::getState));
+
+        List<com.cc.DTO.StateLocationDTO> result = new java.util.ArrayList<>();
+
+        // Sort states alphabetically
+        List<String> sortedStates = new java.util.ArrayList<>(locationsByState.keySet());
+        java.util.Collections.sort(sortedStates);
+
+        for (String state : sortedStates) {
+            List<Location> stateLocations = locationsByState.get(state);
+
+            List<com.cc.DTO.StateLocationDTO.DistrictDTO> districts = new java.util.ArrayList<>();
+
+            // Add "Whole State" option first (id = -1 or null, frontend handles this)
+            districts.add(new com.cc.DTO.StateLocationDTO.DistrictDTO(null, "Whole " + state, true));
+
+            // Add individual districts sorted alphabetically
+            stateLocations.stream()
+                    .sorted((a, b) -> a.getDistrict().compareToIgnoreCase(b.getDistrict()))
+                    .forEach(loc -> districts.add(
+                            new com.cc.DTO.StateLocationDTO.DistrictDTO(loc.getId(), loc.getDistrict(), false)));
+
+            result.add(new com.cc.DTO.StateLocationDTO(state, districts));
+        }
+
+        return ResponseEntity.ok(result);
+    }
+
     // ✅ 2. Get locations by state (for dropdown filtering)
     @GetMapping("/state/{state}")
     public ResponseEntity<List<Location>> getLocationsByState(@PathVariable String state) {
