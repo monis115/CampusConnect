@@ -45,13 +45,13 @@ public class Student {
 	@Column(nullable = false)
 	private String contactNo;
 
-	@Column(nullable = false)
+	@Column(columnDefinition = "TEXT", nullable = false)
 	private String address;
 
 	@Column(nullable = false)
 	private String emergencyContactNo;
 
-	@Column(nullable = false)
+	@Column(columnDefinition = "TEXT", nullable = false)
 	private String emergencyRelation;
 
 	@Column(nullable = true)
@@ -60,22 +60,22 @@ public class Student {
 	@Column(nullable = true)
 	private LocalDate passportValidTill;
 
-	@Column(name = "passport_path", nullable = true)
+	@Column(name = "passport_path", columnDefinition = "TEXT")
 	private String passportPath;
 
-	@Column(nullable = false)
+	@Column(columnDefinition = "TEXT", nullable = false)
 	private String intake;
 
-	@Column(nullable = false)
+	@Column(columnDefinition = "TEXT", nullable = false)
 	private String mothersName;
 
-	@Column(nullable = false)
+	@Column(columnDefinition = "TEXT", nullable = false)
 	private String fathersName;
 
 	@Column(nullable = false)
 	private String adhaarCardNo;
 
-	@Column(nullable = true)
+	@Column(columnDefinition = "TEXT")
 	private String adhaarPath;
 
 	// preferences: a student can prefer multiple colleges
@@ -86,7 +86,7 @@ public class Student {
 	@Column(nullable = false)
 	private String class12thPassingYear;
 
-	@Column(nullable = false)
+	@Column(columnDefinition = "TEXT", nullable = false)
 	private String baords;
 
 	@Column(nullable = false)
@@ -95,7 +95,7 @@ public class Student {
 	@Column(nullable = false)
 	private Double maxMarks;
 
-	@Column(nullable = true)
+	@Column(columnDefinition = "TEXT")
 	private String markseetPath;
 
 	@Column(nullable = false)
@@ -107,10 +107,10 @@ public class Student {
 	@Column(nullable = true)
 	private Integer neetScore;
 
-	@Column(nullable = true)
+	@Column(columnDefinition = "TEXT")
 	private String neetMarksheetPath;
 
-	@Column(nullable = false)
+	@Column(columnDefinition = "TEXT", nullable = false)
 	private String appliedFor;
 
 	@Column(nullable = true)
@@ -128,16 +128,16 @@ public class Student {
 	@JsonBackReference(value = "manager-student")
 	private AddmissionManager admissionManager;
 
-	@Column(name = "confirmation_page_path", nullable = true)
+	@Column(name = "confirmation_page_path", columnDefinition = "TEXT")
 	private String confirmationPagePath;
 
-	@Column(name = "admission_letter_path", nullable = true)
+	@Column(name = "admission_letter_path", columnDefinition = "TEXT")
 	private String admissionLetterPath;
 
-	@Column(name = "conditional_offer_letter_path", nullable = true)
+	@Column(name = "conditional_offer_letter_path", columnDefinition = "TEXT")
 	private String conditionalOfferLetterPath;
 
-	@Column(name = "profile_image_path", nullable = true)
+	@Column(name = "profile_image_path", columnDefinition = "TEXT")
 	private String profileImagePath;
 
 	@Column(nullable = true)
@@ -184,7 +184,7 @@ public class Student {
 	@Column(name = "telex_issue_date")
 	private LocalDate telexIssueDate;
 
-	@Column(name = "telex_documents_path", length = 1000)
+	@Column(name = "telex_documents_path", columnDefinition = "TEXT")
 	private String telexDocumentsPath;
 
 	// New Fields for Telex Process
@@ -194,10 +194,10 @@ public class Student {
 	@Column(name = "telex_payment_amount")
 	private Double telexPaymentAmount;
 
-	@Column(name = "telex_payment_screenshot_path")
+	@Column(name = "telex_payment_screenshot_path", columnDefinition = "TEXT")
 	private String telexPaymentScreenshotPath;
 
-	@Column(name = "telex_payment_tx_id")
+	@Column(name = "telex_payment_tx_id", columnDefinition = "TEXT")
 	private String telexPaymentTxId;
 
 	@Column(name = "telex_payment_received_amount")
@@ -212,7 +212,7 @@ public class Student {
 	@Column(name = "is_telex_doc_approved")
 	private Boolean isTelexDocApproved = false;
 
-	@Column(name = "doc_person_comment")
+	@Column(name = "doc_person_comment", columnDefinition = "TEXT")
 	private String docPersonComment;
 
 	@OneToMany(mappedBy = "student", cascade = CascadeType.ALL)
@@ -283,10 +283,10 @@ public class Student {
 	@Column(name = "paid_to")
 	private PaymentRecipient paidTo;
 
-	@Column(name = "tt_copy_path")
+	@Column(name = "tt_copy_path", columnDefinition = "TEXT")
 	private String ttCopyPath;
 
-	@Column(name = "payment_confirmation_path")
+	@Column(name = "payment_confirmation_path", columnDefinition = "TEXT")
 	private String paymentConfirmationPath;
 
 	@Column(name = "payment_due_date")
@@ -297,13 +297,13 @@ public class Student {
 	private PaymentType paymentType;
 
 	// ======================= PERSONAL/VISA INFORMATION =======================
-	@Column(name = "surname")
+	@Column(name = "surname", columnDefinition = "TEXT")
 	private String surname;
 
-	@Column(name = "first_name")
+	@Column(name = "first_name", columnDefinition = "TEXT")
 	private String firstName;
 
-	@Column(name = "middle_name")
+	@Column(name = "middle_name", columnDefinition = "TEXT")
 	private String middleName;
 
 	@Column(name = "sex")
@@ -312,17 +312,17 @@ public class Student {
 	@Column(name = "country_of_birth")
 	private String countryOfBirth;
 
-	@Column(name = "place_of_birth")
+	@Column(name = "place_of_birth", columnDefinition = "TEXT")
 	private String placeOfBirth;
 
 	@Enumerated(EnumType.STRING)
 	@Column(name = "marital_status")
 	private MaritalStatus maritalStatus;
 
-	@Column(name = "citizenship")
+	@Column(name = "citizenship", columnDefinition = "TEXT")
 	private String citizenship;
 
-	@Column(name = "previous_citizenship")
+	@Column(name = "previous_citizenship", columnDefinition = "TEXT")
 	private String previousCitizenship;
 
 	@Enumerated(EnumType.STRING)
@@ -335,16 +335,16 @@ public class Student {
 	@Column(name = "passport_expiration_date")
 	private LocalDate passportExpirationDate;
 
-	@Column(name = "duration_of_visa_procedure")
+	@Column(name = "duration_of_visa_procedure", columnDefinition = "TEXT")
 	private String durationOfVisaProcedure;
 
-	@Column(name = "place_of_visa_issuance")
+	@Column(name = "place_of_visa_issuance", columnDefinition = "TEXT")
 	private String placeOfVisaIssuance;
 
-	@Column(name = "visa_photo_path")
+	@Column(name = "visa_photo_path", columnDefinition = "TEXT")
 	private String visaPhotoPath;
 
-	@Column(name = "visa_passport_copy_path")
+	@Column(name = "visa_passport_copy_path", columnDefinition = "TEXT")
 	private String visaPassportCopyPath;
 
 	// ======================= VISA PAYMENT FIELDS =======================
@@ -357,10 +357,10 @@ public class Student {
 	@Column(name = "visa_bank_details_sent_date")
 	private LocalDate visaBankDetailsSentDate;
 
-	@Column(name = "visa_payment_tx_id")
+	@Column(name = "visa_payment_tx_id", columnDefinition = "TEXT")
 	private String visaPaymentTxId;
 
-	@Column(name = "visa_payment_confirmation_path")
+	@Column(name = "visa_payment_confirmation_path", columnDefinition = "TEXT")
 	private String visaPaymentConfirmationPath;
 
 	@Column(name = "visa_payment_received_amount")
@@ -371,19 +371,19 @@ public class Student {
 
 	// ======================= BANK DETAILS (Uzbekistan → India Transfer)
 	// =======================
-	@Column(name = "visa_bank_name")
+	@Column(name = "visa_bank_name", columnDefinition = "TEXT")
 	private String visaBankName;
 
 	@Column(name = "visa_bank_account_number")
 	private String visaBankAccountNumber;
 
-	@Column(name = "visa_bank_swift_code")
+	@Column(name = "visa_bank_swift_code", columnDefinition = "TEXT")
 	private String visaBankSwiftCode;
 
-	@Column(name = "visa_bank_beneficiary_name")
+	@Column(name = "visa_bank_beneficiary_name", columnDefinition = "TEXT")
 	private String visaBankBeneficiaryName;
 
-	@Column(name = "visa_bank_branch_address")
+	@Column(name = "visa_bank_branch_address", columnDefinition = "TEXT")
 	private String visaBankBranchAddress;
 
 	private Enum action;

@@ -67,4 +67,31 @@ public interface StudentRepository extends JpaRepository<Student, Long> {
                                 StudentStatus.VISA_STAMPED,
                                 StudentStatus.COMPLETED));
         }
+
+        // ======================= ADMIN DASHBOARD METHODS =======================
+
+        // Count by single status
+        long countByApplicationStatus(StudentStatus status);
+
+        // Count by multiple statuses
+        long countByApplicationStatusIn(List<StudentStatus> statuses);
+
+        // Count by date range (for new registrations)
+        long countByCreatedAtAfter(java.time.LocalDate date);
+
+        long countByCreatedAtBetween(java.time.LocalDate start, java.time.LocalDate end);
+
+        // Recent students ordered by ID descending
+        List<Student> findTop10ByOrderByIdDesc();
+
+        // Students with payment status
+        long countByPaymentStatus(String paymentStatus);
+
+        // Document tracking counts
+        long countByDocReceivedDateIsNotNull();
+
+        long countByDocReturnedDateIsNotNull();
+
+        // Telex counts
+        long countByTelexNumberIsNotNull();
 }
