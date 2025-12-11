@@ -74,6 +74,18 @@ public class StudentController {
     }
 
     /**
+     * Retrieve all students with pagination.
+     * Default size 19 as requested.
+     */
+    @GetMapping("/paginated")
+    public ResponseEntity<org.springframework.data.domain.Page<Student>> getAllStudentsPaginated(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "19") int size) {
+        org.springframework.data.domain.Page<Student> students = studentService.getAllStudentsPaginated(page, size);
+        return ResponseEntity.ok(students);
+    }
+
+    /**
      * Retrieve a student by their unique identifier.
      */
     @GetMapping("/{studentId}")

@@ -5,7 +5,6 @@ import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -126,7 +125,7 @@ public class Agent {
     private java.util.Set<AgentCollegeAccess> collegeAccess;
 
     @OneToMany(mappedBy = "agent")
-    @JsonManagedReference(value = "agent-student") // <-- CHANGE TO MANAGED
+    @JsonIgnoreProperties("agent")
     private List<Student> student;
 
     // -------------------- Constructors --------------------

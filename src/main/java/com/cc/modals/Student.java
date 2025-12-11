@@ -4,11 +4,9 @@ import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
-
 import jakarta.persistence.*;
 
 @Entity
@@ -125,7 +123,7 @@ public class Student {
 
 	@ManyToOne
 	@JoinColumn(name = "admission_manager_id")
-	@JsonBackReference(value = "manager-student")
+	@JsonIgnoreProperties("students")
 	private AddmissionManager admissionManager;
 
 	@Column(name = "confirmation_page_path", columnDefinition = "TEXT")
@@ -150,7 +148,7 @@ public class Student {
 
 	@ManyToOne
 	@JoinColumn(name = "agent_id")
-	@JsonBackReference(value = "agent-student")
+	@JsonIgnoreProperties("student")
 	private Agent agent;
 
 	@Column(nullable = false)

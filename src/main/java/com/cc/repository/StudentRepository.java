@@ -12,6 +12,10 @@ public interface StudentRepository extends JpaRepository<Student, Long> {
 
         boolean existsByApplicationId(String applicationId);
 
+        java.util.Optional<Student> findByApplicationId(String applicationId);
+
+        java.util.Optional<Student> findByEmail(String email);
+
         // Existing methods...
         List<Student> findByAgent_Id(Long agentId);
 

@@ -641,6 +641,11 @@ public class StudentService {
         return studentRepository.findByAgent_Id(id);
     }
 
+    public org.springframework.data.domain.Page<Student> getAllStudentsPaginated(int page, int size) {
+        return studentRepository.findAll(org.springframework.data.domain.PageRequest.of(page, size,
+                org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "id")));
+    }
+
     /**
      * Retrieves all students assigned to a specific Admission Manager username,
      * regardless of status.
@@ -725,6 +730,56 @@ public class StudentService {
         student.getStudentStatusHistory().add(history);
 
         return studentRepository.save(student);
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // PUBLIC TRACKING
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    public com.cc.DTO.StudentApplicationTrackingDTO trackApplication(String query) {
+        java.util.Optional<Student> studentOpt = studentRepository.findByApplicationId(query);
+
+        if (studentOpt.isEmpty()) {
+            studentOpt = studentRepository.findByEmail(query);
+        }
+
+        if (studentOpt.isEmpty()) {
+            return null; // or throw exception? Controller will handle null as 404
+        }
+
+        Student student = studentOpt.get();
+
+        // Check if history is lazy loaded. If so, we might need to initialize it or
+        // fetch it.
+        // Assuming @JsonManagedReference handles it or we fetch it
+        // eagerly/transactional.
+        // Since we are in Service and Transactional might be needed if lazy.
+        // The getStudentStatusHistory() returns a list.
+        List<StudentStatusHistory> historyEntities = student.getStudentStatusHistory();
+
+        // Sort history by date descending if not already
+        historyEntities.sort((h1, h2) -> h2.getUpdatedAt().compareTo(h1.getUpdatedAt()));
+
+        List<com.cc.DTO.StudentApplicationTrackingDTO.ApplicationHistoryDTO> historyDTOs = historyEntities.stream()
+                .map(h -> new com.cc.DTO.StudentApplicationTrackingDTO.ApplicationHistoryDTO(
+                        h.getStudentApplicationStatus(),
+                        h.getUpdatedAt(),
+                        h.getUpdatedBy(),
+                        h.getRemarks()))
+                .collect(java.util.stream.Collectors.toList());
+
+        // Last updated from history or student modified date?
+        // Let's use the most recent history item's date or student's created at if no
+        // history.
+        LocalDateTime lastUpdated = historyEntities.isEmpty() ? student.getCreatedAt().atStartOfDay()
+                : historyEntities.get(0).getUpdatedAt();
+
+        return new com.cc.DTO.StudentApplicationTrackingDTO(
+                student.getFullName(),
+                student.getApplicationId(),
+                student.getApplicationStatus(),
+                lastUpdated,
+                historyDTOs);
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
