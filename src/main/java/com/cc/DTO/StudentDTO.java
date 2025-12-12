@@ -51,12 +51,30 @@ public class StudentDTO {
 
     // Relationships
     private List<Long> collegeIds;
+    private List<String> collegeNames; // [NEW]
     private String userNameAgent;
+    private String assignedCollegeName; // [NEW]
 
     public StudentDTO() {
     }
 
     // Getters and Setters
+
+    public List<String> getCollegeNames() {
+        return collegeNames;
+    }
+
+    public void setCollegeNames(List<String> collegeNames) {
+        this.collegeNames = collegeNames;
+    }
+
+    public String getAssignedCollegeName() {
+        return assignedCollegeName;
+    }
+
+    public void setAssignedCollegeName(String assignedCollegeName) {
+        this.assignedCollegeName = assignedCollegeName;
+    }
 
     public String getFullName() {
         return fullName;

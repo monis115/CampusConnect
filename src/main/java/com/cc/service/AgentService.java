@@ -323,7 +323,12 @@ public class AgentService {
                     agent.setCompanyEmail(dto.getCompanyEmail());
                     agent.setCompanyContactNo(dto.getCompanyContactNo());
                     agent.setWebsite(dto.getWebsite());
-                    agent.setStatus("active");
+                    if (dto.getStatus() != null && !dto.getStatus().isEmpty()) {
+                        agent.setStatus(dto.getStatus());
+                    } else {
+                        // Default behavior or specific logic if needed
+                        // agent.setStatus("active"); // Don't force active if not provided?
+                    }
 
                     // Update privileges
                     // Update privileges
@@ -370,8 +375,112 @@ public class AgentService {
         }).collect(java.util.stream.Collectors.toList());
     }
 
-    public List<Agent> getAgentsWithStudents() {
-        return agentRepository.findAgentsWithStudents();
+    public List<com.cc.DTO.AgentSummaryDTO> getAgentsWithStudents() {
+        List<Agent> agents = agentRepository.findAgentsWithStudents();
+        return agents.stream().map(agent -> {
+            int collegeCount = agent.getCollegeAccess() != null ? agent.getCollegeAccess().size() : 0;
+            int locationCount = 0;
+            if (agent.getCollegeAccess() != null) {
+                locationCount = agent.getCollegeAccess().stream()
+                        .mapToInt(access -> access.getAllowedLocations() != null ? access.getAllowedLocations().size()
+                                : 0)
+                        .sum();
+            }
+            return new com.cc.DTO.AgentSummaryDTO(
+                    agent.getId(),
+                    agent.getFullName(),
+                    agent.getEmail(),
+                    agent.getCompanyName(),
+                    agent.getContactNo(),
+                    agent.getStatus(),
+                    agent.getUserId(),
+                    collegeCount,
+                    locationCount);
+        }).collect(java.util.stream.Collectors.toList());
+    }
+
+    public List<com.cc.DTO.StudentDTO> getStudentsByAgentId(Long agentId) {
+        Agent agent = agentRepository.findById(agentId)
+                .orElseThrow(() -> new RuntimeException("Agent not found with ID: " + agentId));
+
+        List<com.cc.modals.Student> students = agent.getStudent();
+        if (students == null) {
+            return new ArrayList<>();
+        }
+        java.util.Collections.reverse(students);
+
+        return students.stream()
+                .map(student -> {
+                    com.cc.DTO.StudentDTO dto = new com.cc.DTO.StudentDTO();
+
+                    // Personal & Contact
+                    dto.setFullName(student.getFullName());
+                    dto.setDob(student.getDob());
+                    dto.setAge(student.getAge());
+                    dto.setEmail(student.getEmail());
+                    dto.setContactNo(student.getContactNo());
+                    dto.setAddress(student.getAddress());
+                    // dto.setDistrictId(student.getDistrictId()); // Assuming not present in
+                    // Student entity or managed elsewhere
+                    dto.setEmergencyContactNo(student.getEmergencyContactNo());
+                    dto.setEmergencyRelation(student.getEmergencyRelation());
+
+                    // Parents
+                    dto.setMothersName(student.getMothersName());
+                    dto.setFathersName(student.getFathersName());
+
+                    // ID Documents
+                    dto.setPassportNo(student.getPassportNo());
+                    dto.setPassportValidTill(student.getPassportValidTill());
+                    dto.setAdhaarCardNo(student.getAdhaarCardNo());
+                    dto.setAdhaarPath(student.getAdhaarPath());
+                    dto.setPassportPath(student.getPassportPath());
+
+                    // Academic (12th)
+                    dto.setClass12thPassingYear(student.getClass12thPassingYear());
+                    dto.setBaords(student.getBaords());
+                    dto.setClass12thMarks(student.getClass12thMarks());
+                    dto.setMaxMarks(student.getMaxMarks());
+                    dto.setMarkseetPath(student.getMarkseetPath());
+
+                    // NEET Details
+                    dto.setHasGivenNEET(student.isHasGivenNEET());
+                    dto.setNeetYear(student.getNeetYear());
+                    dto.setNeetScore(student.getNeetScore());
+                    dto.setNeetMarksheetPath(student.getNeetMarksheetPath());
+
+                    // Application Details
+                    dto.setIntake(student.getIntake());
+                    dto.setAppliedFor(student.getAppliedFor());
+                    if (student.getApplicationStatus() != null) {
+                        dto.setApplicationStatus(student.getApplicationStatus().toString());
+                    }
+
+                    // File Paths
+                    dto.setConfirmationPagePath(student.getConfirmationPagePath());
+                    // Use internal getter to bypass the security check - agents should see the path
+                    // once it exists
+                    dto.setAdmissionLetterPath(student.getAdmissionLetterPathInternal());
+
+                    // Relationships
+                    if (student.getCollegePreferences() != null) {
+                        dto.setCollegeIds(student.getCollegePreferences().stream()
+                                .map(com.cc.modals.College::getId)
+                                .collect(java.util.stream.Collectors.toList()));
+                        dto.setCollegeNames(student.getCollegePreferences().stream()
+                                .map(com.cc.modals.College::getCollegeName)
+                                .collect(java.util.stream.Collectors.toList()));
+                    }
+                    if (student.getAgent() != null) {
+                        dto.setUserNameAgent(student.getAgent().getUserId());
+                    }
+                    if (student.getCollege() != null) {
+                        dto.setAssignedCollegeName(student.getCollege().getCollegeName());
+                    }
+
+                    return dto;
+                })
+                .collect(java.util.stream.Collectors.toList());
     }
 
     public Optional<Agent> getAgentByUserIdWithDetails(String userId) {
@@ -621,5 +730,80 @@ public class AgentService {
                         student.getFullName(),
                         student.getApplicationId()))
                 .collect(java.util.stream.Collectors.toList());
+    }
+
+    // ======================= DATA FETCHING =======================
+
+    public List<com.cc.DTO.AgentDetailsDTO> getAllAgentsDetails() {
+        List<Agent> agents = agentRepository.findAll();
+
+        return agents.stream().map(agent -> {
+            com.cc.DTO.AgentDetailsDTO dto = new com.cc.DTO.AgentDetailsDTO();
+
+            // ID & Dates
+            dto.setId(agent.getId());
+            dto.setCreationDate(agent.getCreationDate());
+            dto.setActivationDate(agent.getActivationDate());
+
+            // Personal
+            dto.setFullName(agent.getFullName());
+            dto.setAge(agent.getAge());
+            dto.setDob(agent.getDob());
+            dto.setEmail(agent.getEmail());
+            dto.setContactNo(agent.getContactNo());
+            dto.setGender(agent.getGender());
+            dto.setAddress(agent.getAddress());
+            dto.setIdentityProofType(agent.getIdentityProofType());
+            dto.setIdentityProofNumber(agent.getIdentityProofNumber());
+            dto.setDesignation(agent.getDesignation());
+            dto.setExperience(agent.getExperience());
+            dto.setStatus(agent.getStatus());
+
+            // Company
+            dto.setCompanyName(agent.getCompanyName());
+            dto.setRegisteredBusinessName(agent.getRegisteredBusinessName());
+            dto.setBusinessType(agent.getBusinessType());
+            dto.setRegistrationNumber(agent.getRegistrationNumber());
+            dto.setPanOrGstNumber(agent.getPanOrGstNumber());
+            dto.setRegisteredOfficeAddress(agent.getRegisteredOfficeAddress());
+            dto.setBranchOfficeAddress(agent.getBranchOfficeAddress());
+            dto.setCompanyEmail(agent.getCompanyEmail());
+            dto.setCompanyContactNo(agent.getCompanyContactNo());
+            dto.setWebsite(agent.getWebsite());
+
+            // Login
+            dto.setUserId(agent.getUserId());
+            dto.setPassword(agent.getPassword());
+            dto.setRole(agent.getRole());
+
+            // College Access
+            if (agent.getCollegeAccess() != null) {
+                List<com.cc.DTO.AgentCollegeAccessDTO> accessList = agent.getCollegeAccess().stream().map(access -> {
+                    com.cc.DTO.AgentCollegeAccessDTO accessDTO = new com.cc.DTO.AgentCollegeAccessDTO();
+                    accessDTO.setCollegeId(access.getCollege().getId());
+                    accessDTO.setCollegeName(access.getCollege().getCollegeName()); // Set College Name
+                    accessDTO.setAccessAllLocations(access.isAccessAllLocations());
+
+                    if (access.getAllowedLocations() != null) {
+                        // Set IDs
+                        accessDTO.setLocationIds(access.getAllowedLocations().stream()
+                                .map(com.cc.modals.Location::getId)
+                                .collect(java.util.stream.Collectors.toList()));
+
+                        // Set Details
+                        accessDTO.setLocationDetails(access.getAllowedLocations().stream()
+                                .map(loc -> new com.cc.DTO.AgentCollegeAccessDTO.LocationDetailDTO(
+                                        loc.getId(),
+                                        loc.getState(),
+                                        loc.getDistrict()))
+                                .collect(java.util.stream.Collectors.toList()));
+                    }
+                    return accessDTO;
+                }).collect(java.util.stream.Collectors.toList());
+                dto.setCollegeAccessList(accessList);
+            }
+
+            return dto;
+        }).collect(java.util.stream.Collectors.toList());
     }
 }

@@ -84,12 +84,32 @@ public class AgentController {
         return agentService.getActiveAgents();
     }
 
+    // ======================= GET ALL AGENTS WITH FULL DETAILS
+    // =======================
+    @GetMapping("/all-details")
+    public ResponseEntity<List<com.cc.DTO.AgentDetailsDTO>> getAllAgentsDetails() {
+        try {
+            return ResponseEntity.ok(agentService.getAllAgentsDetails());
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(null);
+        }
+    }
+
     // Add this endpoint to AgentController.java (e.g., after the getActiveAgents()
     // method)
 
     @GetMapping("/with-students")
-    public List<Agent> getAgentsWithStudents() {
+    public List<com.cc.DTO.AgentSummaryDTO> getAgentsWithStudents() {
         return agentService.getAgentsWithStudents();
+    }
+
+    @GetMapping("/{id}/enrolled-students")
+    public ResponseEntity<List<com.cc.DTO.StudentDTO>> getStudentsByAgentId(@PathVariable Long id) {
+        try {
+            return ResponseEntity.ok(agentService.getStudentsByAgentId(id));
+        } catch (Exception e) {
+            return ResponseEntity.status(404).body(null);
+        }
     }
 
     // ======================= GET AGENT BY USER ID =======================
