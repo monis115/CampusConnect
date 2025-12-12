@@ -103,6 +103,12 @@ public class StudentController {
         return ResponseEntity.ok(students);
     }
 
+    @GetMapping("/admission-letters")
+    public ResponseEntity<List<com.cc.DTO.StudentAdmissionDTO>> getStudentsWithAdmissionLetters() {
+        List<com.cc.DTO.StudentAdmissionDTO> students = studentService.getStudentsWithAdmissionLetters();
+        return ResponseEntity.ok(students);
+    }
+
     /**
      * Upload Admission Letter for a student (by AdmissionManager).
      */

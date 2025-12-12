@@ -98,4 +98,7 @@ public interface StudentRepository extends JpaRepository<Student, Long> {
 
         // Telex counts
         long countByTelexNumberIsNotNull();
+
+        // Find students with admission letters, newest first
+        List<Student> findByAdmissionLetterPathIsNotNullOrderByIdDesc();
 }

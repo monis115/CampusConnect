@@ -641,6 +641,24 @@ public class StudentService {
         return studentRepository.findByAgent_Id(id);
     }
 
+    public List<com.cc.DTO.StudentAdmissionDTO> getStudentsWithAdmissionLetters() {
+        List<Student> students = studentRepository.findByAdmissionLetterPathIsNotNullOrderByIdDesc();
+
+        return students.stream()
+                .map(s -> new com.cc.DTO.StudentAdmissionDTO(
+                        s.getApplicationId(),
+                        s.getFullName(),
+                        s.getAgent() != null ? s.getAgent().getFullName() : "N/A",
+                        s.getAgent() != null ? s.getAgent().getUserId() : "N/A",
+                        s.getCollege() != null ? s.getCollege().getCollegeName() : "N/A",
+                        s.getApplicationStatus(),
+                        s.getAppliedFor(),
+                        s.getAdmissionLetterPathInternal() // Use internal getter to bypass status check if needed, or
+                                                           // normal getter
+                ))
+                .collect(java.util.stream.Collectors.toList());
+    }
+
     public org.springframework.data.domain.Page<Student> getAllStudentsPaginated(int page, int size) {
         return studentRepository.findAll(org.springframework.data.domain.PageRequest.of(page, size,
                 org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "id")));

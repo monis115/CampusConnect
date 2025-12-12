@@ -80,7 +80,7 @@ public class AgentController {
     }
 
     @GetMapping("/active")
-    public List<Agent> getActiveAgents() {
+    public List<com.cc.DTO.AgentSummaryDTO> getActiveAgents() {
         return agentService.getActiveAgents();
     }
 

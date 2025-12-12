@@ -346,8 +346,28 @@ public class AgentService {
         agentRepository.deleteById(id);
     }
 
-    public List<Agent> getActiveAgents() {
-        return agentRepository.findByStatus("Active");
+    public List<com.cc.DTO.AgentSummaryDTO> getActiveAgents() {
+        List<Agent> agents = agentRepository.findByStatus("Active");
+        return agents.stream().map(agent -> {
+            int collegeCount = agent.getCollegeAccess() != null ? agent.getCollegeAccess().size() : 0;
+            int locationCount = 0;
+            if (agent.getCollegeAccess() != null) {
+                locationCount = agent.getCollegeAccess().stream()
+                        .mapToInt(access -> access.getAllowedLocations() != null ? access.getAllowedLocations().size()
+                                : 0)
+                        .sum();
+            }
+            return new com.cc.DTO.AgentSummaryDTO(
+                    agent.getId(),
+                    agent.getFullName(),
+                    agent.getEmail(),
+                    agent.getCompanyName(),
+                    agent.getContactNo(),
+                    agent.getStatus(),
+                    agent.getUserId(),
+                    collegeCount,
+                    locationCount);
+        }).collect(java.util.stream.Collectors.toList());
     }
 
     public List<Agent> getAgentsWithStudents() {
