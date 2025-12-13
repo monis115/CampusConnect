@@ -46,6 +46,11 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-aop</artifactId>
+        </dependency>
        
         <!-- iText 7 Core BOM (includes kernel, io, layout, and other essentials for PDF generation) -->
         <dependency>
