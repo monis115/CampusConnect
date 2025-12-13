@@ -164,4 +164,22 @@ public class AddmissionManagerController {
             return ResponseEntity.status(500).body("Error fetching dashboard stats: " + e.getMessage());
         }
     }
+
+    // -------------------- NEW OPTIMIZED ENDPOINTS --------------------
+
+    // 1. Get Admission Managers with Student Count
+    @GetMapping("/summary")
+    public ResponseEntity<List<com.cc.DTO.AdmissionManagerSummaryDTO>> getManagersSummary() {
+        return ResponseEntity.ok(service.getAllManagersWithStudentCount());
+    }
+
+    // 2. Get Students for an Admission Manager
+    @GetMapping("/{id}/student-list")
+    public ResponseEntity<List<com.cc.DTO.ManagerStudentDTO>> getStudentsForManager(@PathVariable Long id) {
+        try {
+            return ResponseEntity.ok(service.getStudentsForManagerWithActions(id));
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
 }

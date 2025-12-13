@@ -46,6 +46,12 @@ public interface StudentRepository extends JpaRepository<Student, Long> {
         // Recent Activity
         List<Student> findTop5ByAdmissionManagerOrderByIdDesc(AddmissionManager admissionManager);
 
+        // Find all students for a manager
+        List<Student> findByAdmissionManager(AddmissionManager admissionManager);
+
+        // Find students for a manager sorted by creation date descending (newest first)
+        List<Student> findByAdmissionManagerOrderByCreatedAtDesc(AddmissionManager admissionManager);
+
         @org.springframework.data.jpa.repository.Query("SELECT s FROM Student s WHERE s.universityPerson.userName = :username AND s.applicationStatus IN :statuses")
         List<Student> findAdmittedStudentsByUniversityPerson(
                         @org.springframework.data.repository.query.Param("username") String username,

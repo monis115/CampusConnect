@@ -760,4 +760,55 @@ public class AddmissionManagerService {
 
                 return stats;
         }
+
+        // ===================== NEW OPTIMIZED APIS =====================
+
+        public List<com.cc.DTO.AdmissionManagerSummaryDTO> getAllManagersWithStudentCount() {
+                List<AddmissionManager> managers = managerRepo.findAll();
+                return managers.stream().map(manager -> {
+                        Long studentCount = studentRepo.countByAdmissionManager(manager);
+                        List<String> colleges = manager.getColleges().stream()
+                                        .map(com.cc.modals.College::getCollegeName)
+                                        .collect(java.util.stream.Collectors.toList());
+
+                        return new com.cc.DTO.AdmissionManagerSummaryDTO(
+                                        manager.getId(),
+                                        manager.getFullName(),
+                                        manager.getEmail(),
+                                        manager.getContactNumber(),
+                                        manager.getRole(),
+                                        manager.getStatus(),
+                                        manager.getUsername(),
+                                        colleges,
+                                        studentCount);
+                }).collect(java.util.stream.Collectors.toList());
+        }
+
+        public List<com.cc.DTO.ManagerStudentDTO> getStudentsForManagerWithActions(Long managerId) {
+                AddmissionManager manager = managerRepo.findById(managerId)
+                                .orElseThrow(() -> new RuntimeException("Manager not found"));
+
+                // Fetch students sorted by creation date (latest added first)
+                List<Student> students = studentRepo.findByAdmissionManagerOrderByCreatedAtDesc(manager);
+
+                return students.stream().map(student -> {
+                        String collegeName = (student.getCollege() != null) ? student.getCollege().getCollegeName()
+                                        : "N/A";
+
+                        String actionOnUserStr = (student.getActionOnUser() != null)
+                                        ? student.getActionOnUser().toString()
+                                        : "N/A";
+                        String actionStr = (student.getAction() != null) ? student.getAction().toString() : "N/A";
+
+                        return new com.cc.DTO.ManagerStudentDTO(
+                                        student.getId(),
+                                        student.getApplicationId(),
+                                        student.getFullName(),
+                                        collegeName,
+                                        student.getAppliedFor(), // course
+                                        student.getApplicationStatus(),
+                                        actionOnUserStr,
+                                        actionStr);
+                }).collect(java.util.stream.Collectors.toList());
+        }
 }
