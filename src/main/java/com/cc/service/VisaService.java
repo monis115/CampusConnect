@@ -103,9 +103,9 @@ public class VisaService {
         if (student.getVisaMan() == null || !student.getVisaMan().getUsername().equals(visaManagerUsername)) {
             throw new RuntimeException("Unauthorized: Only assigned Visa Manager can perform this action");
         }
-
-        student.setAction(action.READY_FOR_TRAVEL);
-        student.setActionOnUser(actionOnUser.STUDENT);
+        student.setCanRequestDocReturn(true);
+        student.setAction(action.INITIATE_DOC_RETURN);
+        student.setActionOnUser(actionOnUser.agent);
         student.setApplicationStatus(StudentStatus.VISA_STAMPED);
         addHistory(student, StudentStatus.VISA_STAMPED, "Visa successfully issued! Stamped by " + visaManagerUsername);
         return studentRepository.save(student);
@@ -116,7 +116,7 @@ public class VisaService {
     // Step 1: VisaMan requests payment from Accountant
     @Transactional
     public Student requestPaymentFromAccountant(Long studentId, String visaManUsername, Double amount,
-            String currency) {
+            String currency, Double visaManServiceCharge) {
         Student student = studentRepository.findById(studentId)
                 .orElseThrow(() -> new RuntimeException("Student not found"));
 
@@ -126,11 +126,13 @@ public class VisaService {
 
         student.setVisaPaymentRequestedAmount(amount);
         student.setVisaPaymentRequestedCurrency(currency);
+        student.setVisaManServiceCharge(visaManServiceCharge);
         student.setAction(action.SEND_BANK_DETAILS_TO_AGENT);
         student.setActionOnUser(actionOnUser.accountant);
 
         addHistory(student, student.getApplicationStatus(),
-                "Visa payment requested: " + amount + " " + currency + " by " + visaManUsername);
+                "Visa payment requested: " + amount + " " + currency + " (Service Charge: " + visaManServiceCharge
+                        + ") by " + visaManUsername);
 
         return studentRepository.save(student);
     }

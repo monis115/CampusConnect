@@ -141,6 +141,9 @@ public class Student {
 	@Column(nullable = true)
 	private String updatedBy;
 
+	@Column(nullable = true)
+	private Boolean canRequestDocReturn;
+
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "university_person_id")
 	@JsonBackReference(value = "up-student")
@@ -346,6 +349,9 @@ public class Student {
 	private String visaPassportCopyPath;
 
 	// ======================= VISA PAYMENT FIELDS =======================
+	@Column(name = "visa_man_service_charge")
+	private Double visaManServiceCharge;
+
 	@Column(name = "visa_payment_requested_amount")
 	private Double visaPaymentRequestedAmount;
 
@@ -802,6 +808,14 @@ public class Student {
 
 	public void setTelexNumber(String telexNumber) {
 		this.telexNumber = telexNumber;
+	}
+
+	public Double getVisaManServiceCharge() {
+		return visaManServiceCharge;
+	}
+
+	public void setVisaManServiceCharge(Double visaManServiceCharge) {
+		this.visaManServiceCharge = visaManServiceCharge;
 	}
 
 	public LocalDate getTelexIssueDate() {
@@ -1306,5 +1320,13 @@ public class Student {
 
 	public void setVisaBankBranchAddress(String visaBankBranchAddress) {
 		this.visaBankBranchAddress = visaBankBranchAddress;
+	}
+
+	public Boolean getCanRequestDocReturn() {
+		return canRequestDocReturn;
+	}
+
+	public void setCanRequestDocReturn(Boolean canRequestDocReturn) {
+		this.canRequestDocReturn = canRequestDocReturn;
 	}
 }

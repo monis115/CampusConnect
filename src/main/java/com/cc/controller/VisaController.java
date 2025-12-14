@@ -125,6 +125,11 @@ public class VisaController {
             Double amount = Double.valueOf(request.get("amount").toString());
             String currency = (String) request.get("currency");
 
+            Double visaManServiceCharge = 0.0;
+            if (request.get("visaManServiceCharge") != null) {
+                visaManServiceCharge = Double.valueOf(request.get("visaManServiceCharge").toString());
+            }
+
             if (visaManUsername == null || visaManUsername.isEmpty()) {
                 return ResponseEntity.badRequest().body("visaManUsername is required");
             }
@@ -135,7 +140,8 @@ public class VisaController {
                 return ResponseEntity.badRequest().body("currency is required");
             }
 
-            Student student = visaService.requestPaymentFromAccountant(studentId, visaManUsername, amount, currency);
+            Student student = visaService.requestPaymentFromAccountant(studentId, visaManUsername, amount, currency,
+                    visaManServiceCharge);
             return ResponseEntity.ok(student);
         } catch (Exception e) {
             return ResponseEntity.status(500).body("Error requesting payment: " + e.getMessage());

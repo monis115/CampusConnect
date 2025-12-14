@@ -13,13 +13,23 @@ public class StudentPaymentSummaryDTO {
     private String paidTo;
     private String ttCopyPath;
     private String paymentConfirmationPath;
+    private Double visaPaymentRequestedAmount;
+    private String visaPaymentRequestedCurrency;
+    private Double visaManServiceCharge;
+    private String visaPaymentTxId;
+    private String visaPaymentConfirmationPath;
+    private String action;
+    private String actionOnUser;
 
     public StudentPaymentSummaryDTO() {
     }
 
     public StudentPaymentSummaryDTO(Long studentId, String applicationId, String fullName, String email,
             String contactNo, String applicationStatus, String paymentStatus, Boolean hasPaid,
-            Double paidAmount, String paidTo, String ttCopyPath, String paymentConfirmationPath) {
+            Double paidAmount, String paidTo, String ttCopyPath, String paymentConfirmationPath,
+            Double visaPaymentRequestedAmount, String visaPaymentRequestedCurrency,
+            Double visaManServiceCharge, String visaPaymentTxId, String visaPaymentConfirmationPath,
+            String action, String actionOnUser) {
         this.studentId = studentId;
         this.applicationId = applicationId;
         this.fullName = fullName;
@@ -32,6 +42,13 @@ public class StudentPaymentSummaryDTO {
         this.paidTo = paidTo;
         this.ttCopyPath = ttCopyPath;
         this.paymentConfirmationPath = paymentConfirmationPath;
+        this.visaPaymentRequestedAmount = visaPaymentRequestedAmount;
+        this.visaPaymentRequestedCurrency = visaPaymentRequestedCurrency;
+        this.visaManServiceCharge = visaManServiceCharge;
+        this.visaPaymentTxId = visaPaymentTxId;
+        this.visaPaymentConfirmationPath = visaPaymentConfirmationPath;
+        this.action = action;
+        this.actionOnUser = actionOnUser;
     }
 
     public Long getStudentId() {
@@ -128,5 +145,61 @@ public class StudentPaymentSummaryDTO {
 
     public void setPaymentConfirmationPath(String paymentConfirmationPath) {
         this.paymentConfirmationPath = paymentConfirmationPath;
+    }
+
+    public Double getVisaPaymentRequestedAmount() {
+        return visaPaymentRequestedAmount;
+    }
+
+    public void setVisaPaymentRequestedAmount(Double visaPaymentRequestedAmount) {
+        this.visaPaymentRequestedAmount = visaPaymentRequestedAmount;
+    }
+
+    public String getVisaPaymentRequestedCurrency() {
+        return visaPaymentRequestedCurrency;
+    }
+
+    public void setVisaPaymentRequestedCurrency(String visaPaymentRequestedCurrency) {
+        this.visaPaymentRequestedCurrency = visaPaymentRequestedCurrency;
+    }
+
+    public Double getVisaManServiceCharge() {
+        return visaManServiceCharge;
+    }
+
+    public void setVisaManServiceCharge(Double visaManServiceCharge) {
+        this.visaManServiceCharge = visaManServiceCharge;
+    }
+
+    public String getVisaPaymentTxId() {
+        return visaPaymentTxId;
+    }
+
+    public void setVisaPaymentTxId(String visaPaymentTxId) {
+        this.visaPaymentTxId = visaPaymentTxId;
+    }
+
+    public String getVisaPaymentConfirmationPath() {
+        return visaPaymentConfirmationPath;
+    }
+
+    public void setVisaPaymentConfirmationPath(String visaPaymentConfirmationPath) {
+        this.visaPaymentConfirmationPath = visaPaymentConfirmationPath;
+    }
+
+    public String getAction() {
+        return action;
+    }
+
+    public void setAction(String action) {
+        this.action = action;
+    }
+
+    public String getActionOnUser() {
+        return actionOnUser;
+    }
+
+    public void setActionOnUser(String actionOnUser) {
+        this.actionOnUser = actionOnUser;
     }
 }
