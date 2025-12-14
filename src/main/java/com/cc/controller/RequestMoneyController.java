@@ -1,0 +1,68 @@
+package com.cc.controller;
+
+import com.cc.modals.RequestMoney;
+import com.cc.service.RequestMoneyService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.Map;
+
+@RestController
+@RequestMapping("/api/request-money")
+@CrossOrigin(origins = "*")
+public class RequestMoneyController {
+
+    @Autowired
+    private RequestMoneyService requestMoneyService;
+
+    @PostMapping("/create")
+    public ResponseEntity<RequestMoney> createRequest(@RequestBody RequestMoney requestMoney) {
+        RequestMoney createdRequest = requestMoneyService.createRequest(requestMoney);
+        return ResponseEntity.ok(createdRequest);
+    }
+
+    @GetMapping("/all")
+    public ResponseEntity<List<RequestMoney>> getAllRequests() {
+        return ResponseEntity.ok(requestMoneyService.getAllRequests());
+    }
+
+    @GetMapping("/user/{username}")
+    public ResponseEntity<List<RequestMoney>> getRequestsByUsername(@PathVariable String username) {
+        return ResponseEntity.ok(requestMoneyService.getRequestsByUsername(username));
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<RequestMoney> getRequestById(@PathVariable Long id) {
+        RequestMoney request = requestMoneyService.getRequestById(id);
+        if (request != null) {
+            return ResponseEntity.ok(request);
+        } else {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @PostMapping("/pay/{id}")
+    public ResponseEntity<RequestMoney> addPayment(@PathVariable Long id,
+            @RequestBody Map<String, Object> paymentDetails) {
+        Double amountPaid;
+        Object amountPaidObj = paymentDetails.get("amountPaid");
+        if (amountPaidObj instanceof Integer) {
+            amountPaid = ((Integer) amountPaidObj).doubleValue();
+        } else {
+            amountPaid = (Double) amountPaidObj;
+        }
+
+        String transactionId = (String) paymentDetails.get("transactionId");
+        String accountantPaymentMode = (String) paymentDetails.get("accountantPaymentMode");
+
+        try {
+            RequestMoney updatedRequest = requestMoneyService.addPayment(id, amountPaid, accountantPaymentMode,
+                    transactionId);
+            return ResponseEntity.ok(updatedRequest);
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+}
