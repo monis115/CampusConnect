@@ -60,6 +60,17 @@ public class DocPersonService {
     }
 
     @Autowired
+    private com.cc.repository.DocumentReturnRequestRepository documentReturnRequestRepository;
+
+    public com.cc.modals.DocumentReturnRequest getDocumentReturnRequest(Long studentId) {
+        com.cc.modals.DocumentReturnRequest request = documentReturnRequestRepository.findByStudentId(studentId);
+        if (request == null) {
+            throw new RuntimeException("Document return request not found for student ID: " + studentId);
+        }
+        return request;
+    }
+
+    @Autowired
     private com.cc.repository.StudentRepository studentRepository;
 
     @Autowired
@@ -137,7 +148,7 @@ public class DocPersonService {
             student.setActionOnUser(actionOnUser.admission_manager);
 
             // Enable parallel return workflow
-            student.setReadyForDocReturn(true);
+            student.setReadyForDocReturn(false);
 
             // History for Telex Initiated
             com.cc.modals.StudentStatusHistory history = new com.cc.modals.StudentStatusHistory();
@@ -167,10 +178,42 @@ public class DocPersonService {
     }
 
     @org.springframework.transaction.annotation.Transactional
+    public com.cc.modals.Student confirmCollection(Long studentId, String docPersonUsername) {
+        com.cc.modals.Student student = studentRepository.findById(studentId)
+                .orElseThrow(() -> new RuntimeException("Student not found with ID: " + studentId));
+
+        // Validate state
+        if (student.getAction() != action.COLLECT_DOCS && !Boolean.TRUE.equals(student.getReadyForDocReturn())) {
+            throw new RuntimeException(
+                    "Student is not in 'Collect Docs' state. Current action: " + student.getAction());
+        }
+
+        // Update action to indicate documents are now with Doc Person, ready for return
+        student.setAction(action.INITIATE_DOC_RETURN);
+        student.setActionOnUser(actionOnUser.doc_manager);
+
+        // History
+        com.cc.modals.StudentStatusHistory history = new com.cc.modals.StudentStatusHistory();
+        history.setStudent(student);
+        history.setStudentApplicationStatus(student.getApplicationStatus());
+        history.setUpdatedBy("Collected by " + docPersonUsername);
+        history.setUpdatedAt(java.time.LocalDateTime.now());
+        history.setRemarks("Documents collected from Visa Manager. Ready to return to student.");
+        studentStatusHistoryRepository.save(history);
+
+        return studentRepository.save(student);
+    }
+
+    @org.springframework.transaction.annotation.Transactional
     public com.cc.modals.Student returnDocs(Long studentId, com.cc.modals.DocDeliveryMethod method, String trackingId,
             java.time.LocalDate returnedDate, String docPersonUsername) {
         com.cc.modals.Student student = studentRepository.findById(studentId)
                 .orElseThrow(() -> new RuntimeException("Student not found with ID: " + studentId));
+
+        // Check compatibility
+        if (Boolean.FALSE.equals(student.getReadyForDocReturn())) {
+            throw new RuntimeException("Documents are not ready for return yet (Visa Manager must return them first)");
+        }
 
         student.setDocReturnMethod(method);
         student.setDocReturnTrackingId(trackingId);
@@ -178,8 +221,8 @@ public class DocPersonService {
 
         // Mark return as complete
         student.setReadyForDocReturn(false);
-        // Note: We do NOT change the main action here, as it might be with Admission
-        // Manager or Telex Manager.
+        student.setAction(action.DOCS_RETURNED);
+        student.setActionOnUser(actionOnUser.agent); // Handed back to Agent/Student
 
         // History
         com.cc.modals.StudentStatusHistory history = new com.cc.modals.StudentStatusHistory();

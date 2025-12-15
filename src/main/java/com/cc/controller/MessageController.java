@@ -18,7 +18,6 @@ import com.cc.service.MessageService;
 
 @RestController
 @RequestMapping("/api/messages")
-@CrossOrigin("*")
 
 public class MessageController {
 

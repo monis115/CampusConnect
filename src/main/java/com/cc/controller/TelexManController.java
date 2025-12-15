@@ -12,7 +12,6 @@ import com.cc.service.TelexManService;
 
 @RestController
 @RequestMapping("/api/telex-man")
-@CrossOrigin("*")
 public class TelexManController {
 
     @Autowired

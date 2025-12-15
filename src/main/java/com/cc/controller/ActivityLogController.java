@@ -11,7 +11,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/activity-logs")
-@CrossOrigin(origins = "*")
 public class ActivityLogController {
 
     @Autowired

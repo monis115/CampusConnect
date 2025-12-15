@@ -11,7 +11,6 @@ import com.cc.service.UniversityPersonService;
 
 @RestController
 @RequestMapping("/api/universityPerson")
-@CrossOrigin("*")
 
 public class UniversityPersonController {
 

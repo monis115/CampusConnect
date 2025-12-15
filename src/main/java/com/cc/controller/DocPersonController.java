@@ -12,7 +12,6 @@ import com.cc.service.DocPersonService;
 
 @RestController
 @RequestMapping("/api/doc-person")
-@CrossOrigin("*")
 public class DocPersonController {
 
     @Autowired
@@ -136,6 +135,30 @@ public class DocPersonController {
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(500).body("Error verifying telex docs: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/return-requests/{studentId}")
+    public ResponseEntity<?> getDocumentReturnRequest(@PathVariable Long studentId) {
+        try {
+            return ResponseEntity.ok(service.getDocumentReturnRequest(studentId));
+        } catch (Exception e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @PostMapping("/confirm-collection/{studentId}")
+    public ResponseEntity<?> confirmCollection(
+            @PathVariable Long studentId,
+            @RequestBody java.util.Map<String, String> request) {
+        try {
+            String docPersonUsername = request.get("docPersonUsername");
+            if (docPersonUsername == null || docPersonUsername.isEmpty()) {
+                return ResponseEntity.badRequest().body("docPersonUsername is required");
+            }
+            return ResponseEntity.ok(service.confirmCollection(studentId, docPersonUsername));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Error confirming collection: " + e.getMessage());
         }
     }
 

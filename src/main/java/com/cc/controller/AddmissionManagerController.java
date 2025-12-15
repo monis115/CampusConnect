@@ -16,7 +16,6 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/managers")
-@CrossOrigin("*")
 public class AddmissionManagerController {
 
     @Autowired

@@ -22,6 +22,9 @@ import com.cc.modals.DocPerson;
 import com.cc.modals.Location;
 import com.cc.modals.action;
 import com.cc.modals.actionOnUser;
+import com.cc.modals.DocumentReturnRequest;
+import com.cc.repository.DocumentReturnRequestRepository;
+import com.cc.DTO.DocumentReturnRequestDTO;
 import com.cc.repository.AgentRepository;
 import com.cc.repository.CollegeRepository;
 import com.cc.repository.LocationRepository;
@@ -42,6 +45,9 @@ public class AgentService {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private DocumentReturnRequestRepository documentReturnRequestRepository;
 
     // ======================= ADMIN REGISTRATION (APPROVED) =======================
     @Transactional
@@ -648,7 +654,107 @@ public class AgentService {
         return savedStudent;
     }
 
-    // ======================= DASHBOARD METHODS =======================
+    @Transactional
+    public DocumentReturnRequest requestDocsToDocPerson(Long studentId, String agentUsername,
+            DocumentReturnRequestDTO details, String ticketPdfPath) {
+        // Find Student
+        com.cc.modals.Student student = studentRepository.findById(studentId)
+                .orElseThrow(() -> new RuntimeException("Student not found with ID: " + studentId));
+
+        // Validate Agent
+        if (student.getAgent() == null || !student.getAgent().getUserId().equals(agentUsername)) {
+            throw new RuntimeException("Unauthorized: Student is not assigned to this agent");
+        }
+
+        // Validate Status - Must be VISA_STAMPED
+        if (student.getApplicationStatus() != com.cc.modals.StudentStatus.VISA_STAMPED) {
+            throw new RuntimeException("Document return request can only be made when Visa is Stamped");
+        }
+
+        // Check if request already exists
+        DocumentReturnRequest existingRequest = documentReturnRequestRepository.findByStudentId(studentId);
+        if (existingRequest != null) {
+            // Option: Update existing or throw error. Here we update.
+            updateExistingRequest(existingRequest, details, ticketPdfPath);
+            return documentReturnRequestRepository.save(existingRequest);
+        }
+
+        DocumentReturnRequest request = new DocumentReturnRequest();
+        request.setStudent(student);
+        request.setAgent(student.getAgent());
+
+        // Map DTO to Entity
+        request.setContactPersonName(details.getContactPersonName());
+        request.setContactPhone(details.getContactPhone());
+        request.setAlternativePhone(details.getAlternativePhone());
+        request.setAddressWithZip(details.getAddressWithZip());
+        request.setNeedBeforeDate(details.getNeedBeforeDate());
+
+        request.setTravelDate(details.getTravelDate());
+        request.setFromCountry(details.getFromCountry());
+        request.setFromAirport(details.getFromAirport());
+        request.setToCountry(details.getToCountry());
+        request.setToAirport(details.getToAirport());
+        request.setPnrNumber(details.getPnrNumber());
+
+        if (ticketPdfPath != null) {
+            request.setTicketPdfPath(ticketPdfPath);
+        }
+
+        // Initially false, will be true when Visa Manager returns docs
+        request.setIsReturned(false);
+
+        student.setCanRequestDocReturn(false);
+
+        // Update Student Action
+        student.setAction(action.NEED_TO_RETURN_VISA); // Or stay same?
+        // User said: "agent will fill this form" ... "VISA MANAGER will return".
+        // Current status is VISA_STAMPED.
+
+        // History
+        com.cc.modals.StudentStatusHistory history = new com.cc.modals.StudentStatusHistory();
+        history.setStudent(student);
+        history.setStudentApplicationStatus(student.getApplicationStatus());
+        history.setUpdatedBy(agentUsername);
+        history.setUpdatedAt(java.time.LocalDateTime.now());
+        history.setRemarks(
+                "Document return requested. Contact: " + details.getContactPersonName() + " by " + agentUsername);
+        studentStatusHistoryRepository.save(history);
+
+        return documentReturnRequestRepository.save(request);
+    }
+
+    private void updateExistingRequest(DocumentReturnRequest request, DocumentReturnRequestDTO details,
+            String ticketPdfPath) {
+        if (details.getContactPersonName() != null)
+            request.setContactPersonName(details.getContactPersonName());
+        if (details.getContactPhone() != null)
+            request.setContactPhone(details.getContactPhone());
+        if (details.getAlternativePhone() != null)
+            request.setAlternativePhone(details.getAlternativePhone());
+        if (details.getAddressWithZip() != null)
+            request.setAddressWithZip(details.getAddressWithZip());
+        if (details.getNeedBeforeDate() != null)
+            request.setNeedBeforeDate(details.getNeedBeforeDate());
+
+        if (details.getTravelDate() != null)
+            request.setTravelDate(details.getTravelDate());
+        if (details.getFromCountry() != null)
+            request.setFromCountry(details.getFromCountry());
+        if (details.getFromAirport() != null)
+            request.setFromAirport(details.getFromAirport());
+        if (details.getToCountry() != null)
+            request.setToCountry(details.getToCountry());
+        if (details.getToAirport() != null)
+            request.setToAirport(details.getToAirport());
+        if (details.getPnrNumber() != null)
+            request.setPnrNumber(details.getPnrNumber());
+
+        if (ticketPdfPath != null) {
+            request.setTicketPdfPath(ticketPdfPath);
+        }
+    }
+
     public com.cc.DTO.AgentDashboardStatsDTO getAgentDashboardStats(String username) {
         Agent agent = agentRepository.findByUserId(username)
                 .orElseThrow(() -> new RuntimeException("Agent not found with username: " + username));

@@ -21,7 +21,6 @@ import com.cc.service.AgentService;
 
 @RestController
 @RequestMapping("/api/agents")
-@CrossOrigin("*")
 public class AgentController {
 
     @Autowired
@@ -221,6 +220,44 @@ public class AgentController {
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.badRequest().body("Error applying for telex: " + e.getMessage());
+        }
+    }
+
+    @PostMapping("/request-docs/{studentId}")
+    public ResponseEntity<?> requestDocsToDocPerson(
+            @PathVariable Long studentId,
+            @org.springframework.web.bind.annotation.RequestParam("agentUsername") String agentUsername,
+            @org.springframework.web.bind.annotation.RequestParam("requestDetails") String requestDetailsJson,
+            @org.springframework.web.bind.annotation.RequestPart(value = "ticketPdf", required = false) org.springframework.web.multipart.MultipartFile ticketPdf) {
+        try {
+            // Parse JSON string to DTO
+            com.fasterxml.jackson.databind.ObjectMapper objectMapper = new com.fasterxml.jackson.databind.ObjectMapper();
+            objectMapper.registerModule(new com.fasterxml.jackson.datatype.jsr310.JavaTimeModule());
+            com.cc.DTO.DocumentReturnRequestDTO details = objectMapper.readValue(requestDetailsJson,
+                    com.cc.DTO.DocumentReturnRequestDTO.class);
+
+            // File Upload
+            String ticketPdfPath = null;
+            if (ticketPdf != null && !ticketPdf.isEmpty()) {
+                String fileName = System.currentTimeMillis() + "_" + ticketPdf.getOriginalFilename();
+                java.nio.file.Path path = java.nio.file.Paths.get("uploads/tickets/" + fileName);
+                java.nio.file.Files.createDirectories(path.getParent());
+                java.nio.file.Files.write(path, ticketPdf.getBytes());
+                ticketPdfPath = path.toString();
+            }
+
+            com.cc.modals.DocumentReturnRequest savedRequest = agentService.requestDocsToDocPerson(studentId,
+                    agentUsername, details, ticketPdfPath);
+
+            java.util.Map<String, Object> response = new java.util.HashMap<>();
+            response.put("message", "Document return request created successfully");
+            response.put("requestId", savedRequest.getId());
+            response.put("studentId", savedRequest.getStudent().getId());
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().body("Error requesting docs: " + e.getMessage());
         }
     }
 

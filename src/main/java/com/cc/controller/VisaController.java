@@ -16,7 +16,6 @@ import com.cc.service.VisaService;
 
 @RestController
 @RequestMapping("/api/visa")
-@CrossOrigin("*")
 public class VisaController {
 
     @Autowired
@@ -110,6 +109,35 @@ public class VisaController {
             return ResponseEntity.ok(student);
         } catch (Exception e) {
             return ResponseEntity.status(500).body("Error applying for Visa: " + e.getMessage());
+        }
+    }
+
+    // Step 5 (New): Collect Passport
+    @PostMapping("/collect-passport/{studentId}")
+    public ResponseEntity<?> collectPassport(
+            @PathVariable Long studentId,
+            @RequestBody Map<String, String> request) {
+        try {
+            String managerUsername = request.get("managerUsername");
+            if (managerUsername == null || managerUsername.isEmpty()) {
+                return ResponseEntity.badRequest().body("managerUsername is required");
+            }
+            Student student = visaService.collectPassport(studentId, managerUsername);
+            return ResponseEntity.ok(student);
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Error collecting passport: " + e.getMessage());
+        }
+    }
+
+    // 6. Return Docs
+    @PostMapping("/return-docs/{studentId}")
+    public ResponseEntity<?> returnDocsToDocPerson(
+            @PathVariable Long studentId,
+            @org.springframework.web.bind.annotation.RequestParam("username") String username) {
+        try {
+            return ResponseEntity.ok(visaService.returnDocsToDocPerson(studentId, username));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Error returning docs: " + e.getMessage());
         }
     }
 

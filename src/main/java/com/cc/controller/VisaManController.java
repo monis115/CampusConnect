@@ -12,7 +12,6 @@ import com.cc.service.VisaManService;
 
 @RestController
 @RequestMapping("/api/visa-man")
-@CrossOrigin("*")
 public class VisaManController {
 
     @Autowired

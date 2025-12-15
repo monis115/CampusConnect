@@ -22,7 +22,6 @@ import com.cc.service.AgentService;
 
 @RestController
 @RequestMapping("/api/admins")
-@CrossOrigin("*")
 
 public class AdminController {
 	

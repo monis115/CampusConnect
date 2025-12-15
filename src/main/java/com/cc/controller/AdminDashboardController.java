@@ -16,7 +16,6 @@ import com.cc.service.AdminDashboardService;
  */
 @RestController
 @RequestMapping("/api/admin/dashboard")
-@CrossOrigin("*")
 public class AdminDashboardController {
 
     @Autowired

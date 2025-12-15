@@ -38,6 +38,7 @@ public enum StudentStatus {
     VISA_STAMPED,
     PASSPORT_SUBMITTED_TO_EMBASSY,
     VISA_PAYMENT_CONFIRMED,
+    PASSPORT_COLLECTED,
 
     // Legacy/Other
     COMPLETED,

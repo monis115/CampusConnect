@@ -14,7 +14,6 @@ import java.net.MalformedURLException;
 
 @RestController
 @RequestMapping("/api/config/qrcode")
-@CrossOrigin("*")
 public class QrCodeController {
 
     @Autowired

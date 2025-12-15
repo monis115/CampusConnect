@@ -12,7 +12,6 @@ import com.cc.service.AccountantService;
 
 @RestController
 @RequestMapping("/api/accountant")
-@CrossOrigin("*")
 public class AccountantController {
 
     @Autowired

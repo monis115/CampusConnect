@@ -12,6 +12,8 @@ import com.cc.modals.StudentStatusHistory;
 import com.cc.modals.VisaMan;
 import com.cc.modals.action;
 import com.cc.modals.actionOnUser;
+import com.cc.modals.DocumentReturnRequest;
+import com.cc.repository.DocumentReturnRequestRepository;
 import com.cc.repository.StudentRepository;
 
 @Service
@@ -23,6 +25,9 @@ public class VisaService {
 
     @Autowired
     private VisaManService visaManService;
+
+    @Autowired
+    private DocumentReturnRequestRepository documentReturnRequestRepository;
 
     // 1. Assign Visa Manager (called by Admission Manager)
     @Transactional
@@ -104,10 +109,52 @@ public class VisaService {
             throw new RuntimeException("Unauthorized: Only assigned Visa Manager can perform this action");
         }
         student.setCanRequestDocReturn(true);
-        student.setAction(action.INITIATE_DOC_RETURN);
-        student.setActionOnUser(actionOnUser.agent);
+        // student.setReadyForDocReturn(true); // REMOVED: Now handled by separate
+        // action
+        student.setAction(action.NEED_TO_RETURN_VISA);
+
+        student.setActionOnUser(actionOnUser.visa_manager);
         student.setApplicationStatus(StudentStatus.VISA_STAMPED);
         addHistory(student, StudentStatus.VISA_STAMPED, "Visa successfully issued! Stamped by " + visaManagerUsername);
+        return studentRepository.save(student);
+    }
+
+    // 6. Return Docs (Passports etc) to Doc Person
+    @Transactional
+    public Student returnDocsToDocPerson(Long studentId, String visaManagerUsername) {
+        Student student = studentRepository.findById(studentId)
+                .orElseThrow(() -> new RuntimeException("Student not found"));
+
+        if (student.getVisaMan() == null || !student.getVisaMan().getUsername().equals(visaManagerUsername)) {
+            throw new RuntimeException("Unauthorized: Only assigned Visa Manager can perform this action");
+        }
+
+        // Validate Status
+        if (student.getApplicationStatus() != StudentStatus.VISA_STAMPED) {
+            // throw new RuntimeException("Cannot return docs unless Visa is Stamped");
+            // flexible check? logic implies we are at this stage.
+        }
+
+        student.setReadyForDocReturn(true);
+        student.setAction(action.COLLECT_DOCS); // Next step for Agent to collect?
+        student.setActionOnUser(actionOnUser.doc_manager); // Or doc_person? The prompt says "agent can Request for
+                                                           // Docs" ...
+        // "doc person will cant collect... untill visa manager return".
+        // Assuming Agent/Student collects it or DocPerson facilitates. Setting to
+        // agent/doc_person as appropriate.
+        // Prompt: "doc person will cant collect... untill..." implies DocPerson is the
+        // one collecting from VisaMan.
+        student.setActionOnUser(actionOnUser.doc_manager);
+
+        // Mark Request as Returned if exists
+        DocumentReturnRequest request = documentReturnRequestRepository.findByStudentId(studentId);
+        if (request != null) {
+            request.setIsReturned(true);
+            documentReturnRequestRepository.save(request);
+        }
+
+        addHistory(student, student.getApplicationStatus(),
+                "Documents returned/ready for collection. Confirm by " + visaManagerUsername);
         return studentRepository.save(student);
     }
 
@@ -201,13 +248,33 @@ public class VisaService {
 
         student.setVisaPaymentReceivedAmount(receivedAmount);
         student.setVisaPaymentReceivedDate(receivedDate);
-        student.setAction(action.NEED_APPLY_VISA);
+        student.setAction(action.COLLECT_PASSPORT_FRM_DOC_PERSON);
         student.setActionOnUser(actionOnUser.visa_manager);
         student.setApplicationStatus(StudentStatus.VISA_PAYMENT_CONFIRMED);
 
         addHistory(student, StudentStatus.VISA_PAYMENT_CONFIRMED,
                 "Visa payment confirmed: " + receivedAmount + " received on " + receivedDate + " by "
                         + accountantUsername);
+
+        return studentRepository.save(student);
+    }
+
+    // Step 5 (New): Visa Manager collects passport from Doc Person
+    @Transactional
+    public Student collectPassport(Long studentId, String visaManUsername) {
+        Student student = studentRepository.findById(studentId)
+                .orElseThrow(() -> new RuntimeException("Student not found"));
+
+        if (student.getVisaMan() == null || !student.getVisaMan().getUsername().equals(visaManUsername)) {
+            throw new RuntimeException("Unauthorized: Only assigned Visa Manager can perform this action");
+        }
+
+        student.setAction(action.NEED_APPLY_VISA);
+        student.setActionOnUser(actionOnUser.visa_manager);
+        student.setApplicationStatus(StudentStatus.PASSPORT_COLLECTED);
+
+        addHistory(student, StudentStatus.PASSPORT_COLLECTED,
+                "Passport collected from Doc Person by " + visaManUsername);
 
         return studentRepository.save(student);
     }
