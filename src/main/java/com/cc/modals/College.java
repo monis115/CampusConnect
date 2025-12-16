@@ -24,13 +24,13 @@ public class College {
     // This says: "Show the Manager, but don't show the Manager's 'colleges' list"
     @ManyToOne
     @JoinColumn(name = "admission_manager_id")
-    @JsonIgnoreProperties("colleges")
+    @JsonIgnoreProperties({ "colleges", "students" })
     private AddmissionManager admissionManager;
 
     // FIX 2: Add UniversityPerson back (it was missing in your file)
     // This says: "Show the Person, but don't show the Person's 'college' field"
     @OneToOne(mappedBy = "college", fetch = FetchType.LAZY)
-    @JsonIgnoreProperties("college")
+    @JsonIgnoreProperties({ "college", "students" })
     private UniversityPerson universityPerson;
 
     public College() {
@@ -43,21 +43,51 @@ public class College {
     }
 
     // Getters & Setters
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
+    public Long getId() {
+        return id;
+    }
 
-    public String getCollegeName() { return collegeName; }
-    public void setCollegeName(String collegeName) { this.collegeName = collegeName; }
+    public void setId(Long id) {
+        this.id = id;
+    }
 
-    public String getCity() { return city; }
-    public void setCity(String city) { this.city = city; }
+    public String getCollegeName() {
+        return collegeName;
+    }
 
-    public String getCountry() { return country; }
-    public void setCountry(String country) { this.country = country; }
+    public void setCollegeName(String collegeName) {
+        this.collegeName = collegeName;
+    }
 
-    public AddmissionManager getAdmissionManager() { return admissionManager; }
-    public void setAdmissionManager(AddmissionManager admissionManager) { this.admissionManager = admissionManager; }
+    public String getCity() {
+        return city;
+    }
 
-    public UniversityPerson getUniversityPerson() { return universityPerson; }
-    public void setUniversityPerson(UniversityPerson universityPerson) { this.universityPerson = universityPerson; }
+    public void setCity(String city) {
+        this.city = city;
+    }
+
+    public String getCountry() {
+        return country;
+    }
+
+    public void setCountry(String country) {
+        this.country = country;
+    }
+
+    public AddmissionManager getAdmissionManager() {
+        return admissionManager;
+    }
+
+    public void setAdmissionManager(AddmissionManager admissionManager) {
+        this.admissionManager = admissionManager;
+    }
+
+    public UniversityPerson getUniversityPerson() {
+        return universityPerson;
+    }
+
+    public void setUniversityPerson(UniversityPerson universityPerson) {
+        this.universityPerson = universityPerson;
+    }
 }

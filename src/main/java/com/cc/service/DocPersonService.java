@@ -190,6 +190,7 @@ public class DocPersonService {
 
         // Update action to indicate documents are now with Doc Person, ready for return
         student.setAction(action.INITIATE_DOC_RETURN);
+        student.setReadyForDocReturn(false);
         student.setActionOnUser(actionOnUser.doc_manager);
 
         // History
@@ -209,11 +210,6 @@ public class DocPersonService {
             java.time.LocalDate returnedDate, String docPersonUsername) {
         com.cc.modals.Student student = studentRepository.findById(studentId)
                 .orElseThrow(() -> new RuntimeException("Student not found with ID: " + studentId));
-
-        // Check compatibility
-        if (Boolean.FALSE.equals(student.getReadyForDocReturn())) {
-            throw new RuntimeException("Documents are not ready for return yet (Visa Manager must return them first)");
-        }
 
         student.setDocReturnMethod(method);
         student.setDocReturnTrackingId(trackingId);

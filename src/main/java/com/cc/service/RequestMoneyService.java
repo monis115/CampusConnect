@@ -15,7 +15,47 @@ public class RequestMoneyService {
     @Autowired
     private RequestMoneyRepository requestMoneyRepository;
 
+    @Autowired
+    private com.cc.repository.VisaManRepository visaManRepository;
+    @Autowired
+    private com.cc.repository.DocPersonRepository docPersonRepository;
+    @Autowired
+    private com.cc.repository.AccountantRepository accountantRepository;
+    @Autowired
+    private com.cc.repository.AgentRepository agentRepository;
+
     public RequestMoney createRequest(RequestMoney requestMoney) {
+        // Auto-populate requesterFullName if missing
+        if (requestMoney.getRequesterFullName() == null || requestMoney.getRequesterFullName().isEmpty()) {
+            String role = requestMoney.getRequesterRole();
+            String username = requestMoney.getRequesterUsername();
+            String fullName = null;
+
+            if (role != null && username != null) {
+                if ("VisaManager".equalsIgnoreCase(role) || "visa_manager".equalsIgnoreCase(role)) {
+                    fullName = visaManRepository.findByUsername(username)
+                            .map(com.cc.modals.VisaMan::getFullName).orElse(null);
+                } else if ("DocManager".equalsIgnoreCase(role) || "DocPerson".equalsIgnoreCase(role)
+                        || "doc_manager".equalsIgnoreCase(role)) {
+                    fullName = docPersonRepository.findByUsername(username)
+                            .map(com.cc.modals.DocPerson::getFullName).orElse(null);
+                } else if ("Accountant".equalsIgnoreCase(role)) {
+                    fullName = accountantRepository.findByUsername(username)
+                            .map(com.cc.modals.Accountant::getFullName).orElse(null);
+                } else if ("Agent".equalsIgnoreCase(role)) {
+                    // Agent uses userId as username
+                    fullName = agentRepository.findByUserId(username)
+                            .map(com.cc.modals.Agent::getFullName).orElse(null);
+                }
+            }
+            if (fullName != null) {
+                requestMoney.setRequesterFullName(fullName);
+            } else {
+                // If still null, set a fallback or allow it to fail if DB constraint exists
+                // requestMoney.setRequesterFullName("Unknown");
+            }
+        }
+
         requestMoney.setStatus("PENDING");
         requestMoney.setCreatedAt(LocalDateTime.now());
         requestMoney.setUpdatedAt(LocalDateTime.now());

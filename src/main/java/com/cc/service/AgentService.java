@@ -704,7 +704,9 @@ public class AgentService {
         // Initially false, will be true when Visa Manager returns docs
         request.setIsReturned(false);
 
-        student.setCanRequestDocReturn(false);
+        student.setCanRequestDocReturn(false);// again cant raise return request
+        student.setHasRaiseReturnRequest(true); // doc person can now send
+        studentRepository.save(student);
 
         // Update Student Action
         student.setAction(action.NEED_TO_RETURN_VISA); // Or stay same?

@@ -79,6 +79,7 @@ public class Student {
 	// preferences: a student can prefer multiple colleges
 	@ManyToMany(fetch = FetchType.LAZY)
 	@JoinTable(name = "student_college_preference", joinColumns = @JoinColumn(name = "student_id"), inverseJoinColumns = @JoinColumn(name = "college_id"))
+	@JsonIgnoreProperties({ "admissionManager", "universityPerson" })
 	private Set<College> collegePreferences = new HashSet<>();
 
 	@Column(nullable = false)
@@ -143,6 +144,9 @@ public class Student {
 
 	@Column(nullable = true)
 	private Boolean canRequestDocReturn;
+
+	@Column(nullable = true)
+	private Boolean hasRaiseReturnRequest = false;
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "university_person_id")
@@ -1328,5 +1332,13 @@ public class Student {
 
 	public void setCanRequestDocReturn(Boolean canRequestDocReturn) {
 		this.canRequestDocReturn = canRequestDocReturn;
+	}
+
+	public Boolean getHasRaiseReturnRequest() {
+		return hasRaiseReturnRequest;
+	}
+
+	public void setHasRaiseReturnRequest(Boolean hasRaiseReturnRequest) {
+		this.hasRaiseReturnRequest = hasRaiseReturnRequest;
 	}
 }
