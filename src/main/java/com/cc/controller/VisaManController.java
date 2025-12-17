@@ -8,6 +8,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import com.cc.modals.VisaMan;
+import com.cc.modals.StudentStatusHistory;
+import com.cc.DTO.VisaManDTO;
+import com.cc.DTO.VisaManSummaryDTO;
+import com.cc.DTO.VisaManStudentDTO;
 import com.cc.service.VisaManService;
 
 @RestController
@@ -129,6 +133,134 @@ public class VisaManController {
             return ResponseEntity.ok(service.stampVisa(studentId, visaManUsername));
         } catch (Exception e) {
             return ResponseEntity.status(500).body("Error stamping visa: " + e.getMessage());
+        }
+    }
+
+    // ======================= MANAGEMENT CARD ENDPOINTS =======================
+
+    /**
+     * Get all VisaMan details WITHOUT students (for management card)
+     */
+    @GetMapping("/all-details")
+    public ResponseEntity<List<VisaManDTO>> getAllWithoutStudents() {
+        List<VisaManDTO> result = service.getAll().stream()
+                .map(v -> new VisaManDTO(
+                        v.getId(),
+                        v.getUsername(),
+                        v.getFullName(),
+                        v.getEmail(),
+                        v.getContactNumber(),
+                        v.getStatus(),
+                        v.getRole(),
+                        v.getStudents() != null ? v.getStudents().size() : 0))
+                .collect(java.util.stream.Collectors.toList());
+        return ResponseEntity.ok(result);
+    }
+
+    /**
+     * Partial update for VisaMan (username, fullName, status, email, contactNumber)
+     */
+    @PatchMapping("/{id}")
+    public ResponseEntity<?> partialUpdate(
+            @PathVariable Long id,
+            @RequestBody java.util.Map<String, Object> updates) {
+        try {
+            Optional<VisaMan> optionalEntity = service.getById(id);
+            if (optionalEntity.isEmpty()) {
+                return ResponseEntity.notFound().build();
+            }
+
+            VisaMan entity = optionalEntity.get();
+
+            if (updates.containsKey("username")) {
+                entity.setUsername((String) updates.get("username"));
+            }
+            if (updates.containsKey("fullName")) {
+                entity.setFullName((String) updates.get("fullName"));
+            }
+            if (updates.containsKey("status")) {
+                entity.setStatus((String) updates.get("status"));
+            }
+            if (updates.containsKey("email")) {
+                entity.setEmail((String) updates.get("email"));
+            }
+            if (updates.containsKey("contactNumber")) {
+                entity.setContactNumber((String) updates.get("contactNumber"));
+            }
+
+            return ResponseEntity.ok(service.update(id, entity));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Error updating VisaMan: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Get basic details of all VisaMan (username, fullName, studentCount)
+     * No student data is included - just the count
+     */
+    @GetMapping("/list-with-count")
+    public ResponseEntity<List<VisaManSummaryDTO>> getListWithCount() {
+        List<VisaManSummaryDTO> result = service.getAll().stream()
+                .map(v -> new VisaManSummaryDTO(
+                        v.getId(),
+                        v.getUsername(),
+                        v.getFullName(),
+                        v.getStudents() != null ? v.getStudents().size() : 0))
+                .collect(java.util.stream.Collectors.toList());
+        return ResponseEntity.ok(result);
+    }
+
+    /**
+     * Get students for a specific VisaMan with limited fields
+     * Returns: applicationId, fullName, collegeName, agentName, course,
+     * applicationStatus, lastHistory
+     */
+    @GetMapping("/{id}/students")
+    public ResponseEntity<?> getStudentsByVisaManId(@PathVariable Long id) {
+        try {
+            Optional<VisaMan> optionalVisaMan = service.getById(id);
+            if (optionalVisaMan.isEmpty()) {
+                return ResponseEntity.notFound().build();
+            }
+
+            VisaMan visaMan = optionalVisaMan.get();
+            List<VisaManStudentDTO> students = visaMan.getStudents().stream()
+                    .map(student -> {
+                        // Get last history entry
+                        VisaManStudentDTO.LastHistoryDTO lastHistoryDTO = null;
+                        java.util.List<StudentStatusHistory> historyList = student.getStudentStatusHistory();
+                        if (historyList != null && !historyList.isEmpty()) {
+                            // Sort by updatedAt descending and get the first one
+                            StudentStatusHistory lastHistory = historyList.stream()
+                                    .sorted((h1, h2) -> h2.getUpdatedAt().compareTo(h1.getUpdatedAt()))
+                                    .findFirst()
+                                    .orElse(null);
+                            if (lastHistory != null) {
+                                lastHistoryDTO = new VisaManStudentDTO.LastHistoryDTO(
+                                        lastHistory.getStudentApplicationStatus() != null
+                                                ? lastHistory.getStudentApplicationStatus().name()
+                                                : null,
+                                        lastHistory.getUpdatedBy(),
+                                        lastHistory.getUpdatedAt(),
+                                        lastHistory.getRemarks());
+                            }
+                        }
+
+                        return new VisaManStudentDTO(
+                                student.getId(),
+                                student.getApplicationId(),
+                                student.getFullName(),
+                                student.getCollege() != null ? student.getCollege().getCollegeName() : null,
+                                student.getAgent() != null ? student.getAgent().getFullName() : null,
+                                student.getAppliedFor(),
+                                student.getApplicationStatus() != null ? student.getApplicationStatus().name() : null,
+                                lastHistoryDTO);
+                    })
+                    .collect(java.util.stream.Collectors.toList());
+
+            return ResponseEntity.ok(students);
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Error getting students: " + e.getMessage());
         }
     }
 }

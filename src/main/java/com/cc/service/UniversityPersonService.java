@@ -50,6 +50,17 @@ public class UniversityPersonService {
             throw new RuntimeException("Username already taken");
         }
 
+        // Check if this college is already assigned to an ACTIVE UniversityPerson
+        java.util.Optional<UniversityPerson> existingAssignment = upRepository.findByCollegeId(request.getCollegeId());
+        if (existingAssignment.isPresent()) {
+            UniversityPerson assignedPerson = existingAssignment.get();
+            if ("Active".equalsIgnoreCase(assignedPerson.getStatus())) {
+                throw new RuntimeException("This college is already assigned to an active UniversityPerson: "
+                        + assignedPerson.getUserName()
+                        + ". Please deactivate them first or choose a different college.");
+            }
+        }
+
         // Fetch College
         College college = collegeRepository.findById(request.getCollegeId())
                 .orElseThrow(() -> new RuntimeException("College not found"));
@@ -86,6 +97,20 @@ public class UniversityPersonService {
         existing.setRole(request.getRole());
 
         if (request.getCollegeId() != null) {
+            // Check if this college is already assigned to another ACTIVE UniversityPerson
+            java.util.Optional<UniversityPerson> existingAssignment = upRepository
+                    .findByCollegeId(request.getCollegeId());
+
+            if (existingAssignment.isPresent()) {
+                UniversityPerson assignedPerson = existingAssignment.get();
+                // Only block if it's a DIFFERENT person AND that person is ACTIVE
+                if (!assignedPerson.getId().equals(id) && "Active".equalsIgnoreCase(assignedPerson.getStatus())) {
+                    throw new RuntimeException("This college is already assigned to an active UniversityPerson: "
+                            + assignedPerson.getUserName()
+                            + ". Please deactivate them first or choose a different college.");
+                }
+            }
+
             College college = collegeRepository.findById(request.getCollegeId())
                     .orElseThrow(() -> new RuntimeException("College not found"));
             existing.setCollege(college);

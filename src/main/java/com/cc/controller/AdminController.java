@@ -113,7 +113,8 @@ public class AdminController {
                 "<body style='font-family: Arial, sans-serif; color: #333;'>" +
                 "<div style='max-width: 600px; margin: 0 auto; border: 1px solid #ddd; padding: 20px; border-radius: 8px; background-color: #f9f9f9;'>"
                 +
-                "<h2 style='color: #4CAF50; text-align: center;'>Welcome to CampusConnect</h2>" +
+                "<h2 style='color: #e4cb0cff; text-align: center;'>RARE EDUCATION Welcomes You</h2>" +
+                "<h3 style='color: #0a640dff; text-align: center;'>CampusConnect</h3>" +
                 "<p style='font-size: 16px; text-align: center;'>A new Administrator account has been successfully created.</p>"
                 +
                 "<div style='background-color: #fff; padding: 20px; border-radius: 8px; margin-top: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);'>"
