@@ -38,7 +38,43 @@ public class TelexManService {
     }
 
     public java.util.Optional<TelexMan> getOne() {
-        return repository.findAll().stream().findFirst();
+        return repository.findAll().stream()
+                .filter(t -> "Active".equalsIgnoreCase(t.getStatus()))
+                .findFirst();
+    }
+
+    public java.util.Map<String, Object> checkAvailability() {
+        List<TelexMan> allTelexMen = repository.findAll();
+
+        if (allTelexMen.isEmpty()) {
+            return java.util.Map.of(
+                    "canCreate", true,
+                    "message", "No Telex Man exists. You can create one.",
+                    "existingTelexMen", java.util.Collections.emptyList());
+        }
+
+        boolean hasActiveTelexMan = allTelexMen.stream()
+                .anyMatch(t -> "Active".equalsIgnoreCase(t.getStatus()));
+
+        List<java.util.Map<String, Object>> existingList = allTelexMen.stream()
+                .map(t -> java.util.Map.<String, Object>of(
+                        "id", t.getId(),
+                        "username", t.getUsername(),
+                        "fullName", t.getFullName(),
+                        "status", t.getStatus()))
+                .collect(java.util.stream.Collectors.toList());
+
+        if (hasActiveTelexMan) {
+            return java.util.Map.of(
+                    "canCreate", false,
+                    "message", "An active Telex Man already exists.",
+                    "existingTelexMen", existingList);
+        } else {
+            return java.util.Map.of(
+                    "canCreate", true,
+                    "message", "All existing Telex Men are inactive. You can create a new one.",
+                    "existingTelexMen", existingList);
+        }
     }
 
     public Optional<TelexMan> getByUsername(String username) {

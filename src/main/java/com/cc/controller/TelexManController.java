@@ -29,6 +29,29 @@ public class TelexManController {
         return ResponseEntity.ok(service.getAll());
     }
 
+    // Get all TelexMan with username and status only
+    @GetMapping("/summary")
+    public ResponseEntity<List<java.util.Map<String, String>>> getSummary() {
+        List<java.util.Map<String, String>> summary = service.getAll().stream()
+                .map(t -> java.util.Map.of(
+                        "username", t.getUsername(),
+                        "status", t.getStatus()))
+                .collect(java.util.stream.Collectors.toList());
+        return ResponseEntity.ok(summary);
+    }
+
+    // Get all active TelexMan with username and student count
+    @GetMapping("/usernames")
+    public ResponseEntity<List<java.util.Map<String, Object>>> getAllUsernames() {
+        List<java.util.Map<String, Object>> result = service.getAll().stream()
+                .filter(t -> "Active".equalsIgnoreCase(t.getStatus()))
+                .map(t -> java.util.Map.<String, Object>of(
+                        "username", t.getUsername(),
+                        "studentCount", t.getStudents() != null ? t.getStudents().size() : 0))
+                .collect(java.util.stream.Collectors.toList());
+        return ResponseEntity.ok(result);
+    }
+
     // Get One Username (First Available)
     @GetMapping("/username-only")
     public ResponseEntity<java.util.Map<String, String>> getOneUsername() {

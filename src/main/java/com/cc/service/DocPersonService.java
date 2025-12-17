@@ -35,12 +35,53 @@ public class DocPersonService {
         return repository.findAll();
     }
 
+    public java.util.Map<String, Object> checkAvailability() {
+        List<DocPerson> allDocPersons = repository.findAll();
+
+        if (allDocPersons.isEmpty()) {
+            // No DocPerson exists - can create
+            return java.util.Map.of(
+                    "canCreate", true,
+                    "message", "No Doc Person exists. You can create one.",
+                    "existingDocPersons", java.util.Collections.emptyList());
+        }
+
+        // Check if any active DocPerson exists
+        boolean hasActiveDocPerson = allDocPersons.stream()
+                .anyMatch(dp -> "Active".equalsIgnoreCase(dp.getStatus()));
+
+        // Build list of existing doc persons with basic info
+        List<java.util.Map<String, Object>> existingList = allDocPersons.stream()
+                .map(dp -> java.util.Map.<String, Object>of(
+                        "id", dp.getId(),
+                        "username", dp.getUsername(),
+                        "fullName", dp.getFullName(),
+                        "status", dp.getStatus()))
+                .collect(java.util.stream.Collectors.toList());
+
+        if (hasActiveDocPerson) {
+            // Active DocPerson exists - cannot create
+            return java.util.Map.of(
+                    "canCreate", false,
+                    "message", "An active Doc Person already exists.",
+                    "existingDocPersons", existingList);
+        } else {
+            // All DocPersons are inactive - can create
+            return java.util.Map.of(
+                    "canCreate", true,
+                    "message", "All existing Doc Persons are inactive. You can create a new one.",
+                    "existingDocPersons", existingList);
+        }
+    }
+
     public Optional<DocPerson> getById(Long id) {
         return repository.findById(id);
     }
 
     public java.util.Optional<DocPerson> getOne() {
-        return repository.findAll().stream().findFirst();
+        return repository.findAll().stream()
+                .filter(dp -> "Active".equalsIgnoreCase(dp.getStatus()))
+                .findFirst();
     }
 
     public java.util.Optional<DocPerson> getByUsername(String username) {

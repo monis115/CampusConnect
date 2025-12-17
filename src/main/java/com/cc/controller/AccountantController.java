@@ -29,6 +29,12 @@ public class AccountantController {
         return ResponseEntity.ok(service.getAll());
     }
 
+    // Check if new Accountant can be created
+    @GetMapping("/check-availability")
+    public ResponseEntity<java.util.Map<String, Object>> checkAvailability() {
+        return ResponseEntity.ok(service.checkAvailability());
+    }
+
     // Read by ID
     @GetMapping("/{id}")
     public ResponseEntity<Accountant> getById(@PathVariable Long id) {

@@ -29,6 +29,12 @@ public class DocPersonController {
         return ResponseEntity.ok(service.getAll());
     }
 
+    // Check if new DocPerson can be created
+    @GetMapping("/check-availability")
+    public ResponseEntity<java.util.Map<String, Object>> checkAvailability() {
+        return ResponseEntity.ok(service.checkAvailability());
+    }
+
     // Read by ID
     @GetMapping("/{id}")
     public ResponseEntity<DocPerson> getById(@PathVariable Long id) {

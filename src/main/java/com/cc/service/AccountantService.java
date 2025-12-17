@@ -44,7 +44,43 @@ public class AccountantService {
         }
 
         public Optional<Accountant> getOne() {
-                return repository.findAll().stream().findFirst();
+                return repository.findAll().stream()
+                                .filter(a -> "Active".equalsIgnoreCase(a.getStatus()))
+                                .findFirst();
+        }
+
+        public java.util.Map<String, Object> checkAvailability() {
+                List<Accountant> allAccountants = repository.findAll();
+
+                if (allAccountants.isEmpty()) {
+                        return java.util.Map.of(
+                                        "canCreate", true,
+                                        "message", "No Accountant exists. You can create one.",
+                                        "existingAccountants", java.util.Collections.emptyList());
+                }
+
+                boolean hasActiveAccountant = allAccountants.stream()
+                                .anyMatch(a -> "Active".equalsIgnoreCase(a.getStatus()));
+
+                List<java.util.Map<String, Object>> existingList = allAccountants.stream()
+                                .map(a -> java.util.Map.<String, Object>of(
+                                                "id", a.getId(),
+                                                "username", a.getUsername(),
+                                                "fullName", a.getFullName(),
+                                                "status", a.getStatus()))
+                                .collect(java.util.stream.Collectors.toList());
+
+                if (hasActiveAccountant) {
+                        return java.util.Map.of(
+                                        "canCreate", false,
+                                        "message", "An active Accountant already exists.",
+                                        "existingAccountants", existingList);
+                } else {
+                        return java.util.Map.of(
+                                        "canCreate", true,
+                                        "message", "All existing Accountants are inactive. You can create a new one.",
+                                        "existingAccountants", existingList);
+                }
         }
 
         public Accountant update(Long id, Accountant entity) {

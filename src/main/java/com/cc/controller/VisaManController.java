@@ -29,6 +29,18 @@ public class VisaManController {
         return ResponseEntity.ok(service.getAll());
     }
 
+    // Get all active VisaMan with username and student count
+    @GetMapping("/usernames")
+    public ResponseEntity<List<java.util.Map<String, Object>>> getAllActiveUsernames() {
+        List<java.util.Map<String, Object>> result = service.getAll().stream()
+                .filter(v -> "Active".equalsIgnoreCase(v.getStatus()))
+                .map(v -> java.util.Map.<String, Object>of(
+                        "username", v.getUsername(),
+                        "studentCount", v.getStudents() != null ? v.getStudents().size() : 0))
+                .collect(java.util.stream.Collectors.toList());
+        return ResponseEntity.ok(result);
+    }
+
     // Get One Username (First Available)
     @GetMapping("/username-only")
     public ResponseEntity<java.util.Map<String, String>> getOneUsername() {

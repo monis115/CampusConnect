@@ -1,11 +1,14 @@
 package com.cc.controller;
 
+import com.cc.DTO.UniversityCoordinatorDTO;
 import com.cc.modals.College;
 import com.cc.service.CollegeService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -44,5 +47,20 @@ public class CollegeController {
     @GetMapping("/search/{collegeName}")
     public College getCollegeByName(@PathVariable String collegeName) {
         return collegeService.findByCollegeName(collegeName);
+    }
+
+    @GetMapping("/{id}/university-coordinator")
+    public ResponseEntity<?> getUniversityCoordinator(@PathVariable Long id) {
+        UniversityCoordinatorDTO coordinator = collegeService.getUniversityCoordinator(id);
+        if (coordinator == null) {
+            return ResponseEntity.ok(Map.of(
+                    "available", true,
+                    "message", "No University Coordinator assigned for this college"));
+        }
+        // Check if coordinator is active
+        boolean isActive = "active".equalsIgnoreCase(coordinator.getStatus());
+        return ResponseEntity.ok(Map.of(
+                "available", !isActive,
+                "coordinator", coordinator));
     }
 }

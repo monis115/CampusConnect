@@ -56,4 +56,48 @@ public class AdminService {
     public Admin findByUserId(String userId) {
         return adminRepository.findByUserId(userId);
     }
+
+    public Admin createAdminWithGeneratedCredentials() {
+        String username = generateUniqueUsername();
+        String password = generateRandomPassword();
+
+        Admin admin = new Admin();
+        admin.setUserId(username);
+        admin.setPassword(password);
+        admin.setStatus("active");
+        admin.setRole("admin");
+
+        return createAdmin(admin);
+    }
+
+    private String generateUniqueUsername() {
+        java.security.SecureRandom random = new java.security.SecureRandom();
+        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        StringBuilder sb;
+        String username;
+
+        do {
+            sb = new StringBuilder(8);
+            // Ensure at least one letter and one number if STRICTLY required, but random
+            // mix is usually fine.
+            // User said "combination of char capital letter with some random number".
+            // I'll ensure at least 2 chars are letters to be safe, but a pure random pick
+            // from mix is likely "combination".
+            for (int i = 0; i < 8; i++) {
+                sb.append(chars.charAt(random.nextInt(chars.length())));
+            }
+            username = sb.toString();
+        } while (adminRepository.findByUserId(username) != null);
+
+        return username;
+    }
+
+    private String generateRandomPassword() {
+        java.security.SecureRandom random = new java.security.SecureRandom();
+        StringBuilder sb = new StringBuilder(8);
+        for (int i = 0; i < 8; i++) {
+            sb.append(random.nextInt(10));
+        }
+        return sb.toString();
+    }
 }

@@ -42,4 +42,21 @@ public class CollegeService {
     public College findByCollegeName(String collegeName) {
         return collegeRepository.findByCollegeName(collegeName);
     }
+
+    public com.cc.DTO.UniversityCoordinatorDTO getUniversityCoordinator(Long collegeId) {
+        return collegeRepository.findById(collegeId)
+                .map(college -> {
+                    com.cc.modals.UniversityPerson person = college.getUniversityPerson();
+                    if (person == null) {
+                        return null;
+                    }
+                    return new com.cc.DTO.UniversityCoordinatorDTO(
+                            person.getId(),
+                            person.getUserName(),
+                            person.getStatus(),
+                            person.getRole(),
+                            college.getCollegeName());
+                })
+                .orElse(null);
+    }
 }
