@@ -24,7 +24,7 @@ public class DocPersonController {
     }
 
     // Read All
-    @GetMapping
+    @GetMapping({ "", "/all" })
     public ResponseEntity<List<DocPerson>> getAll() {
         return ResponseEntity.ok(service.getAll());
     }
@@ -197,6 +197,16 @@ public class DocPersonController {
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(500).body("Error returning docs: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/{id}/with-students")
+    public ResponseEntity<?> getDocPersonWithStudents(@PathVariable Long id) {
+        try {
+            return ResponseEntity.ok(service.getDocPersonWithStudents(id));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body("Error fetching doc person details: " + e.getMessage());
         }
     }
 }

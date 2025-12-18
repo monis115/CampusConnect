@@ -24,7 +24,7 @@ public class AccountantController {
     }
 
     // Read All
-    @GetMapping
+    @GetMapping({ "", "/all" })
     public ResponseEntity<List<Accountant>> getAll() {
         return ResponseEntity.ok(service.getAll());
     }
@@ -208,6 +208,16 @@ public class AccountantController {
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(500).body("Error fetching students: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/{id}/with-students")
+    public ResponseEntity<?> getAccountantWithStudents(@PathVariable Long id) {
+        try {
+            return ResponseEntity.ok(service.getAccountantWithStudents(id));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body("Error fetching accountant details: " + e.getMessage());
         }
     }
 }

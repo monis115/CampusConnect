@@ -84,11 +84,23 @@ public class AccountantService {
         }
 
         public Accountant update(Long id, Accountant entity) {
-                if (repository.existsById(id)) {
-                        entity.setId(id);
-                        return repository.save(entity);
-                }
-                return null;
+                return repository.findById(id).map(existing -> {
+                        if (entity.getUsername() != null)
+                                existing.setUsername(entity.getUsername());
+                        if (entity.getFullName() != null)
+                                existing.setFullName(entity.getFullName());
+                        if (entity.getEmail() != null)
+                                existing.setEmail(entity.getEmail());
+                        if (entity.getContactNumber() != null)
+                                existing.setContactNumber(entity.getContactNumber());
+                        if (entity.getStatus() != null)
+                                existing.setStatus(entity.getStatus());
+                        // Do not update password here to prevent overwriting with null
+                        // If password update is needed, it should be a separate secure endpoint or
+                        // handled carefully
+
+                        return repository.save(existing);
+                }).orElse(null);
         }
 
         @Autowired
@@ -355,5 +367,53 @@ public class AccountantService {
                                                 s.getAction() != null ? s.getAction().toString() : null,
                                                 s.getActionOnUser() != null ? s.getActionOnUser().toString() : null))
                                 .collect(java.util.stream.Collectors.toList());
+        }
+
+        public com.cc.DTO.AccountantWithStudentsDTO getAccountantWithStudents(Long id) {
+                Accountant accountant = repository.findById(id)
+                                .orElseThrow(() -> new RuntimeException("Accountant not found with ID: " + id));
+
+                List<com.cc.modals.Student> students = accountant.getStudents();
+                List<com.cc.DTO.AccountantStudentDTO> studentDTOs = new java.util.ArrayList<>();
+
+                if (students != null) {
+                        studentDTOs = students.stream().map(student -> {
+                                com.cc.modals.StudentStatusHistory lastUpdate = student.getStudentStatusHistory()
+                                                .stream()
+                                                .filter(history -> history.getUpdatedBy() != null
+                                                                && history.getUpdatedBy()
+                                                                                .equals(accountant.getUsername()))
+                                                .max(java.util.Comparator.comparing(
+                                                                com.cc.modals.StudentStatusHistory::getUpdatedAt))
+                                                .orElse(null);
+
+                                java.time.LocalDateTime lastUpdateDate = lastUpdate != null ? lastUpdate.getUpdatedAt()
+                                                : null;
+                                String lastAction = lastUpdate != null ? lastUpdate.getRemarks()
+                                                : "No updates by this accountant";
+
+                                return new com.cc.DTO.AccountantStudentDTO(
+                                                student.getApplicationId(),
+                                                student.getFullName(),
+                                                student.getCollege() != null ? student.getCollege().getCollegeName()
+                                                                : "N/A",
+                                                student.getAppliedFor() != null ? student.getAppliedFor() : "N/A",
+                                                student.getApplicationStatus() != null
+                                                                ? student.getApplicationStatus().toString()
+                                                                : "N/A",
+                                                lastUpdateDate,
+                                                lastAction);
+                        }).collect(java.util.stream.Collectors.toList());
+                }
+
+                return new com.cc.DTO.AccountantWithStudentsDTO(
+                                accountant.getId(),
+                                accountant.getUsername(),
+                                accountant.getFullName(),
+                                accountant.getEmail(),
+                                accountant.getContactNumber(),
+                                accountant.getStatus(),
+                                studentDTOs.size(),
+                                studentDTOs);
         }
 }

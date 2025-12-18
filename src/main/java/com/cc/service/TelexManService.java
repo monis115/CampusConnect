@@ -11,6 +11,8 @@ import java.util.Optional;
 @SuppressWarnings("null")
 public class TelexManService {
 
+    // Trigger Re-index
+
     @Autowired
     private TelexManRepository repository;
 

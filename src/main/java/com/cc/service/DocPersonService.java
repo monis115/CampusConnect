@@ -89,11 +89,20 @@ public class DocPersonService {
     }
 
     public DocPerson update(Long id, DocPerson entity) {
-        if (repository.existsById(id)) {
-            entity.setId(id);
-            return repository.save(entity);
-        }
-        return null;
+        return repository.findById(id).map(existing -> {
+            if (entity.getUsername() != null)
+                existing.setUsername(entity.getUsername());
+            if (entity.getFullName() != null)
+                existing.setFullName(entity.getFullName());
+            if (entity.getEmail() != null)
+                existing.setEmail(entity.getEmail());
+            if (entity.getContactNumber() != null)
+                existing.setContactNumber(entity.getContactNumber());
+            if (entity.getStatus() != null)
+                existing.setStatus(entity.getStatus());
+            // Do not update password here to prevent overwriting with null
+            return repository.save(existing);
+        }).orElse(null);
     }
 
     public void delete(Long id) {
@@ -271,5 +280,45 @@ public class DocPersonService {
         studentStatusHistoryRepository.save(history);
 
         return studentRepository.save(student);
+    }
+
+    public com.cc.DTO.DocPersonWithStudentsDTO getDocPersonWithStudents(Long id) {
+        DocPerson docPerson = repository.findById(id)
+                .orElseThrow(() -> new RuntimeException("DocPerson not found with ID: " + id));
+
+        List<com.cc.modals.Student> students = docPerson.getStudents();
+        java.util.List<com.cc.DTO.DocPersonStudentDTO> studentDTOs = new java.util.ArrayList<>();
+
+        if (students != null) {
+            studentDTOs = students.stream().map(student -> {
+                com.cc.modals.StudentStatusHistory lastUpdate = student.getStudentStatusHistory().stream()
+                        .filter(history -> history.getUpdatedBy() != null
+                                && history.getUpdatedBy().contains(docPerson.getUsername()))
+                        .max(java.util.Comparator.comparing(com.cc.modals.StudentStatusHistory::getUpdatedAt))
+                        .orElse(null);
+
+                java.time.LocalDateTime lastUpdateDate = lastUpdate != null ? lastUpdate.getUpdatedAt() : null;
+                String lastAction = lastUpdate != null ? lastUpdate.getRemarks() : "No updates by this DocPerson";
+
+                return new com.cc.DTO.DocPersonStudentDTO(
+                        student.getApplicationId(),
+                        student.getFullName(),
+                        student.getCollege() != null ? student.getCollege().getCollegeName() : "N/A",
+                        student.getAppliedFor() != null ? student.getAppliedFor() : "N/A",
+                        student.getApplicationStatus() != null ? student.getApplicationStatus().toString() : "N/A",
+                        lastUpdateDate,
+                        lastAction);
+            }).collect(java.util.stream.Collectors.toList());
+        }
+
+        return new com.cc.DTO.DocPersonWithStudentsDTO(
+                docPerson.getId(),
+                docPerson.getUsername(),
+                docPerson.getFullName(),
+                docPerson.getEmail(),
+                docPerson.getContactNumber(),
+                docPerson.getStatus(),
+                studentDTOs.size(),
+                studentDTOs);
     }
 }

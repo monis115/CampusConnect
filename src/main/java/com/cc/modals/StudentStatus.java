@@ -46,5 +46,7 @@ public enum StudentStatus {
 
     // Keeping some legacy for backward compatibility if needed, or remove if safe
     FORWARDED_TO_UNI, // Deprecated in new flow but keeping to avoid immediate break
-    PAYMENT_APPROVED // Kept for general payment
+    PAYMENT_APPROVED, // Kept for general payment
+
+    TRAVELLING
 }

@@ -1,31 +1,34 @@
 package com.cc.service;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.cc.modals.Student;
 import com.cc.modals.StudentStatus;
 import com.cc.modals.StudentStatusHistory;
 import com.cc.modals.TelexMan;
+
 import com.cc.modals.action;
 import com.cc.modals.actionOnUser;
+import com.cc.service.*;
 import com.cc.repository.StudentRepository;
 
 @Service
 @SuppressWarnings("null")
 public class TelexService {
 
-    @Autowired
-    private StudentRepository studentRepository;
+    private final StudentRepository studentRepository;
+    private final TelexManService telexManService;
 
     @Autowired
-    private TelexManService telexManService;
+    public TelexService(StudentRepository studentRepository, TelexManService telexManService) {
+        this.studentRepository = studentRepository;
+        this.telexManService = telexManService;
+    }
 
     // 1. Assign Telex Manager
     public Student assignTelexManager(Long studentId, String managerUsername) {

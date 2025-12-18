@@ -19,4 +19,35 @@ public interface StudentStatusHistoryRepository extends JpaRepository<StudentSta
 
         List<StudentStatusHistory> findByUpdatedByContainingOrderByUpdatedAtDesc(String username,
                         org.springframework.data.domain.Pageable pageable);
+
+        // ======================= COLLEGE PERFORMANCE DASHBOARD METHODS
+        // =======================
+
+        // Recent activities for a college
+        @org.springframework.data.jpa.repository.Query("SELECT h FROM StudentStatusHistory h WHERE h.student.college.id = :collegeId ORDER BY h.updatedAt DESC")
+        List<StudentStatusHistory> findRecentActivitiesByCollegeId(
+                        @org.springframework.data.repository.query.Param("collegeId") Long collegeId,
+                        org.springframework.data.domain.Pageable pageable);
+
+        // Count status transitions within date range for a college
+        @org.springframework.data.jpa.repository.Query("SELECT COUNT(h) FROM StudentStatusHistory h WHERE h.student.college.id = :collegeId AND h.studentApplicationStatus = :status AND h.updatedAt BETWEEN :start AND :end")
+        long countStatusTransitionsByCollegeAndDateRange(
+                        @org.springframework.data.repository.query.Param("collegeId") Long collegeId,
+                        @org.springframework.data.repository.query.Param("status") com.cc.modals.StudentStatus status,
+                        @org.springframework.data.repository.query.Param("start") java.time.LocalDateTime start,
+                        @org.springframework.data.repository.query.Param("end") java.time.LocalDateTime end);
+
+        // Find all history entries for a college within date range (for time series)
+        @org.springframework.data.jpa.repository.Query("SELECT h FROM StudentStatusHistory h WHERE h.student.college.id = :collegeId AND h.updatedAt BETWEEN :start AND :end ORDER BY h.updatedAt ASC")
+        List<StudentStatusHistory> findByCollegeAndDateRange(
+                        @org.springframework.data.repository.query.Param("collegeId") Long collegeId,
+                        @org.springframework.data.repository.query.Param("start") java.time.LocalDateTime start,
+                        @org.springframework.data.repository.query.Param("end") java.time.LocalDateTime end);
+
+        // Find students with no status change for N days (for alerts)
+        @org.springframework.data.jpa.repository.Query("SELECT DISTINCT h.student FROM StudentStatusHistory h WHERE h.student.college.id = :collegeId AND h.updatedAt < :cutoffDate AND h.student.applicationStatus NOT IN :completedStatuses")
+        List<com.cc.modals.Student> findStuckStudentsByCollegeId(
+                        @org.springframework.data.repository.query.Param("collegeId") Long collegeId,
+                        @org.springframework.data.repository.query.Param("cutoffDate") java.time.LocalDateTime cutoffDate,
+                        @org.springframework.data.repository.query.Param("completedStatuses") java.util.List<com.cc.modals.StudentStatus> completedStatuses);
 }

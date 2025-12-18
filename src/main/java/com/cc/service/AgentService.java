@@ -617,7 +617,7 @@ public class AgentService {
             logger.info("Assigned DocPerson: {} to student ID: {}",
                     docPersonOpt.get().getUsername(), studentId);
         } else {
-            logger.warn("No DocPerson available to assign to student ID: {}", studentId);
+            logger.warn("No Active DocPerson available to assign to student ID: {}", studentId);
         }
 
         // Get and assign Accountant to student
@@ -682,7 +682,9 @@ public class AgentService {
         DocumentReturnRequest request = new DocumentReturnRequest();
         request.setStudent(student);
         request.setAgent(student.getAgent());
-
+        if (request.getTravelDate() != null) {
+            student.setApplicationStatus(com.cc.modals.StudentStatus.TRAVELLING);
+        }
         // Map DTO to Entity
         request.setContactPersonName(details.getContactPersonName());
         request.setContactPhone(details.getContactPhone());

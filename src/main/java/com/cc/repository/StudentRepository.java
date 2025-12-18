@@ -107,4 +107,63 @@ public interface StudentRepository extends JpaRepository<Student, Long> {
 
         // Find students with admission letters, newest first
         List<Student> findByAdmissionLetterPathIsNotNullOrderByIdDesc();
+
+        // ======================= COLLEGE PERFORMANCE DASHBOARD METHODS
+        // =======================
+
+        // Count by college
+        long countByCollege_Id(Long collegeId);
+
+        long countByCollege_IdAndApplicationStatus(Long collegeId, StudentStatus status);
+
+        long countByCollege_IdAndApplicationStatusIn(Long collegeId, List<StudentStatus> statuses);
+
+        // Date range filtering with college
+        long countByCollege_IdAndCreatedAtBetween(Long collegeId, java.time.LocalDate start, java.time.LocalDate end);
+
+        // Find students by college
+        List<Student> findByCollege_Id(Long collegeId);
+
+        List<Student> findByCollege_IdAndApplicationStatusIn(Long collegeId, List<StudentStatus> statuses);
+
+        List<Student> findByCollege_IdOrderByCreatedAtDesc(Long collegeId);
+
+        // Entity-specific counts for a college
+        @org.springframework.data.jpa.repository.Query("SELECT COUNT(s) FROM Student s WHERE s.college.id = :collegeId AND s.telexMan.id = :telexManId")
+        long countByCollegeAndTelexMan(@org.springframework.data.repository.query.Param("collegeId") Long collegeId,
+                        @org.springframework.data.repository.query.Param("telexManId") Long telexManId);
+
+        @org.springframework.data.jpa.repository.Query("SELECT COUNT(s) FROM Student s WHERE s.college.id = :collegeId AND s.visaMan.id = :visaManId")
+        long countByCollegeAndVisaMan(@org.springframework.data.repository.query.Param("collegeId") Long collegeId,
+                        @org.springframework.data.repository.query.Param("visaManId") Long visaManId);
+
+        @org.springframework.data.jpa.repository.Query("SELECT COUNT(s) FROM Student s WHERE s.college.id = :collegeId AND s.docPerson.id = :docPersonId")
+        long countByCollegeAndDocPerson(@org.springframework.data.repository.query.Param("collegeId") Long collegeId,
+                        @org.springframework.data.repository.query.Param("docPersonId") Long docPersonId);
+
+        @org.springframework.data.jpa.repository.Query("SELECT COUNT(s) FROM Student s WHERE s.college.id = :collegeId AND s.accountant.id = :accountantId")
+        long countByCollegeAndAccountant(@org.springframework.data.repository.query.Param("collegeId") Long collegeId,
+                        @org.springframework.data.repository.query.Param("accountantId") Long accountantId);
+
+        // Distinct entity counts for a college
+        @org.springframework.data.jpa.repository.Query("SELECT DISTINCT s.telexMan FROM Student s WHERE s.college.id = :collegeId AND s.telexMan IS NOT NULL")
+        List<com.cc.modals.TelexMan> findDistinctTelexMenByCollegeId(
+                        @org.springframework.data.repository.query.Param("collegeId") Long collegeId);
+
+        @org.springframework.data.jpa.repository.Query("SELECT DISTINCT s.visaMan FROM Student s WHERE s.college.id = :collegeId AND s.visaMan IS NOT NULL")
+        List<com.cc.modals.VisaMan> findDistinctVisaMenByCollegeId(
+                        @org.springframework.data.repository.query.Param("collegeId") Long collegeId);
+
+        List<Student> findByCollege_IdAndCreatedAtBetween(Long collegeId, java.time.LocalDate start,
+                        java.time.LocalDate end);
+
+        // ======================= GLOBAL BENCHMARKING METHODS =======================
+        long countByApplicationStatusInAndCreatedAtBetween(List<StudentStatus> statuses, java.time.LocalDate start,
+                        java.time.LocalDate end);
+
+        long countByApplicationStatusAndCreatedAtBetween(StudentStatus status, java.time.LocalDate start,
+                        java.time.LocalDate end);
+
+        List<Student> findByApplicationStatusInAndCreatedAtBetween(List<StudentStatus> statuses,
+                        java.time.LocalDate start, java.time.LocalDate end);
 }
