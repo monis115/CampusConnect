@@ -147,9 +147,7 @@ public class CollegePerformanceService {
         stats.setTotalStudents(totalStudents);
 
         // Active pipeline (Joined in this period and currently active)
-        long activePipeline = studentRepository.countByCollege_IdAndCreatedAtBetween(collegeId, dateFrom, dateTo);
-        // Subtract those who completed or rejected
-        long completedOrRejectedInCohort = 0; // Simplified for now, assuming total students = cohort size
+        // Active pipeline (Joined in this period and currently active)
 
         // We will calculate active pipeline based on status distribution within this
         // COHORT
@@ -207,37 +205,34 @@ public class CollegePerformanceService {
         // Average processing days (simplified calculation)
         stats.setAvgProcessingDays(calculateAvgProcessingDays(collegeId));
 
-        // Calculate trends (compare to previous period)
-        long periodDays = ChronoUnit.DAYS.between(dateFrom, dateTo) + 1;
-        LocalDate previousFrom = dateFrom.minusDays(periodDays);
-        LocalDate previousTo = dateFrom.minusDays(1);
+        // Calculate trends (BENCHMARKING vs Global Average)
+        long totalColleges = collegeRepository.count();
+        if (totalColleges == 0)
+            totalColleges = 1;
 
-        // 1. Total Students Trend (Historical Growth)
-        long previousRegistrations = studentRepository.countByCollege_IdAndCreatedAtBetween(
-                collegeId, previousFrom, previousTo);
-        stats.setTotalStudentsTrend(calculateTrend(newRegistrations, previousRegistrations));
+        // 1. Total Students Trend (Benchmarking vs Avg College)
+        long globalTotalRegistrations = studentRepository.countByCreatedAtBetween(dateFrom, dateTo);
+        double avgRegistrationsPerCollege = (double) globalTotalRegistrations / totalColleges;
+        stats.setTotalStudentsTrend(calculateBenchmarkTrend((double) newRegistrations, avgRegistrationsPerCollege));
 
-        // 2. Active Pipeline Trend (Historical Growth)
-        List<Student> prevCohort = studentRepository.findByCollege_IdAndCreatedAtBetween(collegeId, previousFrom,
-                previousTo);
-        long prevActiveCount = prevCohort.stream()
-                .filter(s -> ACTIVE_PIPELINE_STATUSES.contains(s.getApplicationStatus()) &&
-                        !COMPLETED_STATUSES.contains(s.getApplicationStatus()))
-                .count();
-        stats.setActivePipelineTrend(calculateTrend(activeCount, prevActiveCount));
+        // 2. Active Pipeline Trend (Benchmarking vs Avg College)
+        // Global count of students in active statuses created in this period
+        long globalActiveCount = studentRepository
+                .countByApplicationStatusInAndCreatedAtBetween(ACTIVE_PIPELINE_STATUSES, dateFrom, dateTo);
+        double avgPipelinePerCollege = (double) globalActiveCount / totalColleges;
+        stats.setActivePipelineTrend(calculateBenchmarkTrend((double) activeCount, avgPipelinePerCollege));
 
-        // 3. Visa Success Rate Trend (BENCHMARKING vs Global Average)
+        // 3. Visa Success Rate Trend (Benchmarking vs Global Avg Rate)
         // Global Success Rate = Global Stamped / Global Total Students (in period)
-        long globalTotal = studentRepository.countByCreatedAtBetween(dateFrom, dateTo);
         long globalStamped = studentRepository.countByApplicationStatusInAndCreatedAtBetween(
                 COMPLETED_STATUSES, dateFrom, dateTo);
 
-        double globalSuccessRate = globalTotal > 0 ? (globalStamped * 100.0 / globalTotal) : 0.0;
-        // Trend = Difference from global average (e.g., +5% or -2%)
+        double globalSuccessRate = globalTotalRegistrations > 0 ? (globalStamped * 100.0 / globalTotalRegistrations)
+                : 0.0;
+        // Difference in percentage points
         stats.setVisaSuccessRateTrend(Math.round((successRate - globalSuccessRate) * 10.0) / 10.0);
 
-        // 4. Conversion Rate Trend (BENCHMARKING vs Global Average)
-        // Global Conversion = Global Travelling / Global Visa Applied
+        // 4. Conversion Rate Trend (Benchmarking vs Global Avg Rate)
         long globalVisaApplied = studentRepository.countByApplicationStatusInAndCreatedAtBetween(VISA_STATUSES,
                 dateFrom, dateTo)
                 + studentRepository.countByApplicationStatusInAndCreatedAtBetween(COMPLETED_STATUSES, dateFrom, dateTo);
@@ -245,15 +240,12 @@ public class CollegePerformanceService {
                 dateFrom, dateTo);
 
         double globalConversion = globalVisaApplied > 0 ? (globalTravelling * 100.0 / globalVisaApplied) : 0.0;
-        // Trend = Difference from global average (Benchmarking)
+        // Difference in percentage points
         stats.setConversionRateTrend(Math.round((stats.getConversionRate() - globalConversion) * 10.0) / 10.0);
 
-        // 5. Avg Processing Days Trend (BENCHMARKING vs Global Average)
+        // 5. Avg Processing Days Trend (Benchmarking vs Global Avg Speed)
         double globalAvgDays = calculateGlobalAvgProcessingDays(dateFrom, dateTo);
-        // Trend = Difference (Global - College). If Global is 30 and College is 20,
-        // that's GOOD (+10 days faster).
-        // Let's store positive value = better (faster).
-        // If college < global, result is positive.
+        // Trend = Difference (Global - College). Positive means FASTER.
         stats.setAvgProcessingDaysTrend(Math.round((globalAvgDays - stats.getAvgProcessingDays()) * 10.0) / 10.0);
 
         return stats;
@@ -286,6 +278,12 @@ public class CollegePerformanceService {
         if (previous == 0)
             return current > 0 ? 100.0 : 0.0;
         return Math.round(((current - previous) * 100.0 / previous) * 10.0) / 10.0;
+    }
+
+    private Double calculateBenchmarkTrend(double current, double average) {
+        if (average == 0)
+            return current > 0 ? 100.0 : 0.0;
+        return Math.round(((current - average) * 100.0 / average) * 10.0) / 10.0;
     }
 
     private Double calculateAvgProcessingDays(Long collegeId) {
