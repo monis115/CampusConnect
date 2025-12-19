@@ -50,4 +50,19 @@ public interface StudentStatusHistoryRepository extends JpaRepository<StudentSta
                         @org.springframework.data.repository.query.Param("collegeId") Long collegeId,
                         @org.springframework.data.repository.query.Param("cutoffDate") java.time.LocalDateTime cutoffDate,
                         @org.springframework.data.repository.query.Param("completedStatuses") java.util.List<com.cc.modals.StudentStatus> completedStatuses);
+
+        // ======================= ADMISSION MANAGER REPORT METHODS
+        // =======================
+
+        // Find all history entries for students under a specific admission manager
+        @org.springframework.data.jpa.repository.Query("SELECT h FROM StudentStatusHistory h WHERE h.student.admissionManager.id = :managerId ORDER BY h.updatedAt DESC")
+        List<StudentStatusHistory> findByAdmissionManagerId(
+                        @org.springframework.data.repository.query.Param("managerId") Long managerId);
+
+        // Find history entries for students under a manager within date range
+        @org.springframework.data.jpa.repository.Query("SELECT h FROM StudentStatusHistory h WHERE h.student.admissionManager.id = :managerId AND h.updatedAt BETWEEN :start AND :end ORDER BY h.updatedAt DESC")
+        List<StudentStatusHistory> findByAdmissionManagerIdAndDateRange(
+                        @org.springframework.data.repository.query.Param("managerId") Long managerId,
+                        @org.springframework.data.repository.query.Param("start") java.time.LocalDateTime start,
+                        @org.springframework.data.repository.query.Param("end") java.time.LocalDateTime end);
 }

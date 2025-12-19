@@ -4,7 +4,6 @@ import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -28,10 +27,21 @@ public class TelexController {
             @RequestBody Map<String, String> request) {
         try {
             String managerUsername = request.get("managerUsername");
+            String admissionManagerUsername = request.get("admissionManagerUsername");
+
             if (managerUsername == null || managerUsername.isEmpty()) {
                 return ResponseEntity.badRequest().body("managerUsername is required");
             }
-            Student student = telexService.assignTelexManager(studentId, managerUsername);
+            // Fallback for backward compatibility if needed, or strictly require it.
+            // For now, if not provided, we can default to "System" or throw error.
+            // Given the user prompt asked to check "what he can" implying it is the manager
+            // acting,
+            // I should default to "System" if missing but ideally it should be sent.
+            String assignedBy = (admissionManagerUsername != null && !admissionManagerUsername.isEmpty())
+                    ? admissionManagerUsername
+                    : "System";
+
+            Student student = telexService.assignTelexManager(studentId, managerUsername, assignedBy);
             return ResponseEntity.ok(student);
         } catch (Exception e) {
             return ResponseEntity.status(500).body("Error assigning Telex Manager: " + e.getMessage());

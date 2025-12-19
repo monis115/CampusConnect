@@ -14,7 +14,6 @@ import com.cc.modals.TelexMan;
 
 import com.cc.modals.action;
 import com.cc.modals.actionOnUser;
-import com.cc.service.*;
 import com.cc.repository.StudentRepository;
 
 @Service
@@ -31,7 +30,7 @@ public class TelexService {
     }
 
     // 1. Assign Telex Manager
-    public Student assignTelexManager(Long studentId, String managerUsername) {
+    public Student assignTelexManager(Long studentId, String managerUsername, String assignedBy) {
         Student student = studentRepository.findById(studentId)
                 .orElseThrow(() -> new RuntimeException("Student not found"));
 
@@ -44,7 +43,7 @@ public class TelexService {
         student.setAction(action.UPLOAD_TELEX_DOCS);
         student.setActionOnUser(actionOnUser.telex_manager);
 
-        addHistory(student, StudentStatus.TELEX_INITIATED, "System (Assigned to " + managerUsername + ")");
+        addHistory(student, StudentStatus.TELEX_INITIATED, assignedBy, "Assigned to Telex Manager: " + managerUsername);
 
         return studentRepository.save(student);
     }
@@ -178,11 +177,18 @@ public class TelexService {
 
     // Helper to add history
     private void addHistory(Student student, StudentStatus status, String updatedBy) {
+        addHistory(student, status, updatedBy, null);
+    }
+
+    private void addHistory(Student student, StudentStatus status, String updatedBy, String remarks) {
         StudentStatusHistory history = new StudentStatusHistory();
         history.setStudent(student);
         history.setStudentApplicationStatus(status);
         history.setUpdatedBy(updatedBy);
         history.setUpdatedAt(LocalDateTime.now());
+        if (remarks != null) {
+            history.setRemarks(remarks);
+        }
         student.getStudentStatusHistory().add(history);
     }
 }

@@ -811,4 +811,567 @@ public class AddmissionManagerService {
                                         actionStr);
                 }).collect(java.util.stream.Collectors.toList());
         }
+
+        // ===================== REPORT GENERATION =====================
+
+        public com.cc.DTO.AdmissionManagerReportDTO generateReport(Long managerId, String period) {
+                AddmissionManager manager = managerRepo.findById(managerId)
+                                .orElseThrow(() -> new RuntimeException("Manager not found"));
+                return generateReportForManager(manager, period);
+        }
+
+        public List<com.cc.DTO.AdmissionManagerReportDTO> generateAllManagersReport(String period) {
+                List<AddmissionManager> managers = managerRepo.findAll();
+                return managers.stream()
+                                .map(m -> generateReportForManager(m, period))
+                                .collect(java.util.stream.Collectors.toList());
+        }
+
+        private com.cc.DTO.AdmissionManagerReportDTO generateReportForManager(AddmissionManager manager,
+                        String period) {
+                // Determine current and previous date ranges based on period
+                java.time.LocalDateTime now = java.time.LocalDateTime.now();
+                java.time.LocalDateTime currentStart;
+                java.time.LocalDateTime currentEnd;
+                java.time.LocalDateTime previousStart;
+                java.time.LocalDateTime previousEnd;
+
+                switch (period.toLowerCase()) {
+                        case "yearly":
+                                currentStart = now.withDayOfYear(1).withHour(0).withMinute(0).withSecond(0).withNano(0);
+                                currentEnd = now;
+                                previousStart = currentStart.minusYears(1);
+                                previousEnd = currentEnd.minusYears(1);
+                                break;
+                        case "monthly":
+                                currentStart = now.withDayOfMonth(1).withHour(0).withMinute(0).withSecond(0)
+                                                .withNano(0);
+                                currentEnd = now;
+                                previousStart = currentStart.minusMonths(1);
+                                previousEnd = currentEnd.minusMonths(1);
+                                break;
+                        case "daily":
+                        default:
+                                currentStart = now.withHour(0).withMinute(0).withSecond(0).withNano(0);
+                                currentEnd = now;
+                                previousStart = currentStart.minusDays(1);
+                                previousEnd = currentEnd.minusDays(1);
+                                break;
+                }
+
+                // Fetch history for students under this manager within current and previous
+                // periods
+                List<StudentStatusHistory> currentHistory = statusHistoryRepo.findByAdmissionManagerIdAndDateRange(
+                                manager.getId(), currentStart, currentEnd);
+                List<StudentStatusHistory> previousHistory = statusHistoryRepo.findByAdmissionManagerIdAndDateRange(
+                                manager.getId(), previousStart, previousEnd);
+
+                // Count UNIQUE students per status (using Sets to avoid duplicates)
+                com.cc.DTO.ManagerReportStatsDTO currentStats = countUniqueStudentsByStatus(currentHistory);
+                com.cc.DTO.ManagerReportStatsDTO previousStats = countUniqueStudentsByStatus(previousHistory);
+
+                // Calculate trends for all metrics
+                currentStats.setForwardedToUniversityTrend(
+                                com.cc.DTO.ManagerReportStatsDTO.calculateTrend(
+                                                currentStats.getForwardedToUniversity(),
+                                                previousStats.getForwardedToUniversity()));
+                currentStats.setAdmissionLettersApprovedTrend(
+                                com.cc.DTO.ManagerReportStatsDTO.calculateTrend(
+                                                currentStats.getAdmissionLettersApproved(),
+                                                previousStats.getAdmissionLettersApproved()));
+                currentStats.setTelexManagersAssignedTrend(
+                                com.cc.DTO.ManagerReportStatsDTO.calculateTrend(
+                                                currentStats.getTelexManagersAssigned(),
+                                                previousStats.getTelexManagersAssigned()));
+                currentStats.setVisaManagersAssignedTrend(
+                                com.cc.DTO.ManagerReportStatsDTO.calculateTrend(
+                                                currentStats.getVisaManagersAssigned(),
+                                                previousStats.getVisaManagersAssigned()));
+
+                return new com.cc.DTO.AdmissionManagerReportDTO(
+                                manager.getId(),
+                                manager.getFullName(),
+                                manager.getUsername(),
+                                period,
+                                currentStats);
+        }
+
+        private com.cc.DTO.ManagerReportStatsDTO countUniqueStudentsByStatus(List<StudentStatusHistory> history) {
+                // Use Sets to track unique student IDs per status
+                java.util.Set<Long> forwardedStudents = new java.util.HashSet<>();
+                java.util.Set<Long> approvedStudents = new java.util.HashSet<>();
+                java.util.Set<Long> telexStudents = new java.util.HashSet<>();
+                java.util.Set<Long> visaStudents = new java.util.HashSet<>();
+
+                for (StudentStatusHistory entry : history) {
+                        Long studentId = entry.getStudent().getId();
+                        StudentStatus status = entry.getStudentApplicationStatus();
+
+                        if (status == null)
+                                continue;
+
+                        switch (status) {
+                                case FORWARDED_TO_UNI:
+                                        forwardedStudents.add(studentId);
+                                        break;
+                                case ADMISSION_LETTER_GENERATED:
+                                        approvedStudents.add(studentId);
+                                        break;
+                                case TELEX_INITIATED:
+                                        telexStudents.add(studentId);
+                                        break;
+                                case VISA_FEE_PENDING:
+                                        visaStudents.add(studentId);
+                                        break;
+                                default:
+                                        break;
+                        }
+                }
+
+                com.cc.DTO.ManagerReportStatsDTO stats = new com.cc.DTO.ManagerReportStatsDTO();
+                stats.setForwardedToUniversity(forwardedStudents.size());
+                stats.setAdmissionLettersApproved(approvedStudents.size());
+                stats.setTelexManagersAssigned(telexStudents.size());
+                stats.setVisaManagersAssigned(visaStudents.size());
+                return stats;
+        }
+
+        private boolean isWithinRange(java.time.LocalDateTime date, java.time.LocalDateTime start,
+                        java.time.LocalDateTime end) {
+                return (date.isEqual(start) || date.isAfter(start)) && (date.isEqual(end) || date.isBefore(end));
+        }
+
+        private void updateHistoryStats(com.cc.DTO.ManagerReportStatsDTO stats, StudentStatus status) {
+                if (status == null)
+                        return;
+
+                switch (status) {
+                        case FORWARDED_TO_UNI:
+                                stats.incrementForwardedToUniversity();
+                                break;
+                        case ADMISSION_LETTER_GENERATED:
+                                stats.incrementAdmissionLettersApproved();
+                                break;
+                        case TELEX_INITIATED:
+                                stats.incrementTelexManagersAssigned();
+                                break;
+                        case VISA_FEE_PENDING:
+                                stats.incrementVisaManagersAssigned();
+                                break;
+                        default:
+                                break;
+                }
+        }
+
+        // ===================== SEND REPORT BY EMAIL =====================
+
+        @Autowired
+        private EmailService emailService;
+
+        public void sendReportByEmail(Long managerId, String period, String recipientEmail) {
+                com.cc.DTO.AdmissionManagerReportDTO report = generateReport(managerId, period);
+                String htmlContent = generateReportHtml(report, period);
+                String subject = "Performance Report - " + report.getManagerName() + " (" + period.toUpperCase() + ")";
+                emailService.sendHtmlEmail(recipientEmail, subject, htmlContent);
+        }
+
+        public void sendAllManagersReportByEmail(String period, String recipientEmail) {
+                List<com.cc.DTO.AdmissionManagerReportDTO> reports = generateAllManagersReport(period);
+                String htmlContent = generateAllManagersReportHtml(reports, period);
+                String subject = "All Admission Managers Performance Report (" + period.toUpperCase() + ")";
+                emailService.sendHtmlEmail(recipientEmail, subject, htmlContent);
+        }
+
+        private String generateReportHtml(com.cc.DTO.AdmissionManagerReportDTO report, String period) {
+                AddmissionManager manager = managerRepo.findById(report.getManagerId()).orElse(null);
+                if (manager == null)
+                        return "<html><body>Manager not found</body></html>";
+
+                com.cc.DTO.ManagerReportStatsDTO stats = report.getPeriodStats();
+                String periodLabel = period.substring(0, 1).toUpperCase() + period.substring(1);
+
+                // Calculate additional metrics
+                long totalStudents = studentRepo.countByAdmissionManager(manager);
+                int totalActions = stats.getForwardedToUniversity() + stats.getAdmissionLettersApproved();
+                double efficiencyRate = stats.getForwardedToUniversity() > 0
+                                ? ((double) stats.getAdmissionLettersApproved() / stats.getForwardedToUniversity())
+                                                * 100
+                                : 0;
+                double completionRate = totalStudents > 0
+                                ? ((double) stats.getVisaManagersAssigned() / totalStudents) * 100
+                                : 0;
+
+                // Performance rating
+                String performanceRating;
+                String performanceColor;
+                if (efficiencyRate >= 80) {
+                        performanceRating = "🌟 Excellent";
+                        performanceColor = "#22c55e";
+                } else if (efficiencyRate >= 60) {
+                        performanceRating = "👍 Good";
+                        performanceColor = "#f59e0b";
+                } else if (efficiencyRate >= 40) {
+                        performanceRating = "⚡ Average";
+                        performanceColor = "#fb923c";
+                } else {
+                        performanceRating = "📈 Needs Improvement";
+                        performanceColor = "#ef4444";
+                }
+
+                // Pending students (not yet at visa stage)
+                long pendingStudents = totalStudents - stats.getVisaManagersAssigned();
+
+                return """
+                                <!DOCTYPE html>
+                                <html>
+                                <head>
+                                    <style>
+                                        body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #0f172a; color: #fff; padding: 20px; margin: 0; }
+                                        .container { max-width: 650px; margin: 0 auto; background: linear-gradient(135deg, #1e293b 0%%, #0f172a 100%%); border-radius: 20px; padding: 0; overflow: hidden; box-shadow: 0 25px 50px rgba(0,0,0,0.5); }
+                                        .header { background: linear-gradient(135deg, #f59e0b 0%%, #d97706 100%%); padding: 30px; text-align: center; }
+                                        .header h1 { margin: 0; font-size: 26px; color: #000; font-weight: 700; }
+                                        .header p { margin: 8px 0 0; color: rgba(0,0,0,0.7); font-size: 14px; }
+                                        .period-badge { display: inline-block; background: rgba(0,0,0,0.2); color: #000; padding: 6px 16px; border-radius: 20px; font-size: 12px; margin-top: 12px; font-weight: 600; }
+                                        .content { padding: 30px; }
+                                        .performance-card { background: linear-gradient(135deg, rgba(245,158,11,0.15) 0%%, rgba(217,119,6,0.1) 100%%); border: 1px solid rgba(245,158,11,0.3); border-radius: 16px; padding: 20px; margin-bottom: 25px; text-align: center; }
+                                        .performance-rating { font-size: 28px; font-weight: 700; margin-bottom: 5px; }
+                                        .performance-label { color: rgba(255,255,255,0.6); font-size: 12px; }
+                                        .metrics-row { display: flex; justify-content: space-between; margin-bottom: 20px; gap: 15px; }
+                                        .metric-box { flex: 1; background: rgba(255,255,255,0.05); border-radius: 12px; padding: 18px; text-align: center; border: 1px solid rgba(255,255,255,0.1); }
+                                        .metric-value { font-size: 28px; font-weight: 700; color: #fff; }
+                                        .metric-label { font-size: 11px; color: rgba(255,255,255,0.5); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+                                        .metric-trend { font-size: 11px; margin-top: 6px; padding: 3px 8px; border-radius: 10px; display: inline-block; }
+                                        .trend-positive { background: rgba(34,197,94,0.2); color: #22c55e; }
+                                        .trend-negative { background: rgba(239,68,68,0.2); color: #ef4444; }
+                                        .trend-neutral { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.5); }
+                                        .section-title { font-size: 14px; color: rgba(255,255,255,0.4); margin: 25px 0 15px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px; }
+                                        .progress-section { margin-bottom: 25px; }
+                                        .progress-row { margin-bottom: 15px; }
+                                        .progress-label { display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 13px; }
+                                        .progress-bar-bg { background: rgba(255,255,255,0.1); border-radius: 8px; height: 10px; overflow: hidden; }
+                                        .progress-bar { height: 100%%; border-radius: 8px; transition: width 0.3s; }
+                                        .insights-card { background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.3); border-radius: 12px; padding: 18px; margin-top: 20px; }
+                                        .insights-title { color: #60a5fa; font-size: 13px; font-weight: 600; margin-bottom: 10px; }
+                                        .insights-text { color: rgba(255,255,255,0.7); font-size: 13px; line-height: 1.6; }
+                                        .footer { background: rgba(0,0,0,0.3); padding: 20px; text-align: center; color: rgba(255,255,255,0.4); font-size: 11px; }
+                                    </style>
+                                </head>
+                                <body>
+                                    <div class="container">
+                                        <div class="header">
+                                            <h1>📊 Performance Report</h1>
+                                            <p>%s</p>
+                                            <span class="period-badge">%s Analysis</span>
+                                        </div>
+                                        <div class="content">
+                                            <!-- Performance Rating -->
+                                            <div class="performance-card">
+                                                <div class="performance-rating" style="color: %s">%s</div>
+                                                <div class="performance-label">Overall Performance Rating</div>
+                                            </div>
+
+                                            <!-- Key Metrics Row 1 -->
+                                            <div class="metrics-row">
+                                                <div class="metric-box">
+                                                    <div class="metric-value">%d</div>
+                                                    <div class="metric-label">Total Students</div>
+                                                </div>
+                                                <div class="metric-box">
+                                                    <div class="metric-value">%.1f%%</div>
+                                                    <div class="metric-label">Efficiency Rate</div>
+                                                </div>
+                                                <div class="metric-box">
+                                                    <div class="metric-value">%.1f%%</div>
+                                                    <div class="metric-label">Completion Rate</div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Action Metrics -->
+                                            <div class="section-title">📈 Activity Breakdown</div>
+                                            <div class="metrics-row">
+                                                <div class="metric-box">
+                                                    <div class="metric-value" style="color: #f59e0b">%d</div>
+                                                    <div class="metric-label">Forwarded</div>
+                                                    <span class="metric-trend %s">%s</span>
+                                                </div>
+                                                <div class="metric-box">
+                                                    <div class="metric-value" style="color: #22c55e">%d</div>
+                                                    <div class="metric-label">Approved</div>
+                                                    <span class="metric-trend %s">%s</span>
+                                                </div>
+                                            </div>
+                                            <div class="metrics-row">
+                                                <div class="metric-box">
+                                                    <div class="metric-value" style="color: #fb923c">%d</div>
+                                                    <div class="metric-label">Telex Assigned</div>
+                                                </div>
+                                                <div class="metric-box">
+                                                    <div class="metric-value" style="color: #a78bfa">%d</div>
+                                                    <div class="metric-label">Visa Assigned</div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Pipeline Progress -->
+                                            <div class="section-title">🔄 Pipeline Status</div>
+                                            <div class="progress-section">
+                                                <div class="progress-row">
+                                                    <div class="progress-label">
+                                                        <span>Pending Students</span>
+                                                        <span>%d remaining</span>
+                                                    </div>
+                                                    <div class="progress-bar-bg">
+                                                        <div class="progress-bar" style="width: %.0f%%; background: linear-gradient(90deg, #f59e0b, #d97706);"></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Insights -->
+                                            <div class="insights-card">
+                                                <div class="insights-title">💡 Performance Insights</div>
+                                                <div class="insights-text">
+                                                    %s
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="footer">
+                                            Generated on %s at %s | CampusConnect Performance Analytics
+                                        </div>
+                                    </div>
+                                </body>
+                                </html>
+                                """
+                                .formatted(
+                                                report.getManagerName(),
+                                                periodLabel,
+                                                performanceColor,
+                                                performanceRating,
+                                                totalStudents,
+                                                efficiencyRate,
+                                                completionRate,
+                                                stats.getForwardedToUniversity(),
+                                                getTrendClass(stats.getForwardedToUniversityTrend()),
+                                                formatTrend(stats.getForwardedToUniversityTrend()),
+                                                stats.getAdmissionLettersApproved(),
+                                                getTrendClass(stats.getAdmissionLettersApprovedTrend()),
+                                                formatTrend(stats.getAdmissionLettersApprovedTrend()),
+                                                stats.getTelexManagersAssigned(),
+                                                stats.getVisaManagersAssigned(),
+                                                pendingStudents,
+                                                completionRate,
+                                                generateInsights(stats, efficiencyRate, pendingStudents, totalStudents),
+                                                java.time.LocalDate.now().toString(),
+                                                java.time.LocalTime.now().format(
+                                                                java.time.format.DateTimeFormatter.ofPattern("HH:mm")));
+        }
+
+        private String generateInsights(com.cc.DTO.ManagerReportStatsDTO stats, double efficiency, long pending,
+                        long total) {
+                StringBuilder insights = new StringBuilder();
+
+                if (efficiency >= 80) {
+                        insights.append("✅ Outstanding approval rate! Maintaining excellent throughput. ");
+                } else if (efficiency >= 60) {
+                        insights.append("📊 Good conversion from forwarding to approval. ");
+                } else if (stats.getForwardedToUniversity() > 0) {
+                        insights.append(
+                                        "⚠️ Low approval rate detected. Consider following up on pending approvals. ");
+                }
+
+                if (pending > 0 && total > 0) {
+                        double pendingRate = ((double) pending / total) * 100;
+                        if (pendingRate > 50) {
+                                insights.append(
+                                                "📋 %d students (%.0f%%) are still in progress. Focus on moving them through the pipeline. "
+                                                                .formatted(pending, pendingRate));
+                        }
+                }
+
+                if (stats.getTelexManagersAssigned() < stats.getAdmissionLettersApproved()) {
+                        int gap = stats.getAdmissionLettersApproved() - stats.getTelexManagersAssigned();
+                        if (gap > 0) {
+                                insights.append("📝 %d approved students pending Telex assignment. ".formatted(gap));
+                        }
+                }
+
+                if (insights.length() == 0) {
+                        insights.append("📈 Keep up the good work! Pipeline is moving smoothly.");
+                }
+
+                return insights.toString();
+        }
+
+        private String generateAllManagersReportHtml(List<com.cc.DTO.AdmissionManagerReportDTO> reports,
+                        String period) {
+                String periodLabel = period.substring(0, 1).toUpperCase() + period.substring(1);
+
+                // Calculate totals and find top performer
+                int totalForwarded = 0, totalApproved = 0, totalTelex = 0, totalVisa = 0;
+                com.cc.DTO.AdmissionManagerReportDTO topPerformer = null;
+                double topEfficiency = -1;
+
+                for (com.cc.DTO.AdmissionManagerReportDTO r : reports) {
+                        com.cc.DTO.ManagerReportStatsDTO s = r.getPeriodStats();
+                        totalForwarded += s.getForwardedToUniversity();
+                        totalApproved += s.getAdmissionLettersApproved();
+                        totalTelex += s.getTelexManagersAssigned();
+                        totalVisa += s.getVisaManagersAssigned();
+
+                        double eff = s.getForwardedToUniversity() > 0
+                                        ? ((double) s.getAdmissionLettersApproved() / s.getForwardedToUniversity())
+                                                        * 100
+                                        : 0;
+                        if (eff > topEfficiency) {
+                                topEfficiency = eff;
+                                topPerformer = r;
+                        }
+                }
+
+                double avgEfficiency = totalForwarded > 0 ? ((double) totalApproved / totalForwarded) * 100 : 0;
+
+                // Build manager rows with efficiency
+                StringBuilder rows = new StringBuilder();
+                for (com.cc.DTO.AdmissionManagerReportDTO r : reports) {
+                        com.cc.DTO.ManagerReportStatsDTO s = r.getPeriodStats();
+                        double eff = s.getForwardedToUniversity() > 0
+                                        ? ((double) s.getAdmissionLettersApproved() / s.getForwardedToUniversity())
+                                                        * 100
+                                        : 0;
+                        String effColor = eff >= 70 ? "#22c55e" : (eff >= 40 ? "#f59e0b" : "#ef4444");
+                        String isTop = (topPerformer != null && r.getManagerId().equals(topPerformer.getManagerId()))
+                                        ? "🏆"
+                                        : "";
+
+                        rows.append(String.format(
+                                        """
+                                                        <tr style="background: rgba(255,255,255,0.02);">
+                                                            <td style="padding: 14px 12px; border-bottom: 1px solid rgba(255,255,255,0.08);">
+                                                                <strong>%s</strong> %s
+                                                            </td>
+                                                            <td style="padding: 14px 12px; border-bottom: 1px solid rgba(255,255,255,0.08); text-align: center; color: #f59e0b;">%d</td>
+                                                            <td style="padding: 14px 12px; border-bottom: 1px solid rgba(255,255,255,0.08); text-align: center; color: #22c55e;">%d</td>
+                                                            <td style="padding: 14px 12px; border-bottom: 1px solid rgba(255,255,255,0.08); text-align: center; color: #fb923c;">%d</td>
+                                                            <td style="padding: 14px 12px; border-bottom: 1px solid rgba(255,255,255,0.08); text-align: center; color: #a78bfa;">%d</td>
+                                                            <td style="padding: 14px 12px; border-bottom: 1px solid rgba(255,255,255,0.08); text-align: center;">
+                                                                <span style="color: %s; font-weight: 600;">%.0f%%</span>
+                                                            </td>
+                                                        </tr>
+                                                        """,
+                                        r.getManagerName(), isTop,
+                                        s.getForwardedToUniversity(), s.getAdmissionLettersApproved(),
+                                        s.getTelexManagersAssigned(), s.getVisaManagersAssigned(),
+                                        effColor, eff));
+                }
+
+                return """
+                                <!DOCTYPE html>
+                                <html>
+                                <head>
+                                    <style>
+                                        body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #0f172a; color: #fff; padding: 20px; margin: 0; }
+                                        .container { max-width: 800px; margin: 0 auto; background: linear-gradient(135deg, #1e293b 0%%, #0f172a 100%%); border-radius: 20px; overflow: hidden; box-shadow: 0 25px 50px rgba(0,0,0,0.5); }
+                                        .header { background: linear-gradient(135deg, #f59e0b 0%%, #d97706 100%%); padding: 30px; text-align: center; }
+                                        .header h1 { margin: 0; font-size: 26px; color: #000; font-weight: 700; }
+                                        .header p { margin: 8px 0 0; color: rgba(0,0,0,0.7); font-size: 14px; }
+                                        .summary-row { display: flex; padding: 25px 30px; gap: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+                                        .summary-box { flex: 1; text-align: center; padding: 15px; background: rgba(255,255,255,0.05); border-radius: 12px; }
+                                        .summary-value { font-size: 28px; font-weight: 700; }
+                                        .summary-label { font-size: 11px; color: rgba(255,255,255,0.5); margin-top: 4px; text-transform: uppercase; }
+                                        .content { padding: 25px 30px; }
+                                        table { width: 100%%; border-collapse: collapse; }
+                                        th { background: rgba(245,158,11,0.15); color: #f59e0b; padding: 14px 12px; text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+                                        td { color: rgba(255,255,255,0.85); font-size: 14px; }
+                                        .footer { background: rgba(0,0,0,0.3); padding: 20px; text-align: center; color: rgba(255,255,255,0.4); font-size: 11px; }
+                                        .top-performer { background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.3); border-radius: 12px; padding: 15px 20px; margin-bottom: 20px; display: flex; align-items: center; gap: 12px; }
+                                        .trophy { font-size: 32px; }
+                                        .top-info h3 { margin: 0; color: #22c55e; font-size: 16px; }
+                                        .top-info p { margin: 4px 0 0; color: rgba(255,255,255,0.6); font-size: 12px; }
+                                    </style>
+                                </head>
+                                <body>
+                                    <div class="container">
+                                        <div class="header">
+                                            <h1>📊 Team Performance Report</h1>
+                                            <p>All Admission Managers</p>
+                                            <span style="display: inline-block; background: rgba(0,0,0,0.2); color: #000; padding: 6px 16px; border-radius: 20px; font-size: 12px; margin-top: 12px; font-weight: 600;">%s Summary</span>
+                                        </div>
+
+                                        <!-- Summary Stats -->
+                                        <div class="summary-row">
+                                            <div class="summary-box">
+                                                <div class="summary-value" style="color: #f59e0b">%d</div>
+                                                <div class="summary-label">Total Forwarded</div>
+                                            </div>
+                                            <div class="summary-box">
+                                                <div class="summary-value" style="color: #22c55e">%d</div>
+                                                <div class="summary-label">Total Approved</div>
+                                            </div>
+                                            <div class="summary-box">
+                                                <div class="summary-value" style="color: #60a5fa">%.1f%%</div>
+                                                <div class="summary-label">Avg Efficiency</div>
+                                            </div>
+                                            <div class="summary-box">
+                                                <div class="summary-value" style="color: #a78bfa">%d</div>
+                                                <div class="summary-label">Managers</div>
+                                            </div>
+                                        </div>
+
+                                        <div class="content">
+                                            <!-- Top Performer -->
+                                            %s
+
+                                            <!-- Manager Table -->
+                                            <table>
+                                                <thead>
+                                                    <tr>
+                                                        <th>Manager</th>
+                                                        <th style="text-align: center;">Forwarded</th>
+                                                        <th style="text-align: center;">Approved</th>
+                                                        <th style="text-align: center;">Telex</th>
+                                                        <th style="text-align: center;">Visa</th>
+                                                        <th style="text-align: center;">Efficiency</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    %s
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                        <div class="footer">
+                                            Generated on %s at %s | CampusConnect Performance Analytics
+                                        </div>
+                                    </div>
+                                </body>
+                                </html>
+                                """
+                                .formatted(
+                                                periodLabel,
+                                                totalForwarded, totalApproved, avgEfficiency, reports.size(),
+                                                topPerformer != null ? String.format(
+                                                                """
+                                                                                <div class="top-performer">
+                                                                                    <span class="trophy">🏆</span>
+                                                                                    <div class="top-info">
+                                                                                        <h3>Top Performer: %s</h3>
+                                                                                        <p>%.0f%% efficiency rate this period</p>
+                                                                                    </div>
+                                                                                </div>
+                                                                                """,
+                                                                topPerformer.getManagerName(), topEfficiency) : "",
+                                                rows.toString(),
+                                                java.time.LocalDate.now().toString(),
+                                                java.time.LocalTime.now().format(
+                                                                java.time.format.DateTimeFormatter.ofPattern("HH:mm")));
+        }
+
+        private String getTrendClass(Double trend) {
+                if (trend == null)
+                        return "trend-neutral";
+                return trend >= 0 ? "trend-positive" : "trend-negative";
+        }
+
+        private String formatTrend(Double trend) {
+                if (trend == null)
+                        return "N/A";
+                return (trend >= 0 ? "+" : "") + String.format("%.1f", trend) + "%";
+        }
 }

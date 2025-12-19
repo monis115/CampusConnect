@@ -281,4 +281,63 @@ public class UniversityPersonController {
             return ResponseEntity.status(500).body("Error getting students: " + e.getMessage());
         }
     }
+
+    // ======================= PERFORMANCE REPORTS =======================
+
+    /**
+     * Get performance report for a single UniversityPerson
+     */
+    @GetMapping("/reports/{id}")
+    public ResponseEntity<?> getReport(
+            @PathVariable Long id,
+            @RequestParam(defaultValue = "daily") String period) {
+        try {
+            return ResponseEntity.ok(service.generateReport(id, period));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Error generating report: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Get performance reports for all UniversityPersons
+     */
+    @GetMapping("/reports/all")
+    public ResponseEntity<?> getAllReports(@RequestParam(defaultValue = "daily") String period) {
+        try {
+            return ResponseEntity.ok(service.generateAllReports(period));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Error generating reports: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Email report for a single UniversityPerson
+     */
+    @PostMapping("/reports/{id}/email")
+    public ResponseEntity<?> emailReport(
+            @PathVariable Long id,
+            @RequestParam(defaultValue = "daily") String period,
+            @RequestParam String email) {
+        try {
+            service.sendReportByEmail(id, period, email);
+            return ResponseEntity.ok("Report sent successfully to " + email);
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Error sending report: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Email reports for all UniversityPersons
+     */
+    @PostMapping("/reports/all/email")
+    public ResponseEntity<?> emailAllReports(
+            @RequestParam(defaultValue = "daily") String period,
+            @RequestParam String email) {
+        try {
+            service.sendAllReportsEmail(period, email);
+            return ResponseEntity.ok("All reports sent successfully to " + email);
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Error sending reports: " + e.getMessage());
+        }
+    }
 }

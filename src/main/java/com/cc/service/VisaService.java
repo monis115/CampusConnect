@@ -43,7 +43,7 @@ public class VisaService {
         student.setVisaMan(visaPerson);
         student.setApplicationStatus(StudentStatus.VISA_FEE_PENDING);
 
-        addHistory(student, StudentStatus.VISA_FEE_PENDING,
+        addHistory(student, StudentStatus.VISA_FEE_PENDING, admissionManagerUsername,
                 "Assigned to Visa Person: " + visaPersonUsername + " by Admission Manager: "
                         + admissionManagerUsername);
 
@@ -281,11 +281,18 @@ public class VisaService {
 
     // Helper to add history
     private void addHistory(Student student, StudentStatus status, String updatedBy) {
+        addHistory(student, status, updatedBy, null);
+    }
+
+    private void addHistory(Student student, StudentStatus status, String updatedBy, String remarks) {
         StudentStatusHistory history = new StudentStatusHistory();
         history.setStudent(student);
         history.setStudentApplicationStatus(status);
         history.setUpdatedBy(updatedBy);
         history.setUpdatedAt(LocalDateTime.now());
+        if (remarks != null) {
+            history.setRemarks(remarks);
+        }
         student.getStudentStatusHistory().add(history);
     }
 }

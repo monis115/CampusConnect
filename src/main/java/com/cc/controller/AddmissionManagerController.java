@@ -181,4 +181,60 @@ public class AddmissionManagerController {
             return ResponseEntity.notFound().build();
         }
     }
+
+    // -------------------- REPORTS --------------------
+
+    // 1. Get All Managers Reports
+    @GetMapping("/reports/all")
+    public ResponseEntity<List<com.cc.DTO.AdmissionManagerReportDTO>> getAllManagersReports(
+            @RequestParam(defaultValue = "yearly") String period) {
+        return ResponseEntity.ok(service.generateAllManagersReport(period));
+    }
+
+    // 2. Get Specific Manager Report
+    @GetMapping("/reports/{managerId}")
+    public ResponseEntity<com.cc.DTO.AdmissionManagerReportDTO> getManagerReport(
+            @PathVariable Long managerId,
+            @RequestParam(defaultValue = "yearly") String period) {
+        try {
+            return ResponseEntity.ok(service.generateReport(managerId, period));
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    // 3. Send Single Manager Report via Email
+    @PostMapping("/reports/{managerId}/email")
+    public ResponseEntity<Map<String, String>> sendManagerReportEmail(
+            @PathVariable Long managerId,
+            @RequestParam(defaultValue = "yearly") String period,
+            @RequestParam String email) {
+        try {
+            service.sendReportByEmail(managerId, period, email);
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "Report sent successfully to " + email);
+            return ResponseEntity.ok(response);
+        } catch (RuntimeException e) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", "Failed to send email: " + e.getMessage());
+            return ResponseEntity.status(500).body(error);
+        }
+    }
+
+    // 4. Send All Managers Report via Email
+    @PostMapping("/reports/all/email")
+    public ResponseEntity<Map<String, String>> sendAllManagersReportEmail(
+            @RequestParam(defaultValue = "yearly") String period,
+            @RequestParam String email) {
+        try {
+            service.sendAllManagersReportByEmail(period, email);
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "All managers report sent successfully to " + email);
+            return ResponseEntity.ok(response);
+        } catch (RuntimeException e) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", "Failed to send email: " + e.getMessage());
+            return ResponseEntity.status(500).body(error);
+        }
+    }
 }

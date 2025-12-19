@@ -43,6 +43,12 @@ public interface StudentRepository extends JpaRepository<Student, Long> {
         long countByAdmissionManagerAndApplicationStatus(AddmissionManager admissionManager,
                         StudentStatus applicationStatus);
 
+        // Count students with TelexMan/VisaMan assigned for a specific Admission
+        // Manager
+        long countByAdmissionManagerAndTelexManIsNotNull(AddmissionManager admissionManager);
+
+        long countByAdmissionManagerAndVisaManIsNotNull(AddmissionManager admissionManager);
+
         // Recent Activity
         List<Student> findTop5ByAdmissionManagerOrderByIdDesc(AddmissionManager admissionManager);
 
