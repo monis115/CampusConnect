@@ -65,4 +65,20 @@ public interface StudentStatusHistoryRepository extends JpaRepository<StudentSta
                         @org.springframework.data.repository.query.Param("managerId") Long managerId,
                         @org.springframework.data.repository.query.Param("start") java.time.LocalDateTime start,
                         @org.springframework.data.repository.query.Param("end") java.time.LocalDateTime end);
+
+        // ======================= UNIVERSITY PERSON REPORT METHODS
+        // =======================
+
+        // Find all history entries for students assigned to a specific UniversityPerson
+        @org.springframework.data.jpa.repository.Query("SELECT h FROM StudentStatusHistory h WHERE h.student.universityPerson.id = :universityPersonId ORDER BY h.updatedAt DESC")
+        List<StudentStatusHistory> findByUniversityPersonId(
+                        @org.springframework.data.repository.query.Param("universityPersonId") Long universityPersonId);
+
+        // Find history entries for students assigned to a UniversityPerson within date
+        // range
+        @org.springframework.data.jpa.repository.Query("SELECT h FROM StudentStatusHistory h WHERE h.student.universityPerson.id = :universityPersonId AND h.updatedAt BETWEEN :start AND :end ORDER BY h.updatedAt DESC")
+        List<StudentStatusHistory> findByUniversityPersonIdAndDateRange(
+                        @org.springframework.data.repository.query.Param("universityPersonId") Long universityPersonId,
+                        @org.springframework.data.repository.query.Param("start") java.time.LocalDateTime start,
+                        @org.springframework.data.repository.query.Param("end") java.time.LocalDateTime end);
 }

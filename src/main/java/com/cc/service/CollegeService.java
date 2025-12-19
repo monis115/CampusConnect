@@ -131,7 +131,7 @@ public class CollegeService {
                 break;
         }
 
-        // Get history for this college
+        // Get history for this college within date ranges
         List<StudentStatusHistory> currentHistory = statusHistoryRepo.findByCollegeAndDateRange(
                 collegeId, currentStart, currentEnd);
         List<StudentStatusHistory> previousHistory = statusHistoryRepo.findByCollegeAndDateRange(
@@ -141,18 +141,22 @@ public class CollegeService {
         var currentCounts = countUniqueStudentsByStatus(currentHistory);
         var previousCounts = countUniqueStudentsByStatus(previousHistory);
 
-        // Get total students
-        long totalStudents = studentRepository.countByCollege_Id(collegeId);
+        // Get UNIQUE students who had activity in the CURRENT period (dynamic by
+        // period)
+        java.util.Set<Long> uniqueStudentIds = currentHistory.stream()
+                .map(h -> h.getStudent().getId())
+                .collect(java.util.stream.Collectors.toSet());
+        int totalStudentsInPeriod = uniqueStudentIds.size();
 
         // Build stats
         com.cc.DTO.CollegeReportDTO.CollegeStatsDTO stats = new com.cc.DTO.CollegeReportDTO.CollegeStatsDTO();
-        stats.setTotalStudents((int) totalStudents);
+        stats.setTotalStudents(totalStudentsInPeriod);
         stats.setLettersUploaded(currentCounts.getOrDefault(StudentStatus.PENDING_ADMISSION_LETTER, 0));
         stats.setConditionalOffers(
                 currentCounts.getOrDefault(StudentStatus.CONDITIONAL_OFFER_LETTER_GENERATED, 0));
-        stats.setPendingLetters((int) totalStudents - stats.getLettersUploaded());
+        stats.setPendingLetters(totalStudentsInPeriod - stats.getLettersUploaded());
         stats.setEfficiencyRate(
-                totalStudents > 0 ? ((double) stats.getLettersUploaded() / totalStudents) * 100 : 0);
+                totalStudentsInPeriod > 0 ? ((double) stats.getLettersUploaded() / totalStudentsInPeriod) * 100 : 0);
 
         // Calculate trends
         int prevLetters = previousCounts.getOrDefault(StudentStatus.PENDING_ADMISSION_LETTER, 0);
@@ -287,9 +291,9 @@ public class CollegeService {
             rows.append(String.format(
                     """
                             <tr style="background: rgba(255,255,255,0.02);">
-                                <td style="padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.08);"><strong>%s</strong><br><span style="font-size: 11px; color: rgba(255,255,255,0.5);">%s, %s</span></td>
-                                <td style="padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.08);">%s</td>
-                                <td style="padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.08); text-align: center;">%d</td>
+                                <td style="padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.08); color: #fff;"><strong>%s</strong><br><span style="font-size: 11px; color: rgba(255,255,255,0.5);">%s, %s</span></td>
+                                <td style="padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.08); color: rgba(255,255,255,0.8);">%s</td>
+                                <td style="padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.08); text-align: center; color: #fff;">%d</td>
                                 <td style="padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.08); text-align: center; color: #22c55e;">%d</td>
                                 <td style="padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.08); text-align: center;"><span style="color: %s;">%.0f%%</span></td>
                             </tr>

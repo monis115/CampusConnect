@@ -163,6 +163,15 @@ public interface StudentRepository extends JpaRepository<Student, Long> {
         List<Student> findByCollege_IdAndCreatedAtBetween(Long collegeId, java.time.LocalDate start,
                         java.time.LocalDate end);
 
+        // ======================= UNIVERSITY PERSON REPORT METHODS
+        // =======================
+
+        // Count students assigned to a specific UniversityPerson
+        long countByUniversityPerson_Id(Long universityPersonId);
+
+        // Find students by UniversityPerson ID
+        List<Student> findByUniversityPerson_Id(Long universityPersonId);
+
         // ======================= GLOBAL BENCHMARKING METHODS =======================
         long countByApplicationStatusInAndCreatedAtBetween(List<StudentStatus> statuses, java.time.LocalDate start,
                         java.time.LocalDate end);

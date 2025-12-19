@@ -342,8 +342,9 @@ public class UniversityPersonService {
                     new com.cc.DTO.UniversityPersonReportDTO.UniversityPersonStatsDTO());
         }
 
-        Long collegeId = up.getCollege().getId();
+        Long universityPersonId = up.getId();
         String collegeName = up.getCollege().getCollegeName();
+        Long collegeId = up.getCollege().getId();
 
         // Determine date ranges
         java.time.LocalDateTime now = java.time.LocalDateTime.now();
@@ -371,28 +372,38 @@ public class UniversityPersonService {
                 break;
         }
 
-        // Get history for this college within date ranges
-        List<StudentStatusHistory> currentHistory = statusHistoryRepo.findByCollegeAndDateRange(
-                collegeId, currentStart, currentEnd);
-        List<StudentStatusHistory> previousHistory = statusHistoryRepo.findByCollegeAndDateRange(
-                collegeId, previousStart, previousEnd);
+        // Get history for students assigned to THIS UniversityPerson within date ranges
+        List<StudentStatusHistory> currentHistory = statusHistoryRepo.findByUniversityPersonIdAndDateRange(
+                universityPersonId, currentStart, currentEnd);
+        List<StudentStatusHistory> previousHistory = statusHistoryRepo.findByUniversityPersonIdAndDateRange(
+                universityPersonId, previousStart, previousEnd);
 
         // Count unique students per status
         var currentCounts = countUniqueStudentsByStatus(currentHistory);
         var previousCounts = countUniqueStudentsByStatus(previousHistory);
 
-        // Get total students in college
-        long totalStudents = studentRepository.countByCollege_Id(collegeId);
+        // Get UNIQUE students who had activity in the CURRENT period (dynamic by
+        // period)
+        java.util.Set<Long> uniqueStudentIds = currentHistory.stream()
+                .map(h -> h.getStudent().getId())
+                .collect(java.util.stream.Collectors.toSet());
+        int totalStudentsInPeriod = uniqueStudentIds.size();
+
+        // Get unique previous period student count for trend calculation
+        java.util.Set<Long> uniquePrevStudentIds = previousHistory.stream()
+                .map(h -> h.getStudent().getId())
+                .collect(java.util.stream.Collectors.toSet());
+        int previousTotalStudents = uniquePrevStudentIds.size();
 
         // Build stats
         com.cc.DTO.UniversityPersonReportDTO.UniversityPersonStatsDTO stats = new com.cc.DTO.UniversityPersonReportDTO.UniversityPersonStatsDTO();
-        stats.setTotalStudents((int) totalStudents);
+        stats.setTotalStudents(totalStudentsInPeriod);
         stats.setLettersUploaded(currentCounts.getOrDefault(StudentStatus.PENDING_ADMISSION_LETTER, 0));
         stats.setConditionalOffersUploaded(
                 currentCounts.getOrDefault(StudentStatus.CONDITIONAL_OFFER_LETTER_GENERATED, 0));
-        stats.setPendingLetters((int) totalStudents - stats.getLettersUploaded());
+        stats.setPendingLetters(totalStudentsInPeriod - stats.getLettersUploaded());
         stats.setEfficiencyRate(
-                totalStudents > 0 ? ((double) stats.getLettersUploaded() / totalStudents) * 100 : 0);
+                totalStudentsInPeriod > 0 ? ((double) stats.getLettersUploaded() / totalStudentsInPeriod) * 100 : 0);
 
         // Calculate trends
         int prevLetters = previousCounts.getOrDefault(StudentStatus.PENDING_ADMISSION_LETTER, 0);
@@ -578,9 +589,9 @@ public class UniversityPersonService {
             rows.append(String.format(
                     """
                             <tr style="background: rgba(255,255,255,0.02);">
-                                <td style="padding: 14px 12px; border-bottom: 1px solid rgba(255,255,255,0.08);"><strong>%s</strong> %s</td>
-                                <td style="padding: 14px 12px; border-bottom: 1px solid rgba(255,255,255,0.08);">%s</td>
-                                <td style="padding: 14px 12px; border-bottom: 1px solid rgba(255,255,255,0.08); text-align: center;">%d</td>
+                                <td style="padding: 14px 12px; border-bottom: 1px solid rgba(255,255,255,0.08); color: #fff;"><strong>%s</strong> %s</td>
+                                <td style="padding: 14px 12px; border-bottom: 1px solid rgba(255,255,255,0.08); color: rgba(255,255,255,0.8);">%s</td>
+                                <td style="padding: 14px 12px; border-bottom: 1px solid rgba(255,255,255,0.08); text-align: center; color: #fff;">%d</td>
                                 <td style="padding: 14px 12px; border-bottom: 1px solid rgba(255,255,255,0.08); text-align: center; color: #22c55e;">%d</td>
                                 <td style="padding: 14px 12px; border-bottom: 1px solid rgba(255,255,255,0.08); text-align: center;"><span style="color: %s; font-weight: 600;">%.0f%%</span></td>
                             </tr>
