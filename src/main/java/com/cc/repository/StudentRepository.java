@@ -181,4 +181,148 @@ public interface StudentRepository extends JpaRepository<Student, Long> {
 
         List<Student> findByApplicationStatusInAndCreatedAtBetween(List<StudentStatus> statuses,
                         java.time.LocalDate start, java.time.LocalDate end);
+
+        // ======================= TELEX MANAGER REPORT METHODS =======================
+
+        // Count total students assigned to a Telex Manager
+        @org.springframework.data.jpa.repository.Query("SELECT COUNT(s) FROM Student s WHERE s.telexMan.username = :username")
+        long countByTelexManUsername(@org.springframework.data.repository.query.Param("username") String username);
+
+        // Count status changes by specific manager within date range
+        @org.springframework.data.jpa.repository.Query("SELECT COUNT(DISTINCT s) FROM Student s JOIN s.studentStatusHistory h "
+                        +
+                        "WHERE s.telexMan.username = :username " +
+                        "AND h.studentApplicationStatus = :status " +
+                        "AND h.updatedBy = :username " +
+                        "AND h.updatedAt >= :start AND h.updatedAt <= :end")
+        long countByTelexManAndStatusAndDateRange(
+                        @org.springframework.data.repository.query.Param("username") String username,
+                        @org.springframework.data.repository.query.Param("status") StudentStatus status,
+                        @org.springframework.data.repository.query.Param("start") java.time.LocalDateTime start,
+                        @org.springframework.data.repository.query.Param("end") java.time.LocalDateTime end);
+
+        // Special case for "Submitted Documents" which uses specific status OR remarks
+        // if needed.
+        // Based on logic: Upload Telex Docs -> sets status to
+        // SUBMIT_TELEX_TO_UNIVERSITY (next action)
+        // Actually, looking at service: uploadTelexDocuments -> Action:
+        // SUBMIT_TELEX_TO_UNIVERSITY, Status remains...
+        // Wait, uploadTelexDocuments does NOT change status?
+        // Service line 136: addHistory(student, student.getApplicationStatus(), ...);
+        // It uses current status but adds history "Uploaded Documents".
+
+        // Count specific "Document Uploaded" history entries
+        @org.springframework.data.jpa.repository.Query("SELECT COUNT(DISTINCT s) FROM Student s JOIN s.studentStatusHistory h "
+                        +
+                        "WHERE s.telexMan.username = :username " +
+                        "AND (LOWER(h.remarks) LIKE '%upload%' OR LOWER(h.remarks) LIKE '%document%') " +
+                        "AND h.updatedAt >= :start AND h.updatedAt <= :end")
+        long countTelexDocsUploadedByManager(
+                        @org.springframework.data.repository.query.Param("username") String username,
+                        @org.springframework.data.repository.query.Param("start") java.time.LocalDateTime start,
+                        @org.springframework.data.repository.query.Param("end") java.time.LocalDateTime end);
+
+        // ======================= GLOBAL TELEX STATS (FOR ADMIN)
+        // =======================
+
+        // Count total students assigned to ANY TelexMan
+        @org.springframework.data.jpa.repository.Query("SELECT COUNT(s) FROM Student s WHERE s.telexMan IS NOT NULL")
+        long countAllTelexManStudents();
+
+        // Count status changes by ANY telex manager within date range
+        @org.springframework.data.jpa.repository.Query("SELECT COUNT(DISTINCT s) FROM Student s JOIN s.studentStatusHistory h "
+                        +
+                        "WHERE s.telexMan IS NOT NULL " +
+                        "AND h.studentApplicationStatus = :status " +
+                        "AND h.updatedAt >= :start AND h.updatedAt <= :end")
+        long countAllTelexStatusByDateRange(
+                        @org.springframework.data.repository.query.Param("status") StudentStatus status,
+                        @org.springframework.data.repository.query.Param("start") java.time.LocalDateTime start,
+                        @org.springframework.data.repository.query.Param("end") java.time.LocalDateTime end);
+
+        // Count all document uploads for ALL telex managers
+        @org.springframework.data.jpa.repository.Query("SELECT COUNT(DISTINCT s) FROM Student s JOIN s.studentStatusHistory h "
+                        +
+                        "WHERE s.telexMan IS NOT NULL " +
+                        "AND h.remarks LIKE '%Uploaded Documents%' " +
+                        "AND h.updatedAt >= :start AND h.updatedAt <= :end")
+        long countAllTelexDocsUploaded(
+                        @org.springframework.data.repository.query.Param("start") java.time.LocalDateTime start,
+                        @org.springframework.data.repository.query.Param("end") java.time.LocalDateTime end);
+
+        // Count students by TelexMan username with status in list
+        @org.springframework.data.jpa.repository.Query("SELECT COUNT(s) FROM Student s WHERE s.telexMan.username = :username AND s.applicationStatus IN :statuses")
+        long countByTelexManUsernameAndStatusIn(
+                        @org.springframework.data.repository.query.Param("username") String username,
+                        @org.springframework.data.repository.query.Param("statuses") java.util.List<StudentStatus> statuses);
+
+        // Count students assigned to TelexMan within date range (based on history
+        // status, not updatedBy)
+        @org.springframework.data.jpa.repository.Query("SELECT COUNT(DISTINCT s) FROM Student s JOIN s.studentStatusHistory h "
+                        +
+                        "WHERE s.telexMan.username = :username " +
+                        "AND h.studentApplicationStatus = :status " +
+                        "AND h.updatedAt >= :start AND h.updatedAt <= :end")
+        long countAssignedToTelexManByStatusAndDateRange(
+                        @org.springframework.data.repository.query.Param("username") String username,
+                        @org.springframework.data.repository.query.Param("status") StudentStatus status,
+                        @org.springframework.data.repository.query.Param("start") java.time.LocalDateTime start,
+                        @org.springframework.data.repository.query.Param("end") java.time.LocalDateTime end);
+
+        // ======================= VISA MANAGER REPORT METHODS =======================
+
+        // Count by VisaMan
+        @org.springframework.data.jpa.repository.Query("SELECT COUNT(s) FROM Student s WHERE s.visaMan.username = :username")
+        long countByVisaManUsername(@org.springframework.data.repository.query.Param("username") String username);
+
+        // Count status changes by specific VisaMan within date range
+        @org.springframework.data.jpa.repository.Query("SELECT COUNT(DISTINCT s) FROM Student s JOIN s.studentStatusHistory h "
+                        +
+                        "WHERE s.visaMan.username = :username " +
+                        "AND h.studentApplicationStatus = :status " +
+                        "AND h.updatedBy = :username " +
+                        "AND h.updatedAt >= :start AND h.updatedAt <= :end")
+        long countByVisaManAndStatusAndDateRange(
+                        @org.springframework.data.repository.query.Param("username") String username,
+                        @org.springframework.data.repository.query.Param("status") StudentStatus status,
+                        @org.springframework.data.repository.query.Param("start") java.time.LocalDateTime start,
+                        @org.springframework.data.repository.query.Param("end") java.time.LocalDateTime end);
+
+        // Count history remarks by specific VisaMan within date range (For Payment
+        // Requests, etc.)
+        @org.springframework.data.jpa.repository.Query("SELECT COUNT(DISTINCT s) FROM Student s JOIN s.studentStatusHistory h "
+                        +
+                        "WHERE s.visaMan.username = :username " +
+                        "AND LOWER(h.remarks) LIKE LOWER(CONCAT('%', :remarkPattern, '%')) " +
+                        "AND h.updatedAt >= :start AND h.updatedAt <= :end")
+        long countByVisaManAndHistoryRemarkAndDateRange(
+                        @org.springframework.data.repository.query.Param("username") String username,
+                        @org.springframework.data.repository.query.Param("remarkPattern") String remarkPattern,
+                        @org.springframework.data.repository.query.Param("start") java.time.LocalDateTime start,
+                        @org.springframework.data.repository.query.Param("end") java.time.LocalDateTime end);
+
+        // ======================= GLOBAL VISA STATS (FOR ADMIN) =======================
+
+        // Count status changes by ANY visa manager within date range
+        @org.springframework.data.jpa.repository.Query("SELECT COUNT(DISTINCT s) FROM Student s JOIN s.studentStatusHistory h "
+                        +
+                        "WHERE s.visaMan IS NOT NULL " +
+                        "AND h.studentApplicationStatus = :status " +
+                        "AND h.updatedAt >= :start AND h.updatedAt <= :end")
+        long countAllVisaStatusByDateRange(
+                        @org.springframework.data.repository.query.Param("status") StudentStatus status,
+                        @org.springframework.data.repository.query.Param("start") java.time.LocalDateTime start,
+                        @org.springframework.data.repository.query.Param("end") java.time.LocalDateTime end);
+
+        // Count remarks by ANY visa manager within date range
+        @org.springframework.data.jpa.repository.Query("SELECT COUNT(DISTINCT s) FROM Student s JOIN s.studentStatusHistory h "
+                        +
+                        "WHERE s.visaMan IS NOT NULL " +
+                        "AND LOWER(h.remarks) LIKE LOWER(CONCAT('%', :remarkPattern, '%')) " +
+                        "AND h.updatedAt >= :start AND h.updatedAt <= :end")
+        long countAllVisaHistoryRemarkByDateRange(
+                        @org.springframework.data.repository.query.Param("remarkPattern") String remarkPattern,
+                        @org.springframework.data.repository.query.Param("start") java.time.LocalDateTime start,
+                        @org.springframework.data.repository.query.Param("end") java.time.LocalDateTime end);
+
 }

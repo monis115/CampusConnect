@@ -124,4 +124,75 @@ public class TelexController {
             return ResponseEntity.status(500).body("Error uploading documents: " + e.getMessage());
         }
     }
+
+    // 6. Get Telex Manager Stats & Report
+    // URL: /api/telex/stats?managerUsername=...&date=YYYY-MM-DD (optional date)
+    // If managerUsername is empty, "all", or "admin" -> returns aggregated stats
+    // for ALL TelexMan
+    @org.springframework.web.bind.annotation.GetMapping("/stats")
+    public ResponseEntity<?> getTelexStats(
+            @org.springframework.web.bind.annotation.RequestParam(required = false) String managerUsername,
+            @org.springframework.web.bind.annotation.RequestParam(required = false) java.time.LocalDate date) {
+        try {
+            if (date == null)
+                date = java.time.LocalDate.now();
+
+            com.cc.DTO.TelexReportDTO report;
+
+            // Check if we need global stats (admin view)
+            if (managerUsername == null || managerUsername.isEmpty() ||
+                    managerUsername.equalsIgnoreCase("all") || managerUsername.equalsIgnoreCase("admin")) {
+                report = telexService.getGlobalTelexReport(date);
+            } else {
+                report = telexService.getTelexReport(managerUsername, date);
+            }
+
+            return ResponseEntity.ok(report);
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Error fetching stats: " + e.getMessage());
+        }
+    }
+
+    // 7. Send Report via Email
+    // URL: /api/telex/send-report
+    // Body: { "managerUsername": "...", "date": "YYYY-MM-DD", "email": "..." }
+    @PostMapping("/send-report")
+    public ResponseEntity<?> sendReport(@RequestBody Map<String, String> request) {
+        try {
+            String managerUsername = request.get("managerUsername");
+            String email = request.get("email");
+            String dateStr = request.get("date"); // Optional
+            String period = request.get("period"); // Optional (Daily/Monthly/Yearly)
+
+            if (managerUsername == null || managerUsername.isEmpty()) {
+                return ResponseEntity.badRequest().body("managerUsername is required");
+            }
+            if (email == null || email.isEmpty()) {
+                return ResponseEntity.badRequest().body("email is required");
+            }
+
+            java.time.LocalDate date = (dateStr != null && !dateStr.isEmpty())
+                    ? java.time.LocalDate.parse(dateStr)
+                    : java.time.LocalDate.now();
+
+            telexService.sendTelexReportEmail(managerUsername, date, email, period);
+            return ResponseEntity.ok("Report sent successfully to " + email);
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Error sending report: " + e.getMessage());
+        }
+    }
+
+    // 8. Get All TelexMan with their Stats (for summary table)
+    // URL: /api/telex/all-managers-stats?period=daily|monthly|yearly (optional,
+    // defaults to monthly)
+    @org.springframework.web.bind.annotation.GetMapping("/all-managers-stats")
+    public ResponseEntity<?> getAllManagersStats(
+            @org.springframework.web.bind.annotation.RequestParam(required = false, defaultValue = "monthly") String period) {
+        try {
+            java.util.List<com.cc.DTO.TelexManStatsDTO> stats = telexService.getAllTelexManStats(period);
+            return ResponseEntity.ok(stats);
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Error fetching all managers stats: " + e.getMessage());
+        }
+    }
 }

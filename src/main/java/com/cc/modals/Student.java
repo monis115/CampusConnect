@@ -21,7 +21,7 @@ public class Student {
 	@Column(nullable = false)
 	private String fullName;
 
-	@Column(nullable = false, unique = true)
+	@Column(nullable = false, unique = true, length = 100)
 	private String applicationId;
 
 	@Column(nullable = false)
@@ -52,7 +52,7 @@ public class Student {
 	@Column(columnDefinition = "TEXT", nullable = false)
 	private String emergencyRelation;
 
-	@Column(nullable = true)
+	@Column(nullable = true, columnDefinition = "TEXT")
 	private String passportNo;
 
 	@Column(nullable = true)
@@ -70,7 +70,7 @@ public class Student {
 	@Column(columnDefinition = "TEXT", nullable = false)
 	private String fathersName;
 
-	@Column(nullable = false)
+	@Column(nullable = false, columnDefinition = "TEXT")
 	private String adhaarCardNo;
 
 	@Column(columnDefinition = "TEXT")
@@ -139,7 +139,7 @@ public class Student {
 	@Column(name = "profile_image_path", columnDefinition = "TEXT")
 	private String profileImagePath;
 
-	@Column(nullable = true)
+	@Column(nullable = true, columnDefinition = "TEXT")
 	private String updatedBy;
 
 	@Column(nullable = true)
@@ -183,7 +183,7 @@ public class Student {
 	private Accountant accountant;
 
 	// Telex Details
-	@Column(name = "telex_number")
+	@Column(name = "telex_number", columnDefinition = "TEXT")
 	private String telexNumber;
 
 	@Column(name = "telex_issue_date")
@@ -226,7 +226,7 @@ public class Student {
 	private List<StudentStatusHistory> studentStatusHistory = new java.util.ArrayList<>();
 
 	// ======================= DOCUMENT TRACKING FIELDS =======================
-	@Column(name = "original_doc_location")
+	@Column(name = "original_doc_location", columnDefinition = "TEXT")
 	private String originalDocLocation;
 
 	@Column(name = "original_docs_sent")
@@ -242,7 +242,7 @@ public class Student {
 	@Column(name = "courier_tracking_id")
 	private String courierTrackingId;
 
-	@Column(name = "self_person_contact")
+	@Column(name = "self_person_contact", columnDefinition = "TEXT")
 	private String selfPersonContact;
 
 	@Column(name = "doc_tentative_reach_date")
@@ -297,8 +297,8 @@ public class Student {
 	@Column(name = "payment_due_date")
 	private LocalDate paymentDueDate;
 
+	@Column(name = "payment_type", columnDefinition = "TEXT")
 	@Enumerated(EnumType.STRING)
-	@Column(name = "payment_type")
 	private PaymentType paymentType;
 
 	// ======================= PERSONAL/VISA INFORMATION =======================
@@ -311,17 +311,17 @@ public class Student {
 	@Column(name = "middle_name", columnDefinition = "TEXT")
 	private String middleName;
 
-	@Column(name = "sex")
+	@Column(name = "sex", columnDefinition = "TEXT")
 	private String sex;
 
-	@Column(name = "country_of_birth")
+	@Column(name = "country_of_birth", columnDefinition = "TEXT")
 	private String countryOfBirth;
 
 	@Column(name = "place_of_birth", columnDefinition = "TEXT")
 	private String placeOfBirth;
 
 	@Enumerated(EnumType.STRING)
-	@Column(name = "marital_status")
+	@Column(name = "marital_status", columnDefinition = "TEXT")
 	private MaritalStatus maritalStatus;
 
 	@Column(name = "citizenship", columnDefinition = "TEXT")
@@ -331,7 +331,7 @@ public class Student {
 	private String previousCitizenship;
 
 	@Enumerated(EnumType.STRING)
-	@Column(name = "passport_type")
+	@Column(name = "passport_type", columnDefinition = "TEXT")
 	private PassportType passportType;
 
 	@Column(name = "passport_issue_date")
@@ -359,7 +359,7 @@ public class Student {
 	@Column(name = "visa_payment_requested_amount")
 	private Double visaPaymentRequestedAmount;
 
-	@Column(name = "visa_payment_requested_currency")
+	@Column(name = "visa_payment_requested_currency", columnDefinition = "TEXT")
 	private String visaPaymentRequestedCurrency;
 
 	@Column(name = "visa_bank_details_sent_date")
@@ -382,7 +382,7 @@ public class Student {
 	@Column(name = "visa_bank_name", columnDefinition = "TEXT")
 	private String visaBankName;
 
-	@Column(name = "visa_bank_account_number")
+	@Column(name = "visa_bank_account_number", columnDefinition = "TEXT")
 	private String visaBankAccountNumber;
 
 	@Column(name = "visa_bank_swift_code", columnDefinition = "TEXT")

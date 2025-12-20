@@ -274,4 +274,48 @@ public class VisaController {
             return ResponseEntity.status(500).body("Error confirming visa payment: " + e.getMessage());
         }
     }
+
+    // ======================= REPORTING ENDPOINTS =======================
+
+    @org.springframework.web.bind.annotation.GetMapping("/stats")
+    public ResponseEntity<?> getVisaStats(
+            @org.springframework.web.bind.annotation.RequestParam(value = "period", defaultValue = "DAILY") String period,
+            @org.springframework.web.bind.annotation.RequestParam(value = "visaManUsername", required = false) String username) {
+        try {
+            return ResponseEntity.ok(visaService.getVisaStats(period, username));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Error fetching Visa Stats: " + e.getMessage());
+        }
+    }
+
+    @org.springframework.web.bind.annotation.GetMapping("/all-stats")
+    public ResponseEntity<?> getAllVisaStats(
+            @org.springframework.web.bind.annotation.RequestParam(value = "period", defaultValue = "DAILY") String period) {
+        try {
+            return ResponseEntity.ok(visaService.getAllVisaManagersStats(period));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Error fetching All Visa Stats: " + e.getMessage());
+        }
+    }
+
+    @PostMapping("/report/email")
+    public ResponseEntity<?> sendReportEmail(@RequestBody Map<String, String> request) {
+        try {
+            String period = request.get("period"); // DAILY, MONTHLY, YEARLY
+            String username = request.get("username"); // Optional (for specific manager)
+            String targetEmail = request.get("targetEmail");
+
+            if (period == null || period.isEmpty()) {
+                period = "DAILY"; // Default
+            }
+            if (targetEmail == null || targetEmail.isEmpty()) {
+                return ResponseEntity.badRequest().body("targetEmail is required");
+            }
+
+            visaService.sendReportEmail(period, username, targetEmail);
+            return ResponseEntity.ok("Report email sent successfully to " + targetEmail);
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Error sending report email: " + e.getMessage());
+        }
+    }
 }
