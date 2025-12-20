@@ -288,16 +288,31 @@ public interface StudentRepository extends JpaRepository<Student, Long> {
                         @org.springframework.data.repository.query.Param("start") java.time.LocalDateTime start,
                         @org.springframework.data.repository.query.Param("end") java.time.LocalDateTime end);
 
+        List<Student> findByVisaMan_Username(String username);
+
         // Count history remarks by specific VisaMan within date range (For Payment
         // Requests, etc.)
         @org.springframework.data.jpa.repository.Query("SELECT COUNT(DISTINCT s) FROM Student s JOIN s.studentStatusHistory h "
                         +
-                        "WHERE s.visaMan.username = :username " +
-                        "AND LOWER(h.remarks) LIKE LOWER(CONCAT('%', :remarkPattern, '%')) " +
-                        "AND h.updatedAt >= :start AND h.updatedAt <= :end")
+                        "WHERE h.updatedBy = :username "
+                        + "AND LOWER(h.remarks) LIKE LOWER(CONCAT('%', :remarkPattern, '%')) "
+                        + "AND h.updatedAt >= :start AND h.updatedAt <= :end")
         long countByVisaManAndHistoryRemarkAndDateRange(
                         @org.springframework.data.repository.query.Param("username") String username,
                         @org.springframework.data.repository.query.Param("remarkPattern") String remarkPattern,
+                        @org.springframework.data.repository.query.Param("start") java.time.LocalDateTime start,
+                        @org.springframework.data.repository.query.Param("end") java.time.LocalDateTime end);
+
+        // Count students TRANSITIONED to a status while assigned to this VisaMan,
+        // IGNORING WHO updated it.
+        // Useful for "Assigned To" counts where AdmissionManager does the updating.
+        @org.springframework.data.jpa.repository.Query("SELECT COUNT(DISTINCT s) FROM Student s JOIN s.studentStatusHistory h "
+                        + "WHERE s.visaMan.username = :username "
+                        + "AND h.studentApplicationStatus = :status "
+                        + "AND h.updatedAt >= :start AND h.updatedAt <= :end")
+        long countByVisaManAndStatusAndDateRangeNoUpdateUser(
+                        @org.springframework.data.repository.query.Param("username") String username,
+                        @org.springframework.data.repository.query.Param("status") StudentStatus status,
                         @org.springframework.data.repository.query.Param("start") java.time.LocalDateTime start,
                         @org.springframework.data.repository.query.Param("end") java.time.LocalDateTime end);
 
@@ -317,8 +332,7 @@ public interface StudentRepository extends JpaRepository<Student, Long> {
         // Count remarks by ANY visa manager within date range
         @org.springframework.data.jpa.repository.Query("SELECT COUNT(DISTINCT s) FROM Student s JOIN s.studentStatusHistory h "
                         +
-                        "WHERE s.visaMan IS NOT NULL " +
-                        "AND LOWER(h.remarks) LIKE LOWER(CONCAT('%', :remarkPattern, '%')) " +
+                        "WHERE LOWER(h.remarks) LIKE LOWER(CONCAT('%', :remarkPattern, '%')) " +
                         "AND h.updatedAt >= :start AND h.updatedAt <= :end")
         long countAllVisaHistoryRemarkByDateRange(
                         @org.springframework.data.repository.query.Param("remarkPattern") String remarkPattern,

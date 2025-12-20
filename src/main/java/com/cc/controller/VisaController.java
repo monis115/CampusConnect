@@ -298,6 +298,17 @@ public class VisaController {
         }
     }
 
+    @org.springframework.web.bind.annotation.GetMapping("/students")
+    public ResponseEntity<?> getVisaStudents(
+            @org.springframework.web.bind.annotation.RequestParam(value = "period", defaultValue = "DAILY") String period,
+            @org.springframework.web.bind.annotation.RequestParam(value = "visaManUsername") String username) {
+        try {
+            return ResponseEntity.ok(visaService.getVisaStudents(period, username));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Error fetching Visa Students: " + e.getMessage());
+        }
+    }
+
     @PostMapping("/report/email")
     public ResponseEntity<?> sendReportEmail(@RequestBody Map<String, String> request) {
         try {

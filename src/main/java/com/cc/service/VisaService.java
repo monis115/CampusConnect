@@ -329,7 +329,10 @@ public class VisaService {
 
                 if (username != null && !username.isEmpty()) {
                         // Specific Manager Stats
-                        stats.setTotalAssignedStudents(studentRepository.countByVisaManUsername(username));
+                        // stats.setTotalAssignedStudents(studentRepository.countByVisaManUsername(username));
+                        stats.setTotalAssignedStudents(
+                                        studentRepository.countByVisaManAndStatusAndDateRangeNoUpdateUser(
+                                                        username, StudentStatus.VISA_FEE_PENDING, start, end));
                         stats.setPaymentRequested(studentRepository.countByVisaManAndHistoryRemarkAndDateRange(username,
                                         "payment requested", start, end));
                         stats.setPaymentConfirmed(studentRepository.countByVisaManAndStatusAndDateRange(username,
@@ -346,10 +349,11 @@ public class VisaService {
                                         "Documents returned", start, end));
                 } else {
                         // Global Stats (Admin View)
-                        stats.setTotalAssignedStudents(studentRepository.countByApplicationStatusIn(
-                                        java.util.List.of(StudentStatus.VISA_FEE_PENDING, StudentStatus.VISA_APPLIED,
-                                                        StudentStatus.PASSPORT_SUBMITTED_TO_EMBASSY,
-                                                        StudentStatus.VISA_STAMPED)));
+                        // Global Stats (Admin View)
+                        // stats.setTotalAssignedStudents(studentRepository.countByApplicationStatusIn(...));
+                        stats.setTotalAssignedStudents(
+                                        studentRepository.countAllVisaStatusByDateRange(StudentStatus.VISA_FEE_PENDING,
+                                                        start, end));
                         // Note: Total assigned is hard to get exactly for time range without checking
                         // when assigned.
                         // Using count of ALL students currently in Visa stages or completed visa
@@ -394,6 +398,58 @@ public class VisaService {
                         allStats.add(getVisaStats(period, vm.getUsername()));
                 }
                 return allStats;
+        }
+
+        public java.util.List<Student> getVisaStudents(String period, String username) {
+                LocalDateTime start;
+                LocalDateTime end = LocalDateTime.now();
+
+                if ("DAILY".equalsIgnoreCase(period)) {
+                        start = java.time.LocalDate.now().atStartOfDay();
+                } else if ("MONTHLY".equalsIgnoreCase(period)) {
+                        start = java.time.LocalDate.now().withDayOfMonth(1).atStartOfDay();
+                } else if ("YEARLY".equalsIgnoreCase(period)) {
+                        start = java.time.LocalDate.now().withDayOfYear(1).atStartOfDay();
+                } else {
+                        throw new IllegalArgumentException("Invalid period. Use DAILY, MONTHLY, or YEARLY.");
+                }
+
+                // If specific username provided, get students for that manager in that period
+                if (username != null && !username.isEmpty()) {
+                        // Logic: Get students with ANY Visa-related activity update in this period by
+                        // this manager?
+                        // OR students assigned to this manager?
+                        // "Drill down" usually implies seeing the students that make up the stats.
+                        // Since stats cover many actions, we should probably return students ASSIGNED
+                        // to
+                        // this manager currently?
+                        // OR students who had activity in this period.
+                        // Given the context of "Reports", typically you list the students involved in
+                        // the stats.
+                        // Safest bet for "Student List" drilldown: All students currently assigned to
+                        // this Visa Manager.
+                        // If strict period filtering is needed for the list too (only those ACTIVE in
+                        // period), it's complex.
+                        // Let's return all students currently assigned to this manager for now, as
+                        // drill-down usually shows current portfolio.
+                        // IMPROVEMENT: Filter by updated_at in period if requested?
+                        // Backend logs show "GET .../students?period=yearly".
+                        // Let's try to filter by "Assigned/Processed in period" if possible, or just
+                        // return all for that manager.
+                        // Compromise: Return all students assigned to this manager. The Frontend seems
+                        // to expect a list.
+
+                        // Returning all students currently assigned into this manager
+                        // return studentRepository.findByVisaManUsername(username); -- Need to check if
+                        // this method exists
+
+                        // Let's use existing repository method or add one.
+                        // findByVisaMan_Username matches JPA convention.
+                        return studentRepository.findByVisaMan_Username(username);
+
+                } else {
+                        return new java.util.ArrayList<>();
+                }
         }
 
         public void sendReportEmail(String period, String username, String targetEmail) {
