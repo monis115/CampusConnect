@@ -798,6 +798,17 @@ public class Student {
 		this.docPerson = docPerson;
 	}
 
+	@Column(name = "doc_person_assigned_date")
+	private LocalDate docPersonAssignedDate;
+
+	public LocalDate getDocPersonAssignedDate() {
+		return docPersonAssignedDate;
+	}
+
+	public void setDocPersonAssignedDate(LocalDate docPersonAssignedDate) {
+		this.docPersonAssignedDate = docPersonAssignedDate;
+	}
+
 	public Accountant getAccountant() {
 		return accountant;
 	}

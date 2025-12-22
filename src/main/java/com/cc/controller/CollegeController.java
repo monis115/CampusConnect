@@ -26,6 +26,18 @@ public class CollegeController {
         return collegeService.getAllColleges();
     }
 
+    /**
+     * Get all college IDs only (lightweight endpoint)
+     * Returns: List of college IDs
+     */
+    @GetMapping("/ids")
+    public ResponseEntity<List<Long>> getAllCollegeIds() {
+        List<Long> collegeIds = collegeService.getAllColleges().stream()
+                .map(College::getId)
+                .collect(java.util.stream.Collectors.toList());
+        return ResponseEntity.ok(collegeIds);
+    }
+
     @GetMapping("/{id}")
     public Optional<College> getCollegeById(@PathVariable Long id) {
         return collegeService.getCollegeById(id);
@@ -65,6 +77,64 @@ public class CollegeController {
         return ResponseEntity.ok(Map.of(
                 "available", !isActive,
                 "coordinator", coordinator));
+    }
+
+    /**
+     * Check if a college can receive student forwards (has active university
+     * coordinator)
+     * Returns: canForward (boolean), message (string), coordinator details (if
+     * exists)
+     */
+    @GetMapping("/{id}/can-forward-students")
+    public ResponseEntity<Map<String, Object>> checkCanForwardStudents(@PathVariable Long id) {
+        try {
+            // Check if college exists
+            Optional<College> collegeOpt = collegeService.getCollegeById(id);
+            if (collegeOpt.isEmpty()) {
+                return ResponseEntity.ok(Map.of(
+                        "canForward", false,
+                        "message", "College not found"));
+            }
+
+            College college = collegeOpt.get();
+
+            // Check if UniversityPerson is assigned to this college
+            Optional<UniversityPerson> coordinatorOpt = universityPersonRepository.findByCollegeId(id);
+
+            if (coordinatorOpt.isEmpty()) {
+                return ResponseEntity.ok(Map.of(
+                        "canForward", false,
+                        "message", "No University Coordinator is assigned to " + college.getCollegeName() +
+                                ". Please contact admin to assign a coordinator before forwarding students.",
+                        "collegeName", college.getCollegeName()));
+            }
+
+            UniversityPerson coordinator = coordinatorOpt.get();
+            boolean isActive = "active".equalsIgnoreCase(coordinator.getStatus());
+
+            if (!isActive) {
+                return ResponseEntity.ok(Map.of(
+                        "canForward", false,
+                        "message", "University Coordinator (" + coordinator.getUserName() +
+                                ") for " + college.getCollegeName() + " is inactive. Please contact admin.",
+                        "collegeName", college.getCollegeName(),
+                        "coordinatorUsername", coordinator.getUserName(),
+                        "coordinatorStatus", coordinator.getStatus()));
+            }
+
+            // Everything is good, can forward
+            return ResponseEntity.ok(Map.of(
+                    "canForward", true,
+                    "message", "College is ready to receive student forwards",
+                    "collegeName", college.getCollegeName(),
+                    "coordinatorUsername", coordinator.getUserName(),
+                    "coordinatorStatus", coordinator.getStatus()));
+
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(Map.of(
+                    "canForward", false,
+                    "message", "Error checking coordinator status: " + e.getMessage()));
+        }
     }
 
     @Autowired

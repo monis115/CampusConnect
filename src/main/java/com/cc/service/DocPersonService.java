@@ -140,6 +140,7 @@ public class DocPersonService {
             DocPerson docPerson = repository.findByUsername(docPersonUsername)
                     .orElseThrow(() -> new RuntimeException("DocPerson not found with username: " + docPersonUsername));
             student.setDocPerson(docPerson);
+            student.setDocPersonAssignedDate(java.time.LocalDate.now());
         }
 
         student.setDocReceivedDate(receivedDate);
@@ -320,5 +321,98 @@ public class DocPersonService {
                 docPerson.getStatus(),
                 studentDTOs.size(),
                 studentDTOs);
+    }
+
+    // ======================= REPORTING & STATISTICS =======================
+
+    @Autowired
+    private com.cc.service.EmailService emailService;
+
+    public com.cc.DTO.DocPersonStatsDTO getStats(String username, String period) {
+        java.time.LocalDate today = java.time.LocalDate.now();
+        java.time.LocalDate start;
+        java.time.LocalDate end = today;
+        java.time.LocalDateTime startDateTime;
+        java.time.LocalDateTime endDateTime = java.time.LocalDateTime.now();
+
+        switch (period.toLowerCase()) {
+            case "today":
+            case "daily":
+                start = today;
+                startDateTime = today.atStartOfDay();
+                break;
+            case "month":
+            case "monthly":
+            case "this_month":
+                start = today.withDayOfMonth(1);
+                startDateTime = start.atStartOfDay();
+                break;
+            case "year":
+            case "yearly":
+            case "this_year":
+                start = today.withDayOfYear(1);
+                startDateTime = start.atStartOfDay();
+                break;
+            default: // All time
+                start = java.time.LocalDate.of(2000, 1, 1);
+                startDateTime = start.atStartOfDay();
+                break;
+        }
+
+        // 1. Total Assigned (Active in period context)
+        long totalAssigned;
+        if ("all".equalsIgnoreCase(period)) {
+            totalAssigned = studentRepository.countByDocPerson_Username(username);
+        } else {
+            totalAssigned = studentRepository.countByDocPerson_UsernameAndDocPersonAssignedDateBetween(username, start,
+                    end);
+        }
+
+        // 2. Received Docs
+        long receivedVal = studentRepository.countByDocPerson_UsernameAndDocReceivedDateBetween(username, start, end);
+
+        // 3. Verified Docs
+        long verifiedVal = studentRepository.countByDocPersonAndVerifiedDocsDateRange(username, startDateTime,
+                endDateTime);
+
+        // 4. Collected Docs
+        long collectedVal = studentRepository.countByDocPersonAndCollectedDocsDateRange(username, startDateTime,
+                endDateTime);
+
+        // 5. Returned Docs
+        long returnedVal = studentRepository.countByDocPerson_UsernameAndDocReturnedDateBetween(username, start, end);
+
+        return new com.cc.DTO.DocPersonStatsDTO(period, totalAssigned, receivedVal, verifiedVal, collectedVal,
+                returnedVal);
+    }
+
+    public void sendReportEmail(String period, String username, String email) {
+        try {
+            com.cc.DTO.DocPersonStatsDTO stats = getStats(username, period);
+
+            String subject = "Doc Manager Report (" + period + ") - " + username;
+            String content = buildEmailContent(stats, username, period);
+
+            emailService.sendEmail(email, subject, content);
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("Failed to send report email: " + e.getMessage());
+        }
+    }
+
+    private String buildEmailContent(com.cc.DTO.DocPersonStatsDTO stats, String username, String period) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("Dear ").append(username).append(",\n\n");
+        sb.append("Here is your ").append(period).append(" report for Doc Manager activities:\n\n");
+        sb.append("Period: ").append(period).append("\n");
+        sb.append("--------------------------------------------------\n");
+        sb.append("Total Students Assigned: ").append(stats.getTotalAssignedStudents()).append("\n");
+        sb.append("Documents Received:      ").append(stats.getDocumentsReceived()).append("\n");
+        sb.append("Documents Verified:      ").append(stats.getDocumentsVerified()).append("\n");
+        sb.append("Documents Collected:     ").append(stats.getDocumentsCollected()).append("\n");
+        sb.append("Documents Returned:      ").append(stats.getDocumentsReturned()).append("\n");
+        sb.append("--------------------------------------------------\n\n");
+        sb.append("Best Regards,\nCampusConnect System");
+        return sb.toString();
     }
 }

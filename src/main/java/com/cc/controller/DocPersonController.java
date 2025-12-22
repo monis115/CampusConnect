@@ -209,4 +209,37 @@ public class DocPersonController {
             return ResponseEntity.status(500).body("Error fetching doc person details: " + e.getMessage());
         }
     }
+
+    @GetMapping("/stats")
+    public ResponseEntity<?> getStats(
+            @RequestParam String username,
+            @RequestParam(defaultValue = "today") String period) {
+        try {
+            return ResponseEntity.ok(service.getStats(username, period));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Error fetching stats: " + e.getMessage());
+        }
+    }
+
+    @PostMapping("/send-report")
+    public ResponseEntity<?> sendReport(@RequestBody java.util.Map<String, String> request) {
+        try {
+            String username = request.get("username");
+            String period = request.getOrDefault("period", "Today");
+            String email = request.get("email");
+
+            if (username == null || username.isEmpty()) {
+                return ResponseEntity.badRequest().body("username is required");
+            }
+            if (email == null || email.isEmpty()) {
+                return ResponseEntity.badRequest().body("email is required");
+            }
+
+            service.sendReportEmail(period, username, email);
+            return ResponseEntity
+                    .ok(java.util.Collections.singletonMap("message", "Report sent successfully to " + email));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Error sending report: " + e.getMessage());
+        }
+    }
 }

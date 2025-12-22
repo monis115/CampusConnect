@@ -84,6 +84,50 @@ public interface StudentRepository extends JpaRepository<Student, Long> {
                                 StudentStatus.COMPLETED));
         }
 
+        // ======================= DOC PERSON REPORT METHODS =======================
+
+        // Count assigned students (All Time - or potentially period based if we use the
+        // NEW field)
+        long countByDocPerson_Username(String username);
+
+        @org.springframework.data.jpa.repository.Query("SELECT COUNT(s) FROM Student s WHERE s.docPerson.username = :username AND "
+                        + "COALESCE(s.docPersonAssignedDate, s.docReceivedDate) BETWEEN :start AND :end")
+        long countByDocPerson_UsernameAndDocPersonAssignedDateBetween(
+                        @org.springframework.data.repository.query.Param("username") String username,
+                        @org.springframework.data.repository.query.Param("start") java.time.LocalDate start,
+                        @org.springframework.data.repository.query.Param("end") java.time.LocalDate end);
+
+        // 1. Received Docs: Based on docReceivedDate
+        long countByDocPerson_UsernameAndDocReceivedDateBetween(String username, java.time.LocalDate start,
+                        java.time.LocalDate end);
+
+        // 2. Verified Docs: Based on History Status 'TELEX_INITIATED' + UpdatedBy check
+        @org.springframework.data.jpa.repository.Query("SELECT COUNT(DISTINCT s) FROM Student s JOIN s.studentStatusHistory h "
+                        +
+                        "WHERE s.docPerson.username = :username " +
+                        "AND h.studentApplicationStatus = com.cc.modals.StudentStatus.TELEX_INITIATED " +
+                        "AND LOWER(h.updatedBy) LIKE LOWER(CONCAT('%', :username, '%')) " +
+                        "AND h.updatedAt >= :start AND h.updatedAt <= :end")
+        long countByDocPersonAndVerifiedDocsDateRange(
+                        @org.springframework.data.repository.query.Param("username") String username,
+                        @org.springframework.data.repository.query.Param("start") java.time.LocalDateTime start,
+                        @org.springframework.data.repository.query.Param("end") java.time.LocalDateTime end);
+
+        // 3. Collected Docs: Based on History "Collected by [username]"
+        @org.springframework.data.jpa.repository.Query("SELECT COUNT(DISTINCT s) FROM Student s JOIN s.studentStatusHistory h "
+                        +
+                        "WHERE s.docPerson.username = :username " +
+                        "AND LOWER(h.updatedBy) LIKE LOWER(CONCAT('Collected by ', :username, '%')) " +
+                        "AND h.updatedAt >= :start AND h.updatedAt <= :end")
+        long countByDocPersonAndCollectedDocsDateRange(
+                        @org.springframework.data.repository.query.Param("username") String username,
+                        @org.springframework.data.repository.query.Param("start") java.time.LocalDateTime start,
+                        @org.springframework.data.repository.query.Param("end") java.time.LocalDateTime end);
+
+        // 4. Returned Docs: Based on docReturnedDate
+        long countByDocPerson_UsernameAndDocReturnedDateBetween(String username, java.time.LocalDate start,
+                        java.time.LocalDate end);
+
         // ======================= ADMIN DASHBOARD METHODS =======================
 
         // Count by single status
