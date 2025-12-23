@@ -6,9 +6,12 @@ import com.cc.modals.StudentStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import java.util.List;
+import java.time.LocalDate;
 
 @Repository
 public interface StudentRepository extends JpaRepository<Student, Long> {
+
+        long countByAgent_UserIdAndCreatedAtBetween(String userId, LocalDate start, LocalDate end);
 
         boolean existsByApplicationId(String applicationId);
 

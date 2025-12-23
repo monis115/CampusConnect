@@ -26,6 +26,32 @@ public class AgentController {
     @Autowired
     private AgentService agentService;
 
+    // ======================= AGENT PERFORMANCE REPORTS =======================
+    @GetMapping("/stats/all")
+    public ResponseEntity<List<com.cc.DTO.AgentPerformanceStatsDTO>> getAllAgentsPerformanceStats(
+            @org.springframework.web.bind.annotation.RequestParam(defaultValue = "DAILY") String period) {
+        return ResponseEntity.ok(agentService.getAllAgentsPerformanceStats(period));
+    }
+
+    @GetMapping("/stats/{username}")
+    public ResponseEntity<com.cc.DTO.AgentPerformanceStatsDTO> getAgentPerformanceStats(
+            @PathVariable String username,
+            @org.springframework.web.bind.annotation.RequestParam(defaultValue = "DAILY") String period) {
+        return ResponseEntity.ok(agentService.getAgentPerformanceStats(username, period));
+    }
+
+    @GetMapping("/reports/email")
+    public ResponseEntity<String> sendReportEmail(
+            @org.springframework.web.bind.annotation.RequestParam(defaultValue = "DAILY") String period,
+            @org.springframework.web.bind.annotation.RequestParam String email) {
+        try {
+            agentService.sendReportToEmail(period, email);
+            return ResponseEntity.ok("Report sent successfully to " + email);
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Error sending email: " + e.getMessage());
+        }
+    }
+
     // ======================= SELF REGISTRATION =======================
     @PostMapping("/register")
     public Agent registerAgent(@RequestBody AgentRegistrationDTO agent) {

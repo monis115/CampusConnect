@@ -81,4 +81,23 @@ public interface StudentStatusHistoryRepository extends JpaRepository<StudentSta
                         @org.springframework.data.repository.query.Param("universityPersonId") Long universityPersonId,
                         @org.springframework.data.repository.query.Param("start") java.time.LocalDateTime start,
                         @org.springframework.data.repository.query.Param("end") java.time.LocalDateTime end);
+
+        // ======================= AGENT REPORTING QUERIES =======================
+
+        // Count Telex Initiated (TELEX_PAYMENT_DOCS_SUBMITTED) by Agent
+        @org.springframework.data.jpa.repository.Query("SELECT COUNT(h) FROM StudentStatusHistory h WHERE h.updatedBy = :username AND h.studentApplicationStatus = :status AND h.updatedAt BETWEEN :start AND :end")
+        long countByUpdatedByAndStatusAndDateRange(
+                        @org.springframework.data.repository.query.Param("username") String username,
+                        @org.springframework.data.repository.query.Param("status") com.cc.modals.StudentStatus status,
+                        @org.springframework.data.repository.query.Param("start") java.time.LocalDateTime start,
+                        @org.springframework.data.repository.query.Param("end") java.time.LocalDateTime end);
+
+        // Count Activities by Remarks (Payment Confirmation and Doc Requests)
+        @org.springframework.data.jpa.repository.Query("SELECT COUNT(h) FROM StudentStatusHistory h WHERE h.updatedBy = :username AND h.remarks LIKE %:remarkFragment% AND h.updatedAt BETWEEN :start AND :end")
+        long countByUpdatedByAndRemarksContainingAndDateRange(
+                        @org.springframework.data.repository.query.Param("username") String username,
+                        @org.springframework.data.repository.query.Param("remarkFragment") String remarkFragment,
+                        @org.springframework.data.repository.query.Param("start") java.time.LocalDateTime start,
+                        @org.springframework.data.repository.query.Param("end") java.time.LocalDateTime end);
+
 }

@@ -29,6 +29,9 @@ import com.cc.repository.AgentRepository;
 import com.cc.repository.CollegeRepository;
 import com.cc.repository.LocationRepository;
 
+import org.springframework.scheduling.annotation.Scheduled;
+import com.cc.service.EmailService;
+
 @Service
 public class AgentService {
 
@@ -45,6 +48,9 @@ public class AgentService {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private EmailService emailService;
 
     @Autowired
     private DocumentReturnRequestRepository documentReturnRequestRepository;
@@ -647,6 +653,7 @@ public class AgentService {
         history.setStudent(savedStudent);
         history.setStudentApplicationStatus(com.cc.modals.StudentStatus.TELEX_PAYMENT_DOCS_SUBMITTED);
         history.setUpdatedBy(details.getAgentUsername() != null ? details.getAgentUsername() : "Agent");
+        history.setRemarks("Payment confirmation submitted");
         history.setUpdatedAt(java.time.LocalDateTime.now());
         studentStatusHistoryRepository.save(history);
 
@@ -915,5 +922,162 @@ public class AgentService {
 
             return dto;
         }).collect(java.util.stream.Collectors.toList());
+    }
+
+    // ======================= AGENT PERFORMANCE REPORTS =======================
+
+    public com.cc.DTO.AgentPerformanceStatsDTO getAgentPerformanceStats(String username, String period) {
+        // Calculate dates
+        java.time.LocalDate startDate = java.time.LocalDate.now();
+        java.time.LocalDate endDate = java.time.LocalDate.now();
+        java.time.LocalDateTime startDateTime = java.time.LocalDateTime.now();
+        java.time.LocalDateTime endDateTime = java.time.LocalDateTime.now();
+
+        if ("DAILY".equalsIgnoreCase(period)) {
+            startDateTime = java.time.LocalDate.now().atStartOfDay();
+            endDateTime = java.time.LocalDate.now().atTime(23, 59, 59);
+            startDate = java.time.LocalDate.now();
+            endDate = java.time.LocalDate.now();
+        } else if ("MONTHLY".equalsIgnoreCase(period)) {
+            startDateTime = java.time.LocalDate.now().withDayOfMonth(1).atStartOfDay();
+            endDateTime = java.time.LocalDate.now().atTime(23, 59, 59);
+            startDate = java.time.LocalDate.now().withDayOfMonth(1);
+            endDate = java.time.LocalDate.now();
+        } else if ("YEARLY".equalsIgnoreCase(period)) {
+            startDateTime = java.time.LocalDate.now().withDayOfYear(1).atStartOfDay();
+            endDateTime = java.time.LocalDate.now().atTime(23, 59, 59);
+            startDate = java.time.LocalDate.now().withDayOfYear(1);
+            endDate = java.time.LocalDate.now();
+        } else {
+            startDateTime = java.time.LocalDate.now().atStartOfDay();
+            endDateTime = java.time.LocalDate.now().atTime(23, 59, 59);
+            startDate = java.time.LocalDate.now();
+            endDate = java.time.LocalDate.now();
+        }
+
+        Agent agent = agentRepository.findByUserId(username)
+                .orElseThrow(() -> new RuntimeException("Agent not found with username: " + username));
+        String agentName = agent.getFullName();
+
+        long registered = studentRepository.countByAgent_UserIdAndCreatedAtBetween(username, startDate, endDate);
+        long telex = studentStatusHistoryRepository.countByUpdatedByAndStatusAndDateRange(
+                username, com.cc.modals.StudentStatus.TELEX_PAYMENT_DOCS_SUBMITTED, startDateTime, endDateTime);
+
+        // Improved Payment Confirmation Count: Matches 'Payment confirmation submitted'
+        // remark OR 'TELEX_PAYMENT_DOCS_SUBMITTED' status
+        // Since telex submission implies payment submission, we can safely use the
+        // status count as a baseline or combine them.
+        // To be safe and capture both old (status-only) and new (remark-tagged) data
+        // without double counting if they overlap,
+        // we can simply use the status count for now as it covers the event of
+        // submitting payment docs.
+        // Or if we want to be strict, we sum them? No, that would double count.
+        // Best approach: Use the same count as Telex Initiated for now, as they are the
+        // same action in the current workflow.
+        // However, if there are other payment types (Visa Fee?), we might miss them.
+        // But the user specifically noted the low count for 'payment confirmations'.
+        // Let's use the telex count + any purely remark-based ones (if any exist that
+        // aren't telex?).
+        // Simple fix: Payment Confirmations = Telex Initiated (since that action IS
+        // submitting payment).
+        long payment = telex;
+
+        // If we want to capture *future* specific payment actions that might NOT be
+        // telex, we could add:
+        // +
+        // studentStatusHistoryRepository.countByUpdatedByAndRemarksContainingAndDateRange(username,
+        // "Some Other Payment", ...);
+        // But for now, fixing the report means aligning it with the actual data
+        // present.
+        long docs = studentStatusHistoryRepository.countByUpdatedByAndRemarksContainingAndDateRange(
+                username, "Document return requested", startDateTime, endDateTime);
+
+        // Debug log
+        logger.info("Stats for {}: Reg={}, Telex={}, Pay={}, Docs={}, Period={}",
+                username, registered, telex, payment, docs, period);
+
+        return new com.cc.DTO.AgentPerformanceStatsDTO(agentName, username, registered, telex, payment, docs, period);
+    }
+
+    public List<com.cc.DTO.AgentPerformanceStatsDTO> getAllAgentsPerformanceStats(String period) {
+        List<Agent> agents = agentRepository.findAll();
+        List<com.cc.DTO.AgentPerformanceStatsDTO> statsList = new ArrayList<>();
+        for (Agent agent : agents) {
+            if (agent.getUserId() != null) {
+                try {
+                    statsList.add(getAgentPerformanceStats(agent.getUserId(), period));
+                } catch (Exception e) {
+                    logger.error("Error fetching stats for agent: " + agent.getUserId(), e);
+                }
+            }
+        }
+        return statsList;
+    }
+
+    // Schedule: Daily at 11:55 PM
+    @Scheduled(cron = "0 55 23 * * ?")
+    public void sendScheduledAgentReport() {
+        logger.info("Executing scheduled Agent Performance Report");
+        sendReportToEmail("DAILY", "admin@rareeducation.in");
+    }
+
+    public void sendReportToEmail(String period, String targetEmail) {
+        List<com.cc.DTO.AgentPerformanceStatsDTO> stats = getAllAgentsPerformanceStats(period);
+        String html = generateReportHtml(stats, period);
+
+        try {
+            emailService.sendHtmlEmail(targetEmail, period + " Agent Performance Report", html);
+            logger.info("Sent {} agent report to {}", period, targetEmail);
+        } catch (Exception e) {
+            logger.error("Failed to send agent report to " + targetEmail, e);
+            throw new RuntimeException("Failed to send email: " + e.getMessage());
+        }
+    }
+
+    private String generateReportHtml(List<com.cc.DTO.AgentPerformanceStatsDTO> stats, String period) {
+        StringBuilder html = new StringBuilder();
+        html.append("<html><body>");
+        html.append("<h2>").append(period).append(" Agent Performance Report</h2>");
+        html.append("<p>Date: ").append(java.time.LocalDate.now()).append("</p>");
+        html.append("<table border='1' cellspacing='0' cellpadding='5'>");
+        html.append(
+                "<tr style='background-color: #f2f2f2;'><th>Agent Name</th><th>Registered Students</th><th>Telex Initiated</th><th>Payment Confirmed</th><th>Docs Requested</th><th>Total Work</th></tr>");
+
+        long totalRegistered = 0;
+        long totalTelex = 0;
+        long totalPayment = 0;
+        long totalDocs = 0;
+        long totalWorkAll = 0;
+
+        for (com.cc.DTO.AgentPerformanceStatsDTO stat : stats) {
+            html.append("<tr>");
+            html.append("<td>").append(stat.getAgentName()).append("</td>");
+            html.append("<td>").append(stat.getRegisteredStudents()).append("</td>");
+            html.append("<td>").append(stat.getTelexInitiated()).append("</td>");
+            html.append("<td>").append(stat.getPaymentConfirmations()).append("</td>");
+            html.append("<td>").append(stat.getDocsRequested()).append("</td>");
+            html.append("<td>").append(stat.getTotalWork()).append("</td>");
+            html.append("</tr>");
+
+            totalRegistered += stat.getRegisteredStudents();
+            totalTelex += stat.getTelexInitiated();
+            totalPayment += stat.getPaymentConfirmations();
+            totalDocs += stat.getDocsRequested();
+            totalWorkAll += stat.getTotalWork();
+        }
+
+        // Total Row
+        html.append("<tr style='background-color: #e6e6e6; font-weight: bold;'>");
+        html.append("<td>TOTAL</td>");
+        html.append("<td>").append(totalRegistered).append("</td>");
+        html.append("<td>").append(totalTelex).append("</td>");
+        html.append("<td>").append(totalPayment).append("</td>");
+        html.append("<td>").append(totalDocs).append("</td>");
+        html.append("<td>").append(totalWorkAll).append("</td>");
+        html.append("</tr>");
+
+        html.append("</table>");
+        html.append("</body></html>");
+        return html.toString();
     }
 }
