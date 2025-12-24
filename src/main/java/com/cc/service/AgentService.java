@@ -511,6 +511,7 @@ public class AgentService {
     @Autowired
     private AccountantService accountantService;
 
+    @Transactional
     public com.cc.modals.Student submitTelexDetails(Long studentId, com.cc.DTO.TelexApplicationDTO details,
             String visaPhotoPath, String visaPassportCopyPath, String ttCopyPath, String paymentConfirmationPath) {
         com.cc.modals.Student student = studentRepository.findById(studentId)
@@ -620,7 +621,11 @@ public class AgentService {
         Optional<DocPerson> docPersonOpt = docPersonService.getOne();
         if (docPersonOpt.isPresent()) {
             student.setDocPerson(docPersonOpt.get());
+            student.setDocPersonAssignedDate(java.time.LocalDate.now());
+
+            System.out.println(docPersonOpt.get().getUsername() + " Doc PErson USerNAme" + docPersonOpt.get());
             logger.info("Assigned DocPerson: {} to student ID: {}",
+
                     docPersonOpt.get().getUsername(), studentId);
         } else {
             logger.warn("No Active DocPerson available to assign to student ID: {}", studentId);
@@ -633,7 +638,11 @@ public class AgentService {
             logger.info("Assigned Accountant: {} to student ID: {}",
                     accountantOpt.get().getUsername(), studentId);
         } else {
-            logger.warn("No Accountant available to assign to student ID: {}", studentId);
+            // Debug: Log all accountants and their statuses
+            java.util.List<com.cc.modals.Accountant> allAccountants = accountantService.getAll();
+            logger.warn("No Active Accountant available to assign to student ID: {}. Total accountants in DB: {}",
+                    studentId, allAccountants.size());
+            allAccountants.forEach(a -> logger.warn("Accountant: {} has status: '{}'", a.getUsername(), a.getStatus()));
         }
 
         // Update Status
@@ -647,6 +656,11 @@ public class AgentService {
         student.setActionOnUser(actionOnUser.doc_manager);
 
         com.cc.modals.Student savedStudent = studentRepository.save(student);
+
+        // Debug: Verify what was saved
+        logger.info("=== VERIFY AFTER SAVE: DocPerson assigned = {}, Accountant assigned = {} ===",
+                savedStudent.getDocPerson() != null ? savedStudent.getDocPerson().getUsername() : "NULL",
+                savedStudent.getAccountant() != null ? savedStudent.getAccountant().getUsername() : "NULL");
 
         // History
         com.cc.modals.StudentStatusHistory history = new com.cc.modals.StudentStatusHistory();
