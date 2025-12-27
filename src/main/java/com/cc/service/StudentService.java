@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -72,6 +73,12 @@ public class StudentService {
 
     @Autowired
     private AccountantService accountantService;
+
+    @Autowired
+    private S3StorageService s3StorageService;
+
+    @Value("${app.base-url:http://localhost:8080}")
+    private String baseUrl;
 
     // ═══════════════════════════════════════════════════════════════════════════
     // ADD STUDENT WITH FILE UPLOADS
@@ -252,50 +259,33 @@ public class StudentService {
             return null;
         }
 
-        try {
-            // Validate PDF content if extension is .pdf
-            String originalFilename = file.getOriginalFilename();
-            String extension = "";
-            if (originalFilename != null && originalFilename.contains(".")) {
-                extension = originalFilename.substring(originalFilename.lastIndexOf("."));
-            }
-
-            if (".pdf".equalsIgnoreCase(extension)) {
-                try (java.io.InputStream is = file.getInputStream()) {
-                    byte[] header = new byte[4];
-                    int bytesRead = is.read(header);
-                    String headerString = new String(header);
-                    if (bytesRead < 4 || !headerString.startsWith("%PDF")) {
-                        String hexHeader = "";
-                        for (int i = 0; i < bytesRead; i++) {
-                            hexHeader += String.format("%02X ", header[i]);
-                        }
-                        throw new RuntimeException("Invalid PDF file: " + originalFilename +
-                                ". Expected header '%PDF' but found '" + headerString + "' (Hex: " + hexHeader + ")");
-                    }
-                }
-            }
-
-            // Create upload directory
-            String uploadDir = "uploads/" + folderName;
-            Path uploadPath = Paths.get(uploadDir);
-
-            if (!Files.exists(uploadPath)) {
-                Files.createDirectories(uploadPath);
-            }
-
-            String newFilename = filePrefix + "_" + UUID.randomUUID().toString() + extension;
-            Path filePath = uploadPath.resolve(newFilename);
-
-            // Save the file
-            Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
-
-            // Return relative path for database
-            return uploadDir + "/" + newFilename;
-
-        } catch (IOException e) {
-            throw new RuntimeException("Could not save file " + file.getOriginalFilename(), e);
+        // Validate PDF content if extension is .pdf
+        String originalFilename = file.getOriginalFilename();
+        String extension = "";
+        if (originalFilename != null && originalFilename.contains(".")) {
+            extension = originalFilename.substring(originalFilename.lastIndexOf("."));
         }
+
+        if (".pdf".equalsIgnoreCase(extension)) {
+            try (java.io.InputStream is = file.getInputStream()) {
+                byte[] header = new byte[4];
+                int bytesRead = is.read(header);
+                String headerString = new String(header);
+                if (bytesRead < 4 || !headerString.startsWith("%PDF")) {
+                    String hexHeader = "";
+                    for (int i = 0; i < bytesRead; i++) {
+                        hexHeader += String.format("%02X ", header[i]);
+                    }
+                    throw new RuntimeException("Invalid PDF file: " + originalFilename +
+                            ". Expected header '%PDF' but found '" + headerString + "' (Hex: " + hexHeader + ")");
+                }
+            } catch (IOException e) {
+                throw new RuntimeException("Could not validate PDF file: " + originalFilename, e);
+            }
+        }
+
+        // Use S3StorageService for file upload (handles both S3 and local)
+        return s3StorageService.uploadFile(file, folderName, filePrefix);
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -402,7 +392,7 @@ public class StudentService {
 
         // QR Code Image
         try {
-            String qrCodeUrl = "http://localhost:8080/api/config/qrcode";
+            String qrCodeUrl = baseUrl + "/api/config/qrcode";
             com.itextpdf.io.image.ImageData qrImageData = com.itextpdf.io.image.ImageDataFactory
                     .create(new java.net.URL(qrCodeUrl));
             com.itextpdf.layout.element.Image qrImage = new com.itextpdf.layout.element.Image(qrImageData);

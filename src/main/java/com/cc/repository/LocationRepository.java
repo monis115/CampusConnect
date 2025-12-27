@@ -11,4 +11,6 @@ import com.cc.modals.Location;
 public interface LocationRepository extends JpaRepository<Location, Long> {
     List<Location> findByStateIgnoreCase(String state);
 
+    boolean existsByStateAndDistrict(String state, String district);
+
 }

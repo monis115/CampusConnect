@@ -101,4 +101,27 @@ public class LocationController {
             return ResponseEntity.notFound().build();
         }
     }
+
+    // ✅ 6. Bulk Add Locations (Seeding)
+    @PostMapping("/bulk")
+    public ResponseEntity<?> addLocationsBulk(@RequestBody List<Location> locations) {
+        int addedCount = 0;
+        int skippedCount = 0;
+
+        for (Location loc : locations) {
+            if (loc.getState() != null && loc.getDistrict() != null) {
+                if (!locationRepository.existsByStateAndDistrict(loc.getState(), loc.getDistrict())) {
+                    locationRepository.save(loc);
+                    addedCount++;
+                } else {
+                    skippedCount++;
+                }
+            }
+        }
+
+        return ResponseEntity.ok(java.util.Map.of(
+                "message", "Bulk processing complete",
+                "added", addedCount,
+                "skipped", skippedCount));
+    }
 }

@@ -1,0 +1,24 @@
+# Docker
+.env
+*.env
+
+# Build outputs
+target/
+*.jar
+!.mvn/wrapper/*.jar
+
+# IDE
+.idea/
+*.iml
+.vscode/
+*.code-workspace
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Local uploads (use S3 in production)
+uploads/

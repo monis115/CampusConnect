@@ -1,0 +1,22 @@
+# EB Ignore - exclude source code and dev files
+.git
+.gitignore
+.vscode
+.DS_Store
+*.md
+*.log
+*.sh
+*.json
+
+# Exclude source directories
+src/
+.mvn/
+uploads/
+.metadata/
+.settings/
+.project
+.classpath
+
+# Exclude non-JAR target files
+target/*
+!target/CampusConnect-0.0.1-SNAPSHOT.jar

@@ -45,9 +45,31 @@ public class AuthController {
                     .body("User not found. Please check your username.");
         }
     }
-    
+
     @GetMapping
     public List<User> getAllUsers() {
         return userService.getAllUsers();
+    }
+
+    // Create a new user (for initial setup)
+    @PostMapping("/register")
+    public ResponseEntity<?> registerUser(@RequestBody User user) {
+        try {
+            User createdUser = userService.createUser(user);
+            return ResponseEntity.ok(createdUser);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    // Delete user (e.g., to remove default admin)
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteUser(@PathVariable Long id) {
+        try {
+            userService.deleteUser(id);
+            return ResponseEntity.ok("User deleted successfully with ID: " + id);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Error deleting user: " + e.getMessage());
+        }
     }
 }

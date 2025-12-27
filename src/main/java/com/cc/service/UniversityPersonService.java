@@ -36,6 +36,9 @@ public class UniversityPersonService {
     @Autowired
     private StudentStatusHistoryRepository statusHistoryRepo;
 
+    @Autowired
+    private S3StorageService s3StorageService;
+
     public UniversityPersonService(UniversityPersonRepository upRepository,
             CollegeRepository collegeRepository) {
         this.upRepository = upRepository;
@@ -171,19 +174,11 @@ public class UniversityPersonService {
             throw new RuntimeException("File is empty");
         }
 
-        // Save file
-        String fileName = "admission_letter_" + student.getId() + "_" + UUID.randomUUID() + ".pdf";
-        Path uploadPath = Paths.get("uploads/admission-letters");
-
-        if (!Files.exists(uploadPath)) {
-            Files.createDirectories(uploadPath);
-        }
-
-        Path filePath = uploadPath.resolve(fileName);
-        Files.copy(file.getInputStream(), filePath);
+        // Save file using S3StorageService
+        String filePath = s3StorageService.uploadFile(file, "admission-letters", "admission_letter_" + student.getId());
 
         // Update student
-        student.setAdmissionLetterPath(filePath.toString());
+        student.setAdmissionLetterPath(filePath);
         // update action
         student.setAction(action.APPROVE_ADMISSION_LETTER);
         student.setActionOnUser(actionOnUser.admission_manager);
@@ -228,23 +223,16 @@ public class UniversityPersonService {
             throw new RuntimeException("File is empty");
         }
 
-        // Save file
-        String fileName = "conditional_letter_" + student.getId() + "_" + UUID.randomUUID() + ".pdf";
-        Path uploadPath = Paths.get("uploads/conditional-letters");
-
-        if (!Files.exists(uploadPath)) {
-            Files.createDirectories(uploadPath);
-        }
-
-        Path filePath = uploadPath.resolve(fileName);
-        Files.copy(file.getInputStream(), filePath);
+        // Save file using S3StorageService
+        String filePath = s3StorageService.uploadFile(file, "conditional-letters",
+                "conditional_letter_" + student.getId());
 
         // update action
         student.setAction(action.UPLOAD_ADMISSION_LETTER);
         student.setActionOnUser(actionOnUser.UniversityCoordinator);
 
         // Update student
-        student.setConditionalOfferLetterPath(filePath.toString());
+        student.setConditionalOfferLetterPath(filePath);
         student.setApplicationStatus(StudentStatus.CONDITIONAL_OFFER_LETTER_GENERATED);
         Student updatedStudent = studentRepository.save(student);
 

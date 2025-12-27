@@ -26,6 +26,9 @@ public class AgentController {
     @Autowired
     private AgentService agentService;
 
+    @Autowired
+    private com.cc.service.S3StorageService s3StorageService;
+
     // ======================= AGENT PERFORMANCE REPORTS =======================
     @GetMapping("/stats/all")
     public ResponseEntity<List<com.cc.DTO.AgentPerformanceStatsDTO>> getAllAgentsPerformanceStats(
@@ -195,23 +198,16 @@ public class AgentController {
                 }
             }
 
-            // ======================= FILE UPLOADS =======================
+            // ======================= FILE UPLOADS (Using S3StorageService)
+            // =======================
             String visaPhotoPath = null;
             if (visaPhoto != null && !visaPhoto.isEmpty()) {
-                String fileName = System.currentTimeMillis() + "_" + visaPhoto.getOriginalFilename();
-                java.nio.file.Path path = java.nio.file.Paths.get("uploads/visa-photos/" + fileName);
-                java.nio.file.Files.createDirectories(path.getParent());
-                java.nio.file.Files.write(path, visaPhoto.getBytes());
-                visaPhotoPath = path.toString();
+                visaPhotoPath = s3StorageService.uploadFile(visaPhoto, "visa-photos", "visa_photo");
             }
 
             String visaPassportCopyPath = null;
             if (visaPassportCopy != null && !visaPassportCopy.isEmpty()) {
-                String fileName = System.currentTimeMillis() + "_" + visaPassportCopy.getOriginalFilename();
-                java.nio.file.Path path = java.nio.file.Paths.get("uploads/visa-passports/" + fileName);
-                java.nio.file.Files.createDirectories(path.getParent());
-                java.nio.file.Files.write(path, visaPassportCopy.getBytes());
-                visaPassportCopyPath = path.toString();
+                visaPassportCopyPath = s3StorageService.uploadFile(visaPassportCopy, "visa-passports", "visa_passport");
             }
 
             String ttCopyPath = null;
@@ -220,11 +216,7 @@ public class AgentController {
                     return ResponseEntity.badRequest()
                             .body("TT copy size exceeds maximum limit");
                 }
-                String fileName = System.currentTimeMillis() + "_" + ttCopy.getOriginalFilename();
-                java.nio.file.Path path = java.nio.file.Paths.get("uploads/tt-copies/" + fileName);
-                java.nio.file.Files.createDirectories(path.getParent());
-                java.nio.file.Files.write(path, ttCopy.getBytes());
-                ttCopyPath = path.toString();
+                ttCopyPath = s3StorageService.uploadFile(ttCopy, "tt-copies", "tt_copy");
             }
 
             String paymentConfirmationPath = null;
@@ -233,11 +225,8 @@ public class AgentController {
                     return ResponseEntity.badRequest()
                             .body("Payment confirmation size exceeds maximum limit");
                 }
-                String fileName = System.currentTimeMillis() + "_" + paymentConfirmation.getOriginalFilename();
-                java.nio.file.Path path = java.nio.file.Paths.get("uploads/payment-confirmations/" + fileName);
-                java.nio.file.Files.createDirectories(path.getParent());
-                java.nio.file.Files.write(path, paymentConfirmation.getBytes());
-                paymentConfirmationPath = path.toString();
+                paymentConfirmationPath = s3StorageService.uploadFile(paymentConfirmation, "payment-confirmations",
+                        "payment_conf");
             }
 
             // Submit telex details with all paths
@@ -262,14 +251,10 @@ public class AgentController {
             com.cc.DTO.DocumentReturnRequestDTO details = objectMapper.readValue(requestDetailsJson,
                     com.cc.DTO.DocumentReturnRequestDTO.class);
 
-            // File Upload
+            // File Upload (Using S3StorageService)
             String ticketPdfPath = null;
             if (ticketPdf != null && !ticketPdf.isEmpty()) {
-                String fileName = System.currentTimeMillis() + "_" + ticketPdf.getOriginalFilename();
-                java.nio.file.Path path = java.nio.file.Paths.get("uploads/tickets/" + fileName);
-                java.nio.file.Files.createDirectories(path.getParent());
-                java.nio.file.Files.write(path, ticketPdf.getBytes());
-                ticketPdfPath = path.toString();
+                ticketPdfPath = s3StorageService.uploadFile(ticketPdf, "tickets", "ticket");
             }
 
             com.cc.modals.DocumentReturnRequest savedRequest = agentService.requestDocsToDocPerson(studentId,

@@ -50,6 +50,9 @@ public class AddmissionManagerService {
         @Autowired
         private com.cc.repository.UniversityPersonRepository universityPersonRepo;
 
+        @Autowired
+        private S3StorageService s3StorageService;
+
         // ===================== CREATE =====================
         @Transactional
         public AddmissionManager createAddmissionManager(AddmissionManagerCreateDTO dto) {
@@ -249,11 +252,10 @@ public class AddmissionManagerService {
 
                 // ============ GENERATE CONDITIONAL OFFER LETTER ============
                 try {
-                        String conditionalOfferFileName = generateConditionalOfferLetter(savedStudent);
+                        String conditionalOfferPath = generateConditionalOfferLetter(savedStudent);
 
-                        // Update student with conditional offer letter path
-                        savedStudent.setConditionalOfferLetterPath(
-                                        "uploads/conditional-offer-letters/" + conditionalOfferFileName);
+                        // Update student with conditional offer letter path (now S3 path)
+                        savedStudent.setConditionalOfferLetterPath(conditionalOfferPath);
                         savedStudent.setApplicationStatus(StudentStatus.CONDITIONAL_OFFER_LETTER_GENERATED);
                         savedStudent = studentRepo.save(savedStudent);
 
@@ -278,19 +280,30 @@ public class AddmissionManagerService {
         // =====================================================================
 
         private String generateConditionalOfferLetter(Student student) throws java.io.IOException {
-                String fileName = "conditional_offer_" + student.getId() + "_" + java.util.UUID.randomUUID() + ".pdf";
-                java.nio.file.Path uploadPath = java.nio.file.Paths.get("uploads/conditional-offer-letters");
-
-                if (!java.nio.file.Files.exists(uploadPath)) {
-                        java.nio.file.Files.createDirectories(uploadPath);
-                }
-
-                String fullPath = uploadPath.resolve(fileName).toString();
+                // Generate PDF to a temp file first
+                java.nio.file.Path tempPath = java.nio.file.Files.createTempFile("conditional_offer_", ".pdf");
+                String tempFilePath = tempPath.toString();
 
                 // Generate the PDF
-                generateConditionalOfferPdf(student, fullPath);
+                generateConditionalOfferPdf(student, tempFilePath);
 
-                return fileName;
+                // Upload to S3 (or local if S3 not enabled)
+                try {
+                        java.io.File tempFile = tempPath.toFile();
+
+                        String storagePath = s3StorageService.uploadFile(tempFile, "conditional-offer-letters",
+                                        "conditional_offer_" + student.getId());
+
+                        // Cleanup temp file
+                        java.nio.file.Files.deleteIfExists(tempPath);
+
+                        return storagePath;
+                } catch (Exception e) {
+                        // Cleanup temp file on error
+                        java.nio.file.Files.deleteIfExists(tempPath);
+                        throw new java.io.IOException("Failed to upload conditional offer letter: " + e.getMessage(),
+                                        e);
+                }
         }
 
         // =====================================================================
