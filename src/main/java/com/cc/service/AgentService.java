@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.cc.DTO.AgentCollegeAccessDTO;
+import com.cc.DTO.AgentPublicProfileDTO;
 import com.cc.DTO.AgentRegistrationDTO;
 import com.cc.modals.Agent;
 import com.cc.modals.AgentCollegeAccess;
@@ -306,6 +307,53 @@ public class AgentService {
     public Optional<Agent> getAgentByUserId(String userId) {
         return agentRepository.findByUserId(userId);
     }
+
+    // ======================= PUBLIC PROFILE FOR STUDENT REFERRAL LINK =======================
+    @Transactional(readOnly = true)
+    public AgentPublicProfileDTO getAgentPublicProfile(String userId) {
+        Optional<Agent> agentOpt = agentRepository.findByUserIdWithDetails(userId);
+        if (agentOpt.isEmpty()) {
+            return null;
+        }
+
+        Agent agent = agentOpt.get();
+
+        // Only allow active agents to be publicly visible
+        if (!"Active".equalsIgnoreCase(agent.getStatus())) {
+            return null;
+        }
+
+        // Build college access list with names and location details
+        List<com.cc.DTO.AgentCollegeAccessDTO> accessDTOs = new ArrayList<>();
+        if (agent.getCollegeAccess() != null) {
+            for (com.cc.modals.AgentCollegeAccess access : agent.getCollegeAccess()) {
+                com.cc.DTO.AgentCollegeAccessDTO dto = new com.cc.DTO.AgentCollegeAccessDTO();
+                dto.setCollegeId(access.getCollege().getId());
+                dto.setCollegeName(access.getCollege().getCollegeName());
+                dto.setAccessAllLocations(access.isAccessAllLocations());
+
+                // Map location IDs
+                if (access.getAllowedLocations() != null) {
+                    dto.setLocationIds(access.getAllowedLocations().stream()
+                            .map(Location::getId)
+                            .collect(java.util.stream.Collectors.toList()));
+
+                    // Map location details (state, district)
+                    List<com.cc.DTO.AgentCollegeAccessDTO.LocationDetailDTO> locationDetails = access
+                            .getAllowedLocations().stream()
+                            .map(loc -> new com.cc.DTO.AgentCollegeAccessDTO.LocationDetailDTO(
+                                    loc.getId(), loc.getState(), loc.getDistrict()))
+                            .collect(java.util.stream.Collectors.toList());
+                    dto.setLocationDetails(locationDetails);
+                }
+
+                accessDTOs.add(dto);
+            }
+        }
+
+        return new AgentPublicProfileDTO(agent.getFullName(), agent.getCompanyName(), accessDTOs);
+    }
+
 
     @Transactional
     public Agent updateAgent(Long id, AgentRegistrationDTO dto) {

@@ -275,6 +275,39 @@ public class VisaController {
         }
     }
 
+    // Step 5 (New): Accountant pays Visa Man
+    @PostMapping("/pay-visa-man/{studentId}")
+    public ResponseEntity<?> payVisaMan(
+            @PathVariable Long studentId,
+            @RequestBody Map<String, Object> request) {
+        try {
+            String accountantUsername = (String) request.get("accountantUsername");
+            Double amountToPay = Double.valueOf(request.get("amountToPay").toString());
+            String txId = (String) request.get("txId"); // Optional
+            String mode = (String) request.get("mode");
+            String paymentDateStr = (String) request.get("paymentDate");
+
+            if (accountantUsername == null || accountantUsername.isEmpty()) {
+                return ResponseEntity.badRequest().body("accountantUsername is required");
+            }
+            if (amountToPay == null) {
+                return ResponseEntity.badRequest().body("amountToPay is required");
+            }
+            if (mode == null || mode.isEmpty()) {
+                return ResponseEntity.badRequest().body("mode is required");
+            }
+            if (paymentDateStr == null || paymentDateStr.isEmpty()) {
+                return ResponseEntity.badRequest().body("paymentDate is required");
+            }
+
+            java.time.LocalDate paymentDate = java.time.LocalDate.parse(paymentDateStr);
+            Student student = visaService.payVisaMan(studentId, accountantUsername, amountToPay, txId, mode, paymentDate);
+            return ResponseEntity.ok(student);
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Error paying Visa Man: " + e.getMessage());
+        }
+    }
+
     // ======================= REPORTING ENDPOINTS =======================
 
     @org.springframework.web.bind.annotation.GetMapping("/stats")

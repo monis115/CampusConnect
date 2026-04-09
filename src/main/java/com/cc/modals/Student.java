@@ -377,6 +377,21 @@ public class Student {
 	@Column(name = "visa_payment_received_date")
 	private LocalDate visaPaymentReceivedDate;
 
+	@Column(name = "acc_to_visaman_paid_amount")
+	private Double accToVisaManPaidAmount = 0.0;
+
+	@Column(name = "acc_to_visaman_payment_date")
+	private LocalDate accToVisaManPaymentDate;
+
+	@Column(name = "acc_to_visaman_tx_id", columnDefinition = "TEXT")
+	private String accToVisaManTxId;
+
+	@Column(name = "acc_to_visaman_mode", columnDefinition = "TEXT")
+	private String accToVisaManMode;
+
+	@Column(name = "acc_to_visaman_status", columnDefinition = "TEXT")
+	private String accToVisaManStatus = "PENDING";
+
 	// ======================= BANK DETAILS (Uzbekistan → India Transfer)
 	// =======================
 	@Column(name = "visa_bank_name", columnDefinition = "TEXT")
@@ -1294,6 +1309,46 @@ public class Student {
 
 	public void setVisaPaymentReceivedDate(LocalDate visaPaymentReceivedDate) {
 		this.visaPaymentReceivedDate = visaPaymentReceivedDate;
+	}
+
+	public Double getAccToVisaManPaidAmount() {
+		return accToVisaManPaidAmount;
+	}
+
+	public void setAccToVisaManPaidAmount(Double accToVisaManPaidAmount) {
+		this.accToVisaManPaidAmount = accToVisaManPaidAmount;
+	}
+
+	public LocalDate getAccToVisaManPaymentDate() {
+		return accToVisaManPaymentDate;
+	}
+
+	public void setAccToVisaManPaymentDate(LocalDate accToVisaManPaymentDate) {
+		this.accToVisaManPaymentDate = accToVisaManPaymentDate;
+	}
+
+	public String getAccToVisaManTxId() {
+		return accToVisaManTxId;
+	}
+
+	public void setAccToVisaManTxId(String accToVisaManTxId) {
+		this.accToVisaManTxId = accToVisaManTxId;
+	}
+
+	public String getAccToVisaManMode() {
+		return accToVisaManMode;
+	}
+
+	public void setAccToVisaManMode(String accToVisaManMode) {
+		this.accToVisaManMode = accToVisaManMode;
+	}
+
+	public String getAccToVisaManStatus() {
+		return accToVisaManStatus;
+	}
+
+	public void setAccToVisaManStatus(String accToVisaManStatus) {
+		this.accToVisaManStatus = accToVisaManStatus;
 	}
 
 	// ======================= BANK DETAILS GETTERS/SETTERS =======================

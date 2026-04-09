@@ -240,7 +240,7 @@ public class AccountantService {
 
                 java.util.List<com.cc.modals.Student> students = accountant.getStudents();
                 if (students == null || students.isEmpty()) {
-                        return new com.cc.DTO.AccountantDashboardStatsDTO(0L, 0L, 0L, 0L, 0.0, 0.0);
+                        return new com.cc.DTO.AccountantDashboardStatsDTO(0L, 0L, 0L, 0L, 0.0, 0.0, 0.0, 0.0);
                 }
 
                 long totalAssigned = students.size();
@@ -259,8 +259,23 @@ public class AccountantService {
                                 .mapToDouble(com.cc.modals.Student::getPaidAmount)
                                 .sum();
 
+                double totalVisaRequestedByVisaMan = students.stream()
+                                .mapToDouble(s -> {
+                                        double sum = 0;
+                                        if (s.getVisaPaymentRequestedAmount() != null)
+                                                sum += s.getVisaPaymentRequestedAmount();
+                                        if (s.getVisaManServiceCharge() != null)
+                                                sum += s.getVisaManServiceCharge();
+                                        return sum;
+                                }).sum();
+
+                double totalAccToVisaManPaidAmount = students.stream()
+                                .filter(s -> s.getAccToVisaManPaidAmount() != null)
+                                .mapToDouble(com.cc.modals.Student::getAccToVisaManPaidAmount)
+                                .sum();
+
                 return new com.cc.DTO.AccountantDashboardStatsDTO(totalAssigned, pending, received, notReceived,
-                                totalAmountReceived, totalAmountPending);
+                                totalAmountReceived, totalAmountPending, totalVisaRequestedByVisaMan, totalAccToVisaManPaidAmount);
         }
 
         public java.util.List<com.cc.DTO.CollectionSummaryDTO> getCollectionSummary(String username) {
@@ -364,8 +379,15 @@ public class AccountantService {
                                                 s.getVisaManServiceCharge() != null ? s.getVisaManServiceCharge() : 0.0,
                                                 s.getVisaPaymentTxId(),
                                                 s.getVisaPaymentConfirmationPath(),
+                                                s.getVisaPaymentReceivedAmount(),
+                                                s.getVisaPaymentReceivedDate(),
                                                 s.getAction() != null ? s.getAction().toString() : null,
-                                                s.getActionOnUser() != null ? s.getActionOnUser().toString() : null))
+                                                s.getActionOnUser() != null ? s.getActionOnUser().toString() : null,
+                                                s.getAccToVisaManPaidAmount(),
+                                                s.getAccToVisaManPaymentDate(),
+                                                s.getAccToVisaManTxId(),
+                                                s.getAccToVisaManMode(),
+                                                s.getAccToVisaManStatus()))
                                 .collect(java.util.stream.Collectors.toList());
         }
 

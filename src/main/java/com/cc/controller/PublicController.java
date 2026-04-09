@@ -1,7 +1,9 @@
 package com.cc.controller;
 
 import com.cc.DTO.StudentApplicationTrackingDTO;
+import com.cc.DTO.AgentPublicProfileDTO;
 import com.cc.service.StudentService;
+import com.cc.service.AgentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -12,6 +14,9 @@ public class PublicController {
 
     @Autowired
     private StudentService studentService;
+
+    @Autowired
+    private AgentService agentService;
 
     @GetMapping("/track-application")
     public ResponseEntity<?> trackApplication(@RequestParam("query") String query) {
@@ -25,6 +30,22 @@ public class PublicController {
         } catch (Exception e) {
             return ResponseEntity.internalServerError()
                     .body("An error occurred while tracking the application: " + e.getMessage());
+        }
+    }
+
+    // ======================= PUBLIC AGENT PROFILE (for student referral link)
+    // =======================
+    @GetMapping("/agent/{userId}")
+    public ResponseEntity<?> getAgentPublicProfile(@PathVariable String userId) {
+        try {
+            AgentPublicProfileDTO profile = agentService.getAgentPublicProfile(userId);
+            if (profile == null) {
+                return ResponseEntity.status(404).body("Agent not found with userId: " + userId);
+            }
+            return ResponseEntity.ok(profile);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError()
+                    .body("Error fetching agent profile: " + e.getMessage());
         }
     }
 }

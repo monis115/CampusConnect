@@ -200,9 +200,8 @@ public class VisaService {
                 Student student = studentRepository.findById(studentId)
                                 .orElseThrow(() -> new RuntimeException("Student not found"));
 
-                // Set payment amount and currency
-                student.setVisaPaymentRequestedAmount(amount);
-                student.setVisaPaymentRequestedCurrency(currency);
+                // DO NOT overwrite visaPaymentRequestedAmount — it is the base visa fee set by VisaMan.
+                // The 'amount' parameter here is the total the accountant tells the agent to send.
                 student.setVisaBankDetailsSentDate(java.time.LocalDate.now());
 
                 // Set bank details for international transfer
@@ -231,8 +230,7 @@ public class VisaService {
                 Student student = studentRepository.findById(studentId)
                                 .orElseThrow(() -> new RuntimeException("Student not found"));
 
-                student.setVisaPaymentRequestedAmount(amount);
-                student.setVisaPaymentRequestedCurrency(currency);
+                // DO NOT overwrite visaPaymentRequestedAmount — it is the base visa fee set by VisaMan.
                 if (transactionId != null && !transactionId.isEmpty()) {
                         student.setVisaPaymentTxId(transactionId);
                 }
@@ -270,7 +268,46 @@ public class VisaService {
                 return studentRepository.save(student);
         }
 
-        // Step 5 (New): Visa Manager collects passport from Doc Person
+        // Step 5 (New for Finance): Accountant pays Visa Man
+        @Transactional
+        public Student payVisaMan(Long studentId, String accountantUsername, Double amountToPay, String txId, String mode, java.time.LocalDate paymentDate) {
+                Student student = studentRepository.findById(studentId)
+                                .orElseThrow(() -> new RuntimeException("Student not found"));
+
+                Double requestedAmount = student.getVisaPaymentRequestedAmount() != null ? student.getVisaPaymentRequestedAmount() : 0.0;
+                Double serviceCharge = student.getVisaManServiceCharge() != null ? student.getVisaManServiceCharge() : 0.0;
+                Double totalOwed = requestedAmount + serviceCharge;
+
+                Double alreadyPaid = student.getAccToVisaManPaidAmount() != null ? student.getAccToVisaManPaidAmount() : 0.0;
+                Double newTotalPaid = alreadyPaid + amountToPay;
+
+                if (newTotalPaid > totalOwed && totalOwed > 0) {
+                        throw new RuntimeException("Cannot pay more than the requested amount. Total owed: " + totalOwed + ", Already paid: " + alreadyPaid);
+                }
+
+                student.setAccToVisaManPaidAmount(newTotalPaid);
+                student.setAccToVisaManPaymentDate(paymentDate);
+                if (txId != null && !txId.isEmpty()) {
+                        student.setAccToVisaManTxId(txId);
+                }
+                student.setAccToVisaManMode(mode);
+
+                if (totalOwed > 0 && newTotalPaid >= totalOwed) {
+                        student.setAccToVisaManStatus("FULLY_PAID");
+                } else if (newTotalPaid > 0) {
+                        student.setAccToVisaManStatus("PARTIALLY_PAID");
+                } else {
+                        student.setAccToVisaManStatus("PENDING");
+                }
+
+                addHistory(student, student.getApplicationStatus(), accountantUsername,
+                                "Accountant paid Visa Man: " + amountToPay + " via " + mode + 
+                                (txId != null && !txId.isEmpty() ? " (TxId: " + txId + ")" : "") + ". Status: " + student.getAccToVisaManStatus());
+
+                return studentRepository.save(student);
+        }
+
+        // Step 6 (New): Visa Manager collects passport from Doc Person
         @Transactional
         public Student collectPassport(Long studentId, String visaManUsername) {
                 Student student = studentRepository.findById(studentId)

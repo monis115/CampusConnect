@@ -18,8 +18,15 @@ public class StudentPaymentSummaryDTO {
     private Double visaManServiceCharge;
     private String visaPaymentTxId;
     private String visaPaymentConfirmationPath;
+    private Double visaPaymentReceivedAmount;
+    private java.time.LocalDate visaPaymentReceivedDate;
     private String action;
     private String actionOnUser;
+    private Double accToVisaManPaidAmount;
+    private java.time.LocalDate accToVisaManPaymentDate;
+    private String accToVisaManTxId;
+    private String accToVisaManMode;
+    private String accToVisaManStatus;
 
     public StudentPaymentSummaryDTO() {
     }
@@ -29,7 +36,10 @@ public class StudentPaymentSummaryDTO {
             Double paidAmount, String paidTo, String ttCopyPath, String paymentConfirmationPath,
             Double visaPaymentRequestedAmount, String visaPaymentRequestedCurrency,
             Double visaManServiceCharge, String visaPaymentTxId, String visaPaymentConfirmationPath,
-            String action, String actionOnUser) {
+            Double visaPaymentReceivedAmount, java.time.LocalDate visaPaymentReceivedDate,
+            String action, String actionOnUser, Double accToVisaManPaidAmount,
+            java.time.LocalDate accToVisaManPaymentDate, String accToVisaManTxId,
+            String accToVisaManMode, String accToVisaManStatus) {
         this.studentId = studentId;
         this.applicationId = applicationId;
         this.fullName = fullName;
@@ -47,8 +57,15 @@ public class StudentPaymentSummaryDTO {
         this.visaManServiceCharge = visaManServiceCharge;
         this.visaPaymentTxId = visaPaymentTxId;
         this.visaPaymentConfirmationPath = visaPaymentConfirmationPath;
+        this.visaPaymentReceivedAmount = visaPaymentReceivedAmount;
+        this.visaPaymentReceivedDate = visaPaymentReceivedDate;
         this.action = action;
         this.actionOnUser = actionOnUser;
+        this.accToVisaManPaidAmount = accToVisaManPaidAmount;
+        this.accToVisaManPaymentDate = accToVisaManPaymentDate;
+        this.accToVisaManTxId = accToVisaManTxId;
+        this.accToVisaManMode = accToVisaManMode;
+        this.accToVisaManStatus = accToVisaManStatus;
     }
 
     public Long getStudentId() {
@@ -201,5 +218,61 @@ public class StudentPaymentSummaryDTO {
 
     public void setActionOnUser(String actionOnUser) {
         this.actionOnUser = actionOnUser;
+    }
+
+    public Double getVisaPaymentReceivedAmount() {
+        return visaPaymentReceivedAmount;
+    }
+
+    public void setVisaPaymentReceivedAmount(Double visaPaymentReceivedAmount) {
+        this.visaPaymentReceivedAmount = visaPaymentReceivedAmount;
+    }
+
+    public java.time.LocalDate getVisaPaymentReceivedDate() {
+        return visaPaymentReceivedDate;
+    }
+
+    public void setVisaPaymentReceivedDate(java.time.LocalDate visaPaymentReceivedDate) {
+        this.visaPaymentReceivedDate = visaPaymentReceivedDate;
+    }
+
+    public Double getAccToVisaManPaidAmount() {
+        return accToVisaManPaidAmount;
+    }
+
+    public void setAccToVisaManPaidAmount(Double accToVisaManPaidAmount) {
+        this.accToVisaManPaidAmount = accToVisaManPaidAmount;
+    }
+
+    public java.time.LocalDate getAccToVisaManPaymentDate() {
+        return accToVisaManPaymentDate;
+    }
+
+    public void setAccToVisaManPaymentDate(java.time.LocalDate accToVisaManPaymentDate) {
+        this.accToVisaManPaymentDate = accToVisaManPaymentDate;
+    }
+
+    public String getAccToVisaManTxId() {
+        return accToVisaManTxId;
+    }
+
+    public void setAccToVisaManTxId(String accToVisaManTxId) {
+        this.accToVisaManTxId = accToVisaManTxId;
+    }
+
+    public String getAccToVisaManMode() {
+        return accToVisaManMode;
+    }
+
+    public void setAccToVisaManMode(String accToVisaManMode) {
+        this.accToVisaManMode = accToVisaManMode;
+    }
+
+    public String getAccToVisaManStatus() {
+        return accToVisaManStatus;
+    }
+
+    public void setAccToVisaManStatus(String accToVisaManStatus) {
+        this.accToVisaManStatus = accToVisaManStatus;
     }
 }
