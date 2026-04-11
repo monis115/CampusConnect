@@ -12,7 +12,7 @@ import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "company_logo")
-@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+@JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" })
 
 public class CompanyLogo {
 
@@ -21,17 +21,18 @@ public class CompanyLogo {
     private Long id;
 
     @Column(name = "name", nullable = false)
-    private String name;  // e.g., "RARE Education Logo"
-
+    private String name; // e.g., "RARE Education Logo"
 
     @Lob
-    @Column(name = "logo_data", nullable = false, columnDefinition = "LONGBLOB")  // <-- ADD columnDefinition for MySQL LONGBLOB (up to 4GB)
+    @Column(name = "logo_data", nullable = false, columnDefinition = "LONGBLOB") // <-- ADD columnDefinition for MySQL
+                                                                                 // LONGBLOB (up to 4GB)
     private byte[] logoData;
     @Column(name = "content_type", nullable = false)
-    private String contentType;  // e.g., "image/png"
+    private String contentType; // e.g., "image/png"
 
     // Constructors
-    public CompanyLogo() {}
+    public CompanyLogo() {
+    }
 
     public CompanyLogo(String name, byte[] logoData, String contentType) {
         this.name = name;
@@ -40,15 +41,35 @@ public class CompanyLogo {
     }
 
     // Getters & Setters
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
+    public Long getId() {
+        return id;
+    }
 
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
+    public void setId(Long id) {
+        this.id = id;
+    }
 
-    public byte[] getLogoData() { return logoData; }
-    public void setLogoData(byte[] logoData) { this.logoData = logoData; }
+    public String getName() {
+        return name;
+    }
 
-    public String getContentType() { return contentType; }
-    public void setContentType(String contentType) { this.contentType = contentType; }
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public byte[] getLogoData() {
+        return logoData;
+    }
+
+    public void setLogoData(byte[] logoData) {
+        this.logoData = logoData;
+    }
+
+    public String getContentType() {
+        return contentType;
+    }
+
+    public void setContentType(String contentType) {
+        this.contentType = contentType;
+    }
 }

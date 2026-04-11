@@ -17,6 +17,22 @@ public class AccountantController {
     @Autowired
     private AccountantService service;
 
+    @Autowired
+    private com.cc.repository.PassbookVisaManAccountantRepository passbookVisaManAccountantRepository;
+
+    @Autowired
+    private com.cc.repository.PassbookAccountantAgentRepository passbookAccountantAgentRepository;
+
+    @GetMapping("/passbook/visaman")
+    public ResponseEntity<List<com.cc.modals.PassbookVisaManAccountant>> getPassbookVisaMan() {
+        return ResponseEntity.ok(passbookVisaManAccountantRepository.findAll());
+    }
+
+    @GetMapping("/passbook/agent")
+    public ResponseEntity<List<com.cc.modals.PassbookForAccountantAgent>> getPassbookAgent() {
+        return ResponseEntity.ok(passbookAccountantAgentRepository.findAll());
+    }
+
     // Create
     @PostMapping
     public ResponseEntity<Accountant> create(@RequestBody Accountant entity) {

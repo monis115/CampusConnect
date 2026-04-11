@@ -7,6 +7,11 @@ public class AgentCollegeAccessDTO {
     private List<Long> locationIds;
     private boolean accessAllLocations;
 
+    private Double dealPrice;
+    @com.fasterxml.jackson.annotation.JsonProperty("isSlabApplicable")
+    private boolean isSlabApplicable;
+    private List<CommissionSlabDTO> commissionSlabs;
+
     public Long getCollegeId() {
         return collegeId;
     }
@@ -31,7 +36,36 @@ public class AgentCollegeAccessDTO {
         this.accessAllLocations = accessAllLocations;
     }
 
+    public Double getDealPrice() {
+        return dealPrice;
+    }
+
+    public void setDealPrice(Double dealPrice) {
+        this.dealPrice = dealPrice;
+    }
+
+    @com.fasterxml.jackson.annotation.JsonProperty("isSlabApplicable")
+    public boolean isSlabApplicable() {
+        return isSlabApplicable;
+    }
+
+    @com.fasterxml.jackson.annotation.JsonProperty("isSlabApplicable")
+    public void setSlabApplicable(boolean isSlabApplicable) {
+        this.isSlabApplicable = isSlabApplicable;
+    }
+
+    public List<CommissionSlabDTO> getCommissionSlabs() {
+        return commissionSlabs;
+    }
+
+    public void setCommissionSlabs(List<CommissionSlabDTO> commissionSlabs) {
+        this.commissionSlabs = commissionSlabs;
+    }
+
     private String collegeName;
+    private String city;
+    private String country;
+    private boolean collegeActive = true;
     private List<LocationDetailDTO> locationDetails;
 
     public String getCollegeName() {
@@ -40,6 +74,30 @@ public class AgentCollegeAccessDTO {
 
     public void setCollegeName(String collegeName) {
         this.collegeName = collegeName;
+    }
+
+    public String getCity() {
+        return city;
+    }
+
+    public void setCity(String city) {
+        this.city = city;
+    }
+
+    public String getCountry() {
+        return country;
+    }
+
+    public void setCountry(String country) {
+        this.country = country;
+    }
+
+    public boolean isCollegeActive() {
+        return collegeActive;
+    }
+
+    public void setCollegeActive(boolean collegeActive) {
+        this.collegeActive = collegeActive;
     }
 
     public List<LocationDetailDTO> getLocationDetails() {

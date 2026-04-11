@@ -21,6 +21,14 @@ public class VisaManController {
     @Autowired
     private VisaManService service;
 
+    @Autowired
+    private com.cc.repository.PassbookVisaManAccountantRepository passbookVisaManAccountantRepository;
+
+    @GetMapping("/passbook/{username}")
+    public ResponseEntity<List<com.cc.modals.PassbookVisaManAccountant>> getVisaManPassbook(@PathVariable String username) {
+        return ResponseEntity.ok(passbookVisaManAccountantRepository.findByRequesterName(username));
+    }
+
     // Create
     @PostMapping
     public ResponseEntity<VisaMan> create(@RequestBody VisaMan entity) {

@@ -15,6 +15,10 @@ import com.cc.modals.actionOnUser;
 import com.cc.modals.DocumentReturnRequest;
 import com.cc.repository.DocumentReturnRequestRepository;
 import com.cc.repository.StudentRepository;
+import com.cc.modals.PassbookVisaManAccountant;
+import com.cc.modals.PassbookForAccountantAgent;
+import com.cc.repository.PassbookVisaManAccountantRepository;
+import com.cc.repository.PassbookAccountantAgentRepository;
 
 @Service
 @SuppressWarnings("null")
@@ -31,6 +35,12 @@ public class VisaService {
 
         @Autowired
         private EmailService emailService;
+
+        @Autowired
+        private PassbookVisaManAccountantRepository passbookVisaManAccountantRepository;
+
+        @Autowired
+        private PassbookAccountantAgentRepository passbookAccountantAgentRepository;
 
         // 1. Assign Visa Manager (called by Admission Manager)
         @Transactional
@@ -184,6 +194,17 @@ public class VisaService {
                 student.setAction(action.SEND_BANK_DETAILS_TO_AGENT);
                 student.setActionOnUser(actionOnUser.accountant);
 
+                PassbookVisaManAccountant passbook = passbookVisaManAccountantRepository.findByApplicationId(student.getApplicationId())
+                                .orElse(new PassbookVisaManAccountant());
+                passbook.setStudentName(student.getFullName());
+                passbook.setApplicationId(student.getApplicationId());
+                passbook.setVisaAmountRequest(amount);
+                passbook.setServiceChargeRequested(visaManServiceCharge != null ? visaManServiceCharge : 0.0);
+                passbook.setRequestedDateTime(LocalDateTime.now());
+                passbook.setStatus("INITIATED");
+                passbook.setRequesterName(visaManUsername);
+                passbookVisaManAccountantRepository.save(passbook);
+
                 addHistory(student, student.getApplicationStatus(), visaManUsername,
                                 "Visa payment requested: " + amount + " " + currency + " (Service Charge: "
                                                 + visaManServiceCharge
@@ -215,6 +236,21 @@ public class VisaService {
                 student.setAction(action.SEND_VISA_PAYMENT_TO_ACCOUNTANT);
                 student.setActionOnUser(actionOnUser.agent);
 
+                PassbookVisaManAccountant visaPassbook = passbookVisaManAccountantRepository.findByApplicationId(student.getApplicationId())
+                                .orElseThrow(() -> new RuntimeException("Visa Passbook not found for application: " + student.getApplicationId()));
+                visaPassbook.setStatus("SENT_TO_AGENT");
+                passbookVisaManAccountantRepository.save(visaPassbook);
+
+                PassbookForAccountantAgent agentPassbook = passbookAccountantAgentRepository.findByApplicationId(student.getApplicationId())
+                                .orElse(new PassbookForAccountantAgent());
+                agentPassbook.setStudentName(student.getFullName());
+                agentPassbook.setApplicationId(student.getApplicationId());
+                agentPassbook.setRequestedAmountByAccountantToAgent(amount);
+                agentPassbook.setBankDetails("Bank: " + bankName + ", Acc: " + accountNumber + ", SWIFT: " + swiftCode);
+                agentPassbook.setRequestDateTimeByAccountant(LocalDateTime.now());
+                agentPassbook.setAmountPaidByAgent(0.0);
+                passbookAccountantAgentRepository.save(agentPassbook);
+
                 addHistory(student, student.getApplicationStatus(), accountantUsername,
                                 "Bank details sent to agent: " + amount + " " + currency + " | Bank: " + bankName
                                                 + " | SWIFT: "
@@ -240,6 +276,18 @@ public class VisaService {
                 student.setAction(action.CONFIRM_VISA_PAYMENT);
                 student.setActionOnUser(actionOnUser.accountant);
 
+                PassbookForAccountantAgent agentPassbook = passbookAccountantAgentRepository.findByApplicationId(student.getApplicationId())
+                                .orElseThrow(() -> new RuntimeException("Accountant-Agent Passbook not found for application: " + student.getApplicationId()));
+                
+                double currentPaid = agentPassbook.getAmountPaidByAgent();
+                agentPassbook.setAmountPaidByAgent(currentPaid + amount);
+                if (transactionId != null && !transactionId.isEmpty()) {
+                        agentPassbook.setTransactionIdOrUpiIdGivenByAgent(transactionId);
+                }
+                agentPassbook.setPaymentDateTimeByAgent(LocalDateTime.now());
+                agentPassbook.setPaidByAgent(agentUsername);
+                passbookAccountantAgentRepository.save(agentPassbook);
+
                 addHistory(student, student.getApplicationStatus(), agentUsername,
                                 "Payment confirmation submitted: " + amount + " " + currency +
                                                 (transactionId != null ? " TxId: " + transactionId : "") + " by "
@@ -260,6 +308,17 @@ public class VisaService {
                 student.setAction(action.COLLECT_PASSPORT_FRM_DOC_PERSON);
                 student.setActionOnUser(actionOnUser.visa_manager);
                 student.setApplicationStatus(StudentStatus.VISA_PAYMENT_CONFIRMED);
+
+                PassbookForAccountantAgent agentPassbook = passbookAccountantAgentRepository.findByApplicationId(student.getApplicationId())
+                                .orElseThrow(() -> new RuntimeException("Accountant-Agent Passbook not found"));
+                double currentConfirmed = agentPassbook.getAmountConfirmedByAccountant() + receivedAmount;
+                agentPassbook.setAmountConfirmedByAccountant(currentConfirmed);
+                passbookAccountantAgentRepository.save(agentPassbook);
+
+                PassbookVisaManAccountant visaPassbook = passbookVisaManAccountantRepository.findByApplicationId(student.getApplicationId())
+                                .orElseThrow(() -> new RuntimeException("Visa Passbook not found"));
+                visaPassbook.setStatus("ACCOUNTANT_CONFIRMED");
+                passbookVisaManAccountantRepository.save(visaPassbook);
 
                 addHistory(student, StudentStatus.VISA_PAYMENT_CONFIRMED, accountantUsername,
                                 "Visa payment confirmed: " + receivedAmount + " received on " + receivedDate + " by "
@@ -292,13 +351,25 @@ public class VisaService {
                 }
                 student.setAccToVisaManMode(mode);
 
+                PassbookVisaManAccountant visaPassbook = passbookVisaManAccountantRepository.findByApplicationId(student.getApplicationId())
+                                .orElseThrow(() -> new RuntimeException("Visa Passbook not found"));
+                
+                double currentTotalPaid = visaPassbook.getTotalAmountPaidByAccountant() + amountToPay;
+                visaPassbook.setTotalAmountPaidByAccountant(currentTotalPaid);
+                visaPassbook.setAccountantDateTimePaid(LocalDateTime.now());
+                visaPassbook.setModeOfPayment(mode);
+
                 if (totalOwed > 0 && newTotalPaid >= totalOwed) {
                         student.setAccToVisaManStatus("FULLY_PAID");
+                        visaPassbook.setStatus("COMPLETED");
                 } else if (newTotalPaid > 0) {
                         student.setAccToVisaManStatus("PARTIALLY_PAID");
+                        visaPassbook.setStatus("PAID_TO_VISAMAN");
                 } else {
                         student.setAccToVisaManStatus("PENDING");
                 }
+                
+                passbookVisaManAccountantRepository.save(visaPassbook);
 
                 addHistory(student, student.getApplicationStatus(), accountantUsername,
                                 "Accountant paid Visa Man: " + amountToPay + " via " + mode + 

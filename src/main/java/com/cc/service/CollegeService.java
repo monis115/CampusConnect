@@ -54,6 +54,13 @@ public class CollegeService {
         }).orElse(null);
     }
 
+    public College updateCollegeStatus(Long id, boolean active) {
+        return collegeRepository.findById(id).map(college -> {
+            college.setActive(active);
+            return collegeRepository.save(college);
+        }).orElse(null);
+    }
+
     public void deleteCollege(Long id) {
         collegeRepository.deleteById(id);
     }

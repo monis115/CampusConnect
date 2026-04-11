@@ -9,6 +9,8 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.ElementCollection;
+import jakarta.persistence.CollectionTable;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
@@ -39,6 +41,17 @@ public class AgentCollegeAccess {
 
     @Column(nullable = false)
     private boolean accessAllLocations = false;
+
+    @Column(name = "base_commission")
+    private Double dealPrice;
+
+    @Column(nullable = false)
+    @com.fasterxml.jackson.annotation.JsonProperty("isSlabApplicable")
+    private boolean isSlabApplicable = false;
+
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "agent_college_commission_slabs", joinColumns = @JoinColumn(name = "access_id"))
+    private java.util.List<CommissionSlab> commissionSlabs;
 
     public AgentCollegeAccess() {
     }
@@ -89,5 +102,31 @@ public class AgentCollegeAccess {
 
     public void setAccessAllLocations(boolean accessAllLocations) {
         this.accessAllLocations = accessAllLocations;
+    }
+
+    public Double getDealPrice() {
+        return dealPrice;
+    }
+
+    public void setDealPrice(Double dealPrice) {
+        this.dealPrice = dealPrice;
+    }
+
+    @com.fasterxml.jackson.annotation.JsonProperty("isSlabApplicable")
+    public boolean isSlabApplicable() {
+        return isSlabApplicable;
+    }
+
+    @com.fasterxml.jackson.annotation.JsonProperty("isSlabApplicable")
+    public void setSlabApplicable(boolean isSlabApplicable) {
+        this.isSlabApplicable = isSlabApplicable;
+    }
+
+    public java.util.List<CommissionSlab> getCommissionSlabs() {
+        return commissionSlabs;
+    }
+
+    public void setCommissionSlabs(java.util.List<CommissionSlab> commissionSlabs) {
+        this.commissionSlabs = commissionSlabs;
     }
 }

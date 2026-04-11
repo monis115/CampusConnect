@@ -20,6 +20,9 @@ public class College {
     @Column(nullable = false)
     private String country;
 
+    @Column(columnDefinition = "boolean default true")
+    private boolean active = true;
+
     // FIX 1: Use JsonIgnoreProperties instead of BackReference
     // This says: "Show the Manager, but don't show the Manager's 'colleges' list"
     @ManyToOne
@@ -89,5 +92,13 @@ public class College {
 
     public void setUniversityPerson(UniversityPerson universityPerson) {
         this.universityPerson = universityPerson;
+    }
+
+    public boolean isActive() {
+        return active;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
     }
 }

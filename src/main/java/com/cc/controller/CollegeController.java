@@ -59,6 +59,19 @@ public class CollegeController {
         return "College deleted successfully with ID: " + id;
     }
 
+    @PatchMapping("/{id}/status")
+    public ResponseEntity<?> updateCollegeStatus(@PathVariable Long id, @RequestParam("isActive") boolean isActive) {
+        try {
+            College updated = collegeService.updateCollegeStatus(id, isActive);
+            if (updated == null) {
+                return ResponseEntity.status(404).body(Map.of("error", "College not found"));
+            }
+            return ResponseEntity.ok(updated);
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
+        }
+    }
+
     @GetMapping("/search/{collegeName}")
     public College getCollegeByName(@PathVariable String collegeName) {
         return collegeService.findByCollegeName(collegeName);

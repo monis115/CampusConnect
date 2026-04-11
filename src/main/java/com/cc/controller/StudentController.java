@@ -40,6 +40,8 @@ public class StudentController {
             @RequestParam(value = "profileImage", required = false) MultipartFile profileImage) {
 
         try {
+            System.out.println("LOG [/students/add] Received student JSON: " + studentJson);
+
             // Parse JSON string to StudentDTO
             StudentDTO studentDTO = objectMapper.readValue(studentJson, StudentDTO.class);
 
@@ -55,10 +57,16 @@ public class StudentController {
             return ResponseEntity.ok(savedStudent);
 
         } catch (IOException e) {
+            System.err.println("ERROR [/students/add] JSON Parsing Error: " + e.getMessage());
+            e.printStackTrace();
             return ResponseEntity.badRequest().body("JSON Parsing Error: " + e.getMessage());
         } catch (RuntimeException e) {
+            System.err.println("ERROR [/students/add] Validation Error: " + e.getMessage());
+            e.printStackTrace();
             return ResponseEntity.badRequest().body("Validation Error: " + e.getMessage());
         } catch (Exception e) {
+            System.err.println("ERROR [/students/add] Unexpected Error: " + e.getMessage());
+            e.printStackTrace();
             return ResponseEntity.internalServerError().body("An unexpected error occurred: " + e.getMessage());
         }
     }

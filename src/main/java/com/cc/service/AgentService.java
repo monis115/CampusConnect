@@ -274,6 +274,24 @@ public class AgentService {
             access.setAccessAllLocations(dto.isAccessAllLocations());
             access.setAllowedLocations(new java.util.HashSet<>(locations));
 
+            // Commission Map
+            access.setDealPrice(dto.getDealPrice());
+            access.setSlabApplicable(dto.isSlabApplicable());
+
+            if (dto.isSlabApplicable() && dto.getCommissionSlabs() != null) {
+                List<com.cc.modals.CommissionSlab> slabs = new ArrayList<>();
+                for (com.cc.DTO.CommissionSlabDTO slabDto : dto.getCommissionSlabs()) {
+                    slabs.add(new com.cc.modals.CommissionSlab(
+                            slabDto.getMinStudents(),
+                            slabDto.getMaxStudents(),
+                            slabDto.getDealPricePerStudent()
+                    ));
+                }
+                access.setCommissionSlabs(slabs);
+            } else {
+                access.setCommissionSlabs(new ArrayList<>());
+            }
+
             accessList.add(access);
         }
         return accessList;
@@ -330,6 +348,9 @@ public class AgentService {
                 com.cc.DTO.AgentCollegeAccessDTO dto = new com.cc.DTO.AgentCollegeAccessDTO();
                 dto.setCollegeId(access.getCollege().getId());
                 dto.setCollegeName(access.getCollege().getCollegeName());
+                dto.setCity(access.getCollege().getCity());
+                dto.setCountry(access.getCollege().getCountry());
+                dto.setCollegeActive(access.getCollege().isActive());
                 dto.setAccessAllLocations(access.isAccessAllLocations());
 
                 // Map location IDs
@@ -976,6 +997,23 @@ public class AgentService {
                                         loc.getState(),
                                         loc.getDistrict()))
                                 .collect(java.util.stream.Collectors.toList()));
+                    }
+
+                    // Map Commission Values
+                    accessDTO.setDealPrice(access.getDealPrice());
+                    accessDTO.setSlabApplicable(access.isSlabApplicable());
+
+                    if (access.getCommissionSlabs() != null) {
+                        List<com.cc.DTO.CommissionSlabDTO> slabDTOs = access.getCommissionSlabs().stream().map(slab -> {
+                            com.cc.DTO.CommissionSlabDTO s = new com.cc.DTO.CommissionSlabDTO();
+                            s.setMinStudents(slab.getMinStudents());
+                            s.setMaxStudents(slab.getMaxStudents());
+                            s.setDealPricePerStudent(slab.getDealPricePerStudent());
+                            return s;
+                        }).collect(java.util.stream.Collectors.toList());
+                        accessDTO.setCommissionSlabs(slabDTOs);
+                    } else {
+                        accessDTO.setCommissionSlabs(new java.util.ArrayList<>());
                     }
                     return accessDTO;
                 }).collect(java.util.stream.Collectors.toList());
