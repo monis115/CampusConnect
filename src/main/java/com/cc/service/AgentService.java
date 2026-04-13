@@ -221,7 +221,12 @@ public class AgentService {
         agent.setActivationDate(LocalDate.now());
 
         List<AgentCollegeAccess> accessList = processCollegeAccess(accessDTOs, agent);
-        agent.setCollegeAccess(new java.util.HashSet<>(accessList));
+        if (agent.getCollegeAccess() == null) {
+            agent.setCollegeAccess(new java.util.HashSet<>(accessList));
+        } else {
+            agent.getCollegeAccess().clear();
+            agent.getCollegeAccess().addAll(accessList);
+        }
 
         return agentRepository.save(agent);
     }

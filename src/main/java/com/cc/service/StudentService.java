@@ -744,6 +744,7 @@ public class StudentService {
     // PUBLIC TRACKING
     // ═══════════════════════════════════════════════════════════════════════════
 
+    @Transactional(readOnly = true)
     public com.cc.DTO.StudentApplicationTrackingDTO trackApplication(String query) {
         java.util.Optional<Student> studentOpt = studentRepository.findByApplicationId(query);
 
@@ -788,6 +789,204 @@ public class StudentService {
                 student.getApplicationStatus(),
                 lastUpdated,
                 historyDTOs);
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // FULL INFO BY PASSPORT (PUBLIC)
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    @Transactional(readOnly = true)
+    public com.cc.DTO.StudentFullInfoDTO getFullStudentInfoByPassport(String passportNo) {
+        java.util.Optional<Student> studentOpt = studentRepository.findByPassportNo(passportNo);
+        if (studentOpt.isEmpty()) {
+            return null;
+        }
+        Student s = studentOpt.get();
+        com.cc.DTO.StudentFullInfoDTO dto = new com.cc.DTO.StudentFullInfoDTO();
+
+        // ---- Identity ----
+        dto.setId(s.getId());
+        dto.setFullName(s.getFullName());
+        dto.setApplicationId(s.getApplicationId());
+        dto.setDob(s.getDob());
+        dto.setAge(s.getAge());
+        dto.setEmail(s.getEmail());
+        dto.setContactNo(s.getContactNo());
+        dto.setAddress(s.getAddress());
+        dto.setEmergencyContactNo(s.getEmergencyContactNo());
+        dto.setEmergencyRelation(s.getEmergencyRelation());
+        dto.setMothersName(s.getMothersName());
+        dto.setFathersName(s.getFathersName());
+        dto.setCreatedAt(s.getCreatedAt());
+
+        // ---- Status ----
+        dto.setApplicationStatus(s.getApplicationStatus());
+        dto.setNextStep(s.getNextStep());
+        dto.setPaymentStatus(s.getPaymentStatus());
+        dto.setUpdatedBy(s.getUpdatedBy());
+
+        // ---- Passport & Aadhaar ----
+        dto.setPassportNo(s.getPassportNo());
+        dto.setPassportValidTill(s.getPassportValidTill());
+        dto.setAdhaarCardNo(s.getAdhaarCardNo());
+
+        // ---- Education ----
+        dto.setClass12thPassingYear(s.getClass12thPassingYear());
+        dto.setBaords(s.getBaords());
+        dto.setClass12thMarks(s.getClass12thMarks());
+        dto.setMaxMarks(s.getMaxMarks());
+        dto.setHasGivenNEET(s.isHasGivenNEET());
+        dto.setNeetYear(s.getNeetYear());
+        dto.setNeetScore(s.getNeetScore());
+        dto.setIntake(s.getIntake());
+        dto.setAppliedFor(s.getAppliedFor());
+
+        // ---- College (flat) ----
+        if (s.getCollege() != null) {
+            dto.setCollegeName(s.getCollege().getCollegeName());
+            dto.setCollegeId(s.getCollege().getId());
+        }
+
+        // ---- Personnel (flat strings — no entity refs = no infinite loop) ----
+        if (s.getAgent() != null) {
+            dto.setAgentName(s.getAgent().getFullName());
+            dto.setAgentUserId(s.getAgent().getUserId());
+        }
+        if (s.getAdmissionManager() != null) {
+            dto.setAdmissionManagerName(s.getAdmissionManager().getFullName());
+            dto.setAdmissionManagerUsername(s.getAdmissionManager().getUsername());
+        }
+        if (s.getUniversityPerson() != null) {
+            dto.setUniversityPersonName(s.getUniversityPerson().getFullName());
+        }
+        if (s.getTelexMan() != null) {
+            dto.setTelexManName(s.getTelexMan().getFullName());
+            dto.setTelexManUsername(s.getTelexMan().getUsername());
+        }
+        if (s.getVisaMan() != null) {
+            dto.setVisaManName(s.getVisaMan().getFullName());
+            dto.setVisaManUsername(s.getVisaMan().getUsername());
+        }
+        if (s.getDocPerson() != null) {
+            dto.setDocPersonName(s.getDocPerson().getFullName());
+            dto.setDocPersonUsername(s.getDocPerson().getUsername());
+        }
+        if (s.getAccountant() != null) {
+            dto.setAccountantName(s.getAccountant().getFullName());
+            dto.setAccountantUsername(s.getAccountant().getUsername());
+        }
+
+        // ---- Telex ----
+        dto.setTelexNumber(s.getTelexNumber());
+        dto.setTelexIssueDate(s.getTelexIssueDate());
+        dto.setPassportValidationDate(s.getPassportValidationDate());
+        dto.setTelexPaymentAmount(s.getTelexPaymentAmount());
+        dto.setTelexPaymentTxId(s.getTelexPaymentTxId());
+        dto.setTelexPaymentReceivedAmount(s.getTelexPaymentReceivedAmount());
+        dto.setTelexPaymentReceivedDate(s.getTelexPaymentReceivedDate());
+        dto.setIsTelexAccountantApproved(s.getIsTelexAccountantApproved());
+        dto.setIsTelexDocApproved(s.getIsTelexDocApproved());
+        dto.setDocPersonComment(s.getDocPersonComment());
+
+        // ---- Visa / Personal ----
+        dto.setSurname(s.getSurname());
+        dto.setFirstName(s.getFirstName());
+        dto.setMiddleName(s.getMiddleName());
+        dto.setSex(s.getSex());
+        dto.setCountryOfBirth(s.getCountryOfBirth());
+        dto.setPlaceOfBirth(s.getPlaceOfBirth());
+        dto.setMaritalStatus(s.getMaritalStatus() != null ? s.getMaritalStatus().name() : null);
+        dto.setCitizenship(s.getCitizenship());
+        dto.setPreviousCitizenship(s.getPreviousCitizenship());
+        dto.setPassportType(s.getPassportType() != null ? s.getPassportType().name() : null);
+        dto.setPassportIssueDate(s.getPassportIssueDate());
+        dto.setPassportExpirationDate(s.getPassportExpirationDate());
+        dto.setDurationOfVisaProcedure(s.getDurationOfVisaProcedure());
+        dto.setPlaceOfVisaIssuance(s.getPlaceOfVisaIssuance());
+
+        // ---- Visa Payment ----
+        dto.setVisaManServiceCharge(s.getVisaManServiceCharge());
+        dto.setVisaPaymentRequestedAmount(s.getVisaPaymentRequestedAmount());
+        dto.setVisaPaymentRequestedCurrency(s.getVisaPaymentRequestedCurrency());
+        dto.setVisaBankDetailsSentDate(s.getVisaBankDetailsSentDate());
+        dto.setVisaPaymentTxId(s.getVisaPaymentTxId());
+        dto.setVisaPaymentReceivedAmount(s.getVisaPaymentReceivedAmount());
+        dto.setVisaPaymentReceivedDate(s.getVisaPaymentReceivedDate());
+        dto.setAccToVisaManPaidAmount(s.getAccToVisaManPaidAmount());
+        dto.setAccToVisaManPaymentDate(s.getAccToVisaManPaymentDate());
+        dto.setAccToVisaManTxId(s.getAccToVisaManTxId());
+        dto.setAccToVisaManMode(s.getAccToVisaManMode());
+        dto.setAccToVisaManStatus(s.getAccToVisaManStatus());
+
+        // ---- Bank Details ----
+        dto.setVisaBankName(s.getVisaBankName());
+        dto.setVisaBankAccountNumber(s.getVisaBankAccountNumber());
+        dto.setVisaBankSwiftCode(s.getVisaBankSwiftCode());
+        dto.setVisaBankBeneficiaryName(s.getVisaBankBeneficiaryName());
+        dto.setVisaBankBranchAddress(s.getVisaBankBranchAddress());
+
+        // ---- Document Tracking ----
+        dto.setOriginalDocLocation(s.getOriginalDocLocation());
+        dto.setOriginalDocsSent(s.getOriginalDocsSent());
+        dto.setDocDeliveryMethod(s.getDocDeliveryMethod() != null ? s.getDocDeliveryMethod().name() : null);
+        dto.setCourierPartner(s.getCourierPartner());
+        dto.setCourierTrackingId(s.getCourierTrackingId());
+        dto.setSelfPersonContact(s.getSelfPersonContact());
+        dto.setDocTentativeReachDate(s.getDocTentativeReachDate());
+        dto.setDocReceivedDate(s.getDocReceivedDate());
+        dto.setReceived12thMarksheet(s.getReceived12thMarksheet());
+        dto.setReceived10thMarksheet(s.getReceived10thMarksheet());
+        dto.setReceivedNeetScorecard(s.getReceivedNeetScorecard());
+        dto.setReceivedPassport(s.getReceivedPassport());
+        dto.setDocReturnedDate(s.getDocReturnedDate());
+        dto.setDocReturnMethod(s.getDocReturnMethod() != null ? s.getDocReturnMethod().name() : null);
+        dto.setDocReturnTrackingId(s.getDocReturnTrackingId());
+        dto.setReadyForDocReturn(s.getReadyForDocReturn());
+        dto.setCanRequestDocReturn(s.getCanRequestDocReturn());
+        dto.setHasRaiseReturnRequest(s.getHasRaiseReturnRequest());
+
+        // ---- Payment ----
+        dto.setHasPaid(s.getHasPaid());
+        dto.setPaidAmount(s.getPaidAmount());
+        dto.setPaidTo(s.getPaidTo() != null ? s.getPaidTo().name() : null);
+        dto.setPaymentType(s.getPaymentType() != null ? s.getPaymentType().name() : null);
+        dto.setPaymentDueDate(s.getPaymentDueDate());
+
+        // ---- File Paths ----
+        dto.setProfileImagePath(s.getProfileImagePath());
+        dto.setConfirmationPagePath(s.getConfirmationPagePath());
+        dto.setAdmissionLetterPath(s.getAdmissionLetterPathInternal());
+        dto.setConditionalOfferLetterPath(s.getConditionalOfferLetterPath());
+        dto.setPassportPath(s.getPassportPath());
+        dto.setAdhaarPath(s.getAdhaarPath());
+        dto.setMarkseetPath(s.getMarkseetPath());
+        dto.setNeetMarksheetPath(s.getNeetMarksheetPath());
+        dto.setTelexDocumentsPath(s.getTelexDocumentsPath());
+        dto.setTelexPaymentScreenshotPath(s.getTelexPaymentScreenshotPath());
+        dto.setTtCopyPath(s.getTtCopyPath());
+        dto.setPaymentConfirmationPath(s.getPaymentConfirmationPath());
+        dto.setVisaPhotoPath(s.getVisaPhotoPath());
+        dto.setVisaPassportCopyPath(s.getVisaPassportCopyPath());
+        dto.setVisaPaymentConfirmationPath(s.getVisaPaymentConfirmationPath());
+
+        // ---- Action ----
+        dto.setAction(s.getAction() != null ? s.getAction().toString() : null);
+        dto.setActionOnUser(s.getActionOnUser() != null ? s.getActionOnUser().toString() : null);
+
+        // ---- History (flat list — no back-reference to Student) ----
+        List<StudentStatusHistory> historyEntities = s.getStudentStatusHistory();
+        if (historyEntities != null && !historyEntities.isEmpty()) {
+            historyEntities.sort((h1, h2) -> h2.getUpdatedAt().compareTo(h1.getUpdatedAt()));
+            dto.setStatusHistory(historyEntities.stream()
+                    .map(h -> new com.cc.DTO.StudentFullInfoDTO.StatusHistoryItem(
+                            h.getStudentApplicationStatus(),
+                            h.getUpdatedAt(),
+                            h.getUpdatedBy(),
+                            h.getRemarks()))
+                    .collect(java.util.stream.Collectors.toList()));
+        }
+
+        return dto;
     }
 
     // ═══════════════════════════════════════════════════════════════════════════

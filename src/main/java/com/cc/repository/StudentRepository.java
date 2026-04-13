@@ -19,6 +19,8 @@ public interface StudentRepository extends JpaRepository<Student, Long> {
 
         java.util.Optional<Student> findByEmail(String email);
 
+        java.util.Optional<Student> findByPassportNo(String passportNo);
+
         // Existing methods...
         List<Student> findByAgent_Id(Long agentId);
 

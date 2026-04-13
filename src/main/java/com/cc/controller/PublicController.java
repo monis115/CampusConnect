@@ -48,4 +48,24 @@ public class PublicController {
                     .body("Error fetching agent profile: " + e.getMessage());
         }
     }
+
+    // ======================= FULL STUDENT INFO BY PASSPORT (public)
+    // =======================
+    @GetMapping("/student-by-passport")
+    public ResponseEntity<?> getStudentByPassport(@RequestParam("passportNo") String passportNo) {
+        try {
+            if (passportNo == null || passportNo.trim().isEmpty()) {
+                return ResponseEntity.badRequest().body("Passport number is required.");
+            }
+            com.cc.DTO.StudentFullInfoDTO result = studentService.getFullStudentInfoByPassport(passportNo.trim());
+            if (result == null) {
+                return ResponseEntity.status(404)
+                        .body("No student found with passport number: " + passportNo);
+            }
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError()
+                    .body("Error fetching student info: " + e.getMessage());
+        }
+    }
 }
