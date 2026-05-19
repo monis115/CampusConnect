@@ -289,8 +289,7 @@ public class AgentService {
                     slabs.add(new com.cc.modals.CommissionSlab(
                             slabDto.getMinStudents(),
                             slabDto.getMaxStudents(),
-                            slabDto.getDealPricePerStudent()
-                    ));
+                            slabDto.getDealPricePerStudent()));
                 }
                 access.setCommissionSlabs(slabs);
             } else {
@@ -331,7 +330,8 @@ public class AgentService {
         return agentRepository.findByUserId(userId);
     }
 
-    // ======================= PUBLIC PROFILE FOR STUDENT REFERRAL LINK =======================
+    // ======================= PUBLIC PROFILE FOR STUDENT REFERRAL LINK
+    // =======================
     @Transactional(readOnly = true)
     public AgentPublicProfileDTO getAgentPublicProfile(String userId) {
         Optional<Agent> agentOpt = agentRepository.findByUserIdWithDetails(userId);
@@ -379,7 +379,6 @@ public class AgentService {
 
         return new AgentPublicProfileDTO(agent.getFullName(), agent.getCompanyName(), accessDTOs);
     }
-
 
     @Transactional
     public Agent updateAgent(Long id, AgentRegistrationDTO dto) {
@@ -648,6 +647,20 @@ public class AgentService {
             student.setPaymentConfirmationPath(paymentConfirmationPath);
         }
 
+        // ======================= PAYMENT COMPONENTS =======================
+        if (details.getTelexTuitionFee() != null)
+            student.setTelexTuitionFee(details.getTelexTuitionFee());
+        if (details.getTelexHostelFee() != null)
+            student.setTelexHostelFee(details.getTelexHostelFee());
+        if (details.getTelexMessFee() != null)
+            student.setTelexMessFee(details.getTelexMessFee());
+        if (details.getTelexContractFee() != null)
+            student.setTelexContractFee(details.getTelexContractFee());
+        if (details.getTelexRegistrationFee() != null)
+            student.setTelexRegistrationFee(details.getTelexRegistrationFee());
+        if (details.getTelexOneTimeCharge() != null)
+            student.setTelexOneTimeCharge(details.getTelexOneTimeCharge());
+
         // ======================= PERSONAL/VISA INFORMATION =======================
         if (details.getSurname() != null)
             student.setSurname(details.getSurname());
@@ -777,9 +790,6 @@ public class AgentService {
         DocumentReturnRequest request = new DocumentReturnRequest();
         request.setStudent(student);
         request.setAgent(student.getAgent());
-        if (request.getTravelDate() != null) {
-            student.setApplicationStatus(com.cc.modals.StudentStatus.TRAVELLING);
-        }
         // Map DTO to Entity
         request.setContactPersonName(details.getContactPersonName());
         request.setContactPhone(details.getContactPhone());
@@ -798,6 +808,9 @@ public class AgentService {
             request.setTicketPdfPath(ticketPdfPath);
         }
 
+        // Update Status to TRAVELLING since document return is requested with travel details
+        student.setApplicationStatus(com.cc.modals.StudentStatus.TRAVELLING);
+
         // Initially false, will be true when Visa Manager returns docs
         request.setIsReturned(false);
 
@@ -810,10 +823,16 @@ public class AgentService {
         // User said: "agent will fill this form" ... "VISA MANAGER will return".
         // Current status is VISA_STAMPED.
 
+        // Update Status
+        student.setApplicationStatus(com.cc.modals.StudentStatus.TRAVELLING);
+        studentRepository.save(student);
+
         // History
         com.cc.modals.StudentStatusHistory history = new com.cc.modals.StudentStatusHistory();
         history.setStudent(student);
-        history.setStudentApplicationStatus(student.getApplicationStatus());
+        history.setStudentApplicationStatus(com.cc.modals.StudentStatus.TRAVELLING);
+        String fullNameAndRole = userService.resolveFullName(agentUsername);
+        history.setUpdatedByName(fullNameAndRole);
         history.setUpdatedBy(agentUsername);
         history.setUpdatedAt(java.time.LocalDateTime.now());
         history.setRemarks(
@@ -821,6 +840,41 @@ public class AgentService {
         studentStatusHistoryRepository.save(history);
 
         return documentReturnRequestRepository.save(request);
+    }
+
+    @Transactional
+    public void updateTravelDetails(Long studentId, String agentUsername, com.cc.DTO.TravelDetailsDTO details, String ticketPdfPath) {
+        com.cc.modals.Student student = studentRepository.findById(studentId)
+                .orElseThrow(() -> new RuntimeException("Student not found with ID: " + studentId));
+
+        if (student.getAgent() == null || !student.getAgent().getUserId().equals(agentUsername)) {
+            throw new RuntimeException("Unauthorized: Student is not assigned to this agent");
+        }
+
+        if (details.getTravelDoj() != null) student.setTravelDoj(details.getTravelDoj());
+        if (details.getTravelAirlines() != null) student.setTravelAirlines(details.getTravelAirlines());
+        if (details.getTravelSource() != null) student.setTravelSource(details.getTravelSource());
+        if (details.getTravelDestination() != null) student.setTravelDestination(details.getTravelDestination());
+        
+        if (ticketPdfPath != null) {
+            student.setTravelTicketPdfPath(ticketPdfPath);
+        }
+
+        // Update status to TRAVELLING when travel details are provided
+        student.setApplicationStatus(com.cc.modals.StudentStatus.TRAVELLING);
+
+        studentRepository.save(student);
+
+        // Add to history
+        com.cc.modals.StudentStatusHistory history = new com.cc.modals.StudentStatusHistory();
+        history.setStudent(student);
+        history.setStudentApplicationStatus(com.cc.modals.StudentStatus.TRAVELLING);
+        String fullNameAndRole = userService.resolveFullName(agentUsername);
+        history.setUpdatedByName(fullNameAndRole);
+        history.setUpdatedBy(agentUsername);
+        history.setRemarks("Updated Travel Details: DOJ " + details.getTravelDoj() + ", Airlines " + details.getTravelAirlines());
+        history.setUpdatedAt(java.time.LocalDateTime.now());
+        studentStatusHistoryRepository.save(history);
     }
 
     private void updateExistingRequest(DocumentReturnRequest request, DocumentReturnRequestDTO details,

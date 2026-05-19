@@ -104,15 +104,17 @@ public class VisaManStudentDTO {
     public static class LastHistoryDTO {
         private String status;
         private String updatedBy;
+        private String updatedByName;
         private LocalDateTime updatedAt;
         private String remarks;
 
         public LastHistoryDTO() {
         }
 
-        public LastHistoryDTO(String status, String updatedBy, LocalDateTime updatedAt, String remarks) {
+        public LastHistoryDTO(String status, String updatedBy, String updatedByName, LocalDateTime updatedAt, String remarks) {
             this.status = status;
             this.updatedBy = updatedBy;
+            this.updatedByName = updatedByName;
             this.updatedAt = updatedAt;
             this.remarks = remarks;
         }

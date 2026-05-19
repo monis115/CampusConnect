@@ -50,6 +50,9 @@ public class StudentStatusHistory {
     @Column(nullable = false)
     private String updatedBy; // could be "Admin", "Agent", "System", "Student"
 
+    @Column(name = "updated_by_name", length = 255, nullable = true)
+    private String updatedByName;
+
     @Column(nullable = false)
     private LocalDateTime updatedAt;
 
@@ -106,6 +109,14 @@ public class StudentStatusHistory {
 
     public void setUpdatedBy(String updatedBy) {
         this.updatedBy = updatedBy;
+    }
+
+    public String getUpdatedByName() {
+        return updatedByName;
+    }
+
+    public void setUpdatedByName(String updatedByName) {
+        this.updatedByName = updatedByName;
     }
 
     public LocalDateTime getUpdatedAt() {

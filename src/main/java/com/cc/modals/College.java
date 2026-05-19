@@ -20,6 +20,9 @@ public class College {
     @Column(nullable = false)
     private String country;
 
+    @Column
+    private String logoUrl;
+
     @Column(columnDefinition = "boolean default true")
     private boolean active = true;
 
@@ -43,6 +46,14 @@ public class College {
         this.collegeName = collegeName;
         this.city = city;
         this.country = country;
+    }
+
+    public String getLogoUrl() {
+        return logoUrl;
+    }
+
+    public void setLogoUrl(String logoUrl) {
+        this.logoUrl = logoUrl;
     }
 
     // Getters & Setters

@@ -277,6 +277,7 @@ public class TelexManController {
                                                 ? lastHistory.getStudentApplicationStatus().name()
                                                 : null,
                                         lastHistory.getUpdatedBy(),
+                                        lastHistory.getUpdatedByName(),
                                         lastHistory.getUpdatedAt(),
                                         lastHistory.getRemarks());
                             }

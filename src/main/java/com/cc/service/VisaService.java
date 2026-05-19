@@ -42,6 +42,12 @@ public class VisaService {
         @Autowired
         private PassbookAccountantAgentRepository passbookAccountantAgentRepository;
 
+        @Autowired
+        private UserService userService;
+
+        @Autowired
+        private SubAccountService subAccountService;
+
         // 1. Assign Visa Manager (called by Admission Manager)
         @Transactional
         public Student assignVisaManager(Long studentId, String admissionManagerUsername, String visaPersonUsername) {
@@ -216,21 +222,25 @@ public class VisaService {
         // Step 2: Accountant (in Uzbekistan) sends bank details to Agent (in India)
         @Transactional
         public Student sendBankDetailsToAgent(Long studentId, String accountantUsername, Double amount, String currency,
-                        String bankName, String accountNumber, String swiftCode, String beneficiaryName,
-                        String branchAddress) {
+                        Long subAccountId) {
                 Student student = studentRepository.findById(studentId)
                                 .orElseThrow(() -> new RuntimeException("Student not found"));
+
+                com.cc.modals.SubAccount subAccount = subAccountService.getSubAccountById(subAccountId);
+                if (subAccount == null) {
+                        throw new RuntimeException("SubAccount not found");
+                }
 
                 // DO NOT overwrite visaPaymentRequestedAmount — it is the base visa fee set by VisaMan.
                 // The 'amount' parameter here is the total the accountant tells the agent to send.
                 student.setVisaBankDetailsSentDate(java.time.LocalDate.now());
 
-                // Set bank details for international transfer
-                student.setVisaBankName(bankName);
-                student.setVisaBankAccountNumber(accountNumber);
-                student.setVisaBankSwiftCode(swiftCode);
-                student.setVisaBankBeneficiaryName(beneficiaryName);
-                student.setVisaBankBranchAddress(branchAddress);
+                // Set bank details for international transfer from SubAccount
+                student.setVisaBankName(subAccount.getBankName());
+                student.setVisaBankAccountNumber(subAccount.getAccountNumber());
+                student.setVisaBankSwiftCode(subAccount.getSwiftBic());
+                student.setVisaBankBeneficiaryName(subAccount.getBeneficiaryName());
+                student.setVisaBankBranchAddress(subAccount.getBranchAddress());
 
                 // Update action and actionOnUser
                 student.setAction(action.SEND_VISA_PAYMENT_TO_ACCOUNTANT);
@@ -246,15 +256,16 @@ public class VisaService {
                 agentPassbook.setStudentName(student.getFullName());
                 agentPassbook.setApplicationId(student.getApplicationId());
                 agentPassbook.setRequestedAmountByAccountantToAgent(amount);
-                agentPassbook.setBankDetails("Bank: " + bankName + ", Acc: " + accountNumber + ", SWIFT: " + swiftCode);
+                agentPassbook.setBankDetails("Bank: " + subAccount.getBankName() + ", Acc: " + subAccount.getAccountNumber() + ", SWIFT: " + subAccount.getSwiftBic());
                 agentPassbook.setRequestDateTimeByAccountant(LocalDateTime.now());
                 agentPassbook.setAmountPaidByAgent(0.0);
+                agentPassbook.setSubAccount(subAccount); // Link to SubAccount
                 passbookAccountantAgentRepository.save(agentPassbook);
 
                 addHistory(student, student.getApplicationStatus(), accountantUsername,
-                                "Bank details sent to agent: " + amount + " " + currency + " | Bank: " + bankName
+                                "Bank details sent to agent: " + amount + " " + currency + " | Bank: " + subAccount.getBankName()
                                                 + " | SWIFT: "
-                                                + swiftCode + " by " + accountantUsername);
+                                                + subAccount.getSwiftBic() + " by " + accountantUsername);
 
                 return studentRepository.save(student);
         }
@@ -315,6 +326,11 @@ public class VisaService {
                 agentPassbook.setAmountConfirmedByAccountant(currentConfirmed);
                 passbookAccountantAgentRepository.save(agentPassbook);
 
+                // Auto-Credit to SubAccount
+                if (agentPassbook.getSubAccount() != null) {
+                        subAccountService.updateBalance(agentPassbook.getSubAccount().getId(), receivedAmount, "Visa Payment Received from Agent: " + student.getApplicationId(), student.getApplicationId());
+                }
+
                 PassbookVisaManAccountant visaPassbook = passbookVisaManAccountantRepository.findByApplicationId(student.getApplicationId())
                                 .orElseThrow(() -> new RuntimeException("Visa Passbook not found"));
                 visaPassbook.setStatus("ACCOUNTANT_CONFIRMED");
@@ -329,9 +345,19 @@ public class VisaService {
 
         // Step 5 (New for Finance): Accountant pays Visa Man
         @Transactional
-        public Student payVisaMan(Long studentId, String accountantUsername, Double amountToPay, String txId, String mode, java.time.LocalDate paymentDate) {
+        public Student payVisaMan(Long studentId, String accountantUsername, Double amountToPay, String txId, String mode, java.time.LocalDate paymentDate, Long subAccountId) {
                 Student student = studentRepository.findById(studentId)
                                 .orElseThrow(() -> new RuntimeException("Student not found"));
+
+                com.cc.modals.SubAccount subAccount = subAccountService.getSubAccountById(subAccountId);
+                if (subAccount == null) {
+                        throw new RuntimeException("SubAccount not found");
+                }
+                
+                // Validate sufficient balance
+                if (subAccount.getBalance() < amountToPay) {
+                        throw new RuntimeException("Insufficient balance in SubAccount: " + subAccount.getBankName() + ". Available: " + subAccount.getBalance());
+                }
 
                 Double requestedAmount = student.getVisaPaymentRequestedAmount() != null ? student.getVisaPaymentRequestedAmount() : 0.0;
                 Double serviceCharge = student.getVisaManServiceCharge() != null ? student.getVisaManServiceCharge() : 0.0;
@@ -343,6 +369,9 @@ public class VisaService {
                 if (newTotalPaid > totalOwed && totalOwed > 0) {
                         throw new RuntimeException("Cannot pay more than the requested amount. Total owed: " + totalOwed + ", Already paid: " + alreadyPaid);
                 }
+
+                // Auto-Debit from SubAccount
+                subAccountService.updateBalance(subAccount.getId(), -amountToPay, "Visa Man Payout for: " + student.getApplicationId(), txId != null ? txId : student.getApplicationId());
 
                 student.setAccToVisaManPaidAmount(newTotalPaid);
                 student.setAccToVisaManPaymentDate(paymentDate);
@@ -358,6 +387,7 @@ public class VisaService {
                 visaPassbook.setTotalAmountPaidByAccountant(currentTotalPaid);
                 visaPassbook.setAccountantDateTimePaid(LocalDateTime.now());
                 visaPassbook.setModeOfPayment(mode);
+                visaPassbook.setSubAccount(subAccount); // Link to SubAccount
 
                 if (totalOwed > 0 && newTotalPaid >= totalOwed) {
                         student.setAccToVisaManStatus("FULLY_PAID");
@@ -408,6 +438,7 @@ public class VisaService {
                 history.setStudent(student);
                 history.setStudentApplicationStatus(status);
                 history.setUpdatedBy(updatedBy);
+                history.setUpdatedByName(userService.resolveFullName(updatedBy));
                 history.setUpdatedAt(LocalDateTime.now());
                 if (remarks != null) {
                         history.setRemarks(remarks);

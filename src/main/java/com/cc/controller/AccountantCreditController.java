@@ -21,7 +21,8 @@ public class AccountantCreditController {
     }
 
     @PostMapping("/{username}")
-    public ResponseEntity<AccountantCredit> addCredit(@RequestBody AccountantCredit credit, @PathVariable String username) {
+    public ResponseEntity<AccountantCredit> addCredit(@RequestBody AccountantCredit credit,
+            @PathVariable String username) {
         try {
             AccountantCredit savedCredit = accountantCreditService.addCredit(credit, username);
             return ResponseEntity.ok(savedCredit);

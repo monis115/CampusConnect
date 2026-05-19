@@ -191,6 +191,7 @@ public class UniversityPersonService {
         historyEntry.setStudent(updatedStudent);
         historyEntry.setStudentApplicationStatus(StudentStatus.PENDING_ADMISSION_LETTER);
         historyEntry.setUpdatedBy(universityPersonUsername);
+        historyEntry.setUpdatedByName(userService.resolveFullName(universityPersonUsername));
         historyEntry.setUpdatedAt(java.time.LocalDateTime.now());
         statusHistoryRepo.save(historyEntry);
 
@@ -241,6 +242,54 @@ public class UniversityPersonService {
         historyEntry.setStudent(updatedStudent);
         historyEntry.setStudentApplicationStatus(StudentStatus.CONDITIONAL_OFFER_LETTER_GENERATED);
         historyEntry.setUpdatedBy(universityPersonUsername);
+        historyEntry.setUpdatedByName(userService.resolveFullName(universityPersonUsername));
+        historyEntry.setUpdatedAt(java.time.LocalDateTime.now());
+        statusHistoryRepo.save(historyEntry);
+
+        return updatedStudent;
+    }
+
+    // -------------------- VISA TALAB NUMA UPLOAD --------------------
+
+    @org.springframework.transaction.annotation.Transactional
+    public Student uploadVisaTalabNuma(Long studentId, String universityPersonUsername, MultipartFile file)
+            throws IOException {
+
+        // Find student
+        Student student = studentRepository.findById(studentId)
+                .orElseThrow(() -> new RuntimeException("Student not found with ID: " + studentId));
+
+        // Find UniversityPerson by username
+        UniversityPerson universityPerson = upRepository.findByUserName(universityPersonUsername)
+                .orElseThrow(() -> new RuntimeException(
+                        "UniversityPerson not found with username: " + universityPersonUsername));
+
+        // Validate that this student is assigned to this UniversityPerson
+        if (student.getUniversityPerson() == null ||
+                !student.getUniversityPerson().getId().equals(universityPerson.getId())) {
+            throw new RuntimeException("Student is not assigned to this UniversityPerson");
+        }
+
+        // Validate file
+        if (file.isEmpty()) {
+            throw new RuntimeException("File is empty");
+        }
+
+        // Save file using S3StorageService
+        String filePath = s3StorageService.uploadFile(file, "visa-talab-numa",
+                "visa_talab_numa_" + student.getId());
+
+        // Update student
+        student.setVisaTalabNumaPath(filePath);
+        Student updatedStudent = studentRepository.save(student);
+
+        // Create status history entry
+        StudentStatusHistory historyEntry = new StudentStatusHistory();
+        historyEntry.setStudent(updatedStudent);
+        historyEntry.setStudentApplicationStatus(student.getApplicationStatus());
+        historyEntry.setRemarks("Uploaded Visa Talab Numa Document");
+        historyEntry.setUpdatedBy(universityPersonUsername);
+        historyEntry.setUpdatedByName(userService.resolveFullName(universityPersonUsername));
         historyEntry.setUpdatedAt(java.time.LocalDateTime.now());
         statusHistoryRepo.save(historyEntry);
 

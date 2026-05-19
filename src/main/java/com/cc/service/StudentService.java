@@ -16,6 +16,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.cc.DTO.AgentPassDTO;
+import com.cc.DTO.AgentSummaryDTO;
 import com.cc.DTO.StudentDTO;
 import com.cc.modals.AddmissionManager;
 import com.cc.modals.Agent;
@@ -77,6 +79,9 @@ public class StudentService {
     @Autowired
     private S3StorageService s3StorageService;
 
+    @Autowired
+    private UserService userService;
+
     @Value("${app.base-url:http://localhost:8080}")
     private String baseUrl;
 
@@ -90,7 +95,8 @@ public class StudentService {
             MultipartFile passportFile,
             MultipartFile marksheetFile,
             MultipartFile neetMarksheetFile,
-            MultipartFile profileImage) {
+            MultipartFile profileImage,
+            MultipartFile affidavitFile) {
 
         // Step 1: Fetch Agent
         Agent agent = agentRepository.findByUserId(dto.getUserNameAgent())
@@ -201,6 +207,7 @@ public class StudentService {
         String savedMarksheetPath = saveUploadedFile(marksheetFile, "marksheet", safeName + "_marks");
         String savedNeetMarksheetPath = saveUploadedFile(neetMarksheetFile, "neet_marksheet", safeName + "_neet_marks");
         String savedProfilePath = saveUploadedFile(profileImage, "profile", safeName + "_profile");
+        String savedAffidavitPath = saveUploadedFile(affidavitFile, "affidavit", safeName + "_affidavit");
 
         // Set File Paths to Entity
         student.setAdhaarPath(savedAdhaarPath);
@@ -208,6 +215,7 @@ public class StudentService {
         student.setNeetMarksheetPath(savedNeetMarksheetPath);
         student.setProfileImagePath(savedProfilePath);
         student.setPassportPath(savedPassportPath);
+        student.setAffidavitPath(savedAffidavitPath);
 
         // set action
         student.setAction(action.FORWARD_TO_UNI);
@@ -217,6 +225,7 @@ public class StudentService {
 
         history.setStudentApplicationStatus(StudentStatus.REGISTERED);
         history.setUpdatedBy(dto.getUserNameAgent());
+        history.setUpdatedByName(userService.resolveFullName(dto.getUserNameAgent()));
         history.setUpdatedAt(LocalDateTime.now());
         history.setStudent(student);
 
@@ -248,6 +257,86 @@ public class StudentService {
         }
 
         return savedStudent;
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // UPDATE STUDENT WITH FILE UPLOADS
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    @Transactional
+    public Student updateStudent(Long studentId, StudentDTO dto,
+            MultipartFile adhaarFile,
+            MultipartFile passportFile,
+            MultipartFile marksheetFile,
+            MultipartFile neetMarksheetFile,
+            MultipartFile profileImage,
+            MultipartFile affidavitFile) {
+
+        Student student = studentRepository.findById(studentId)
+                .orElseThrow(() -> new RuntimeException("Student not found: " + studentId));
+
+        if (dto.getFullName() != null) student.setFullName(dto.getFullName());
+        if (dto.getDob() != null) student.setDob(dto.getDob());
+        if (dto.getAge() != 0) student.setAge(dto.getAge());
+        if (dto.getEmail() != null) student.setEmail(dto.getEmail());
+        if (dto.getContactNo() != null) student.setContactNo(dto.getContactNo());
+        if (dto.getAddress() != null) student.setAddress(dto.getAddress());
+        if (dto.getEmergencyContactNo() != null) student.setEmergencyContactNo(dto.getEmergencyContactNo());
+        if (dto.getEmergencyRelation() != null) student.setEmergencyRelation(dto.getEmergencyRelation());
+        if (dto.getMothersName() != null) student.setMothersName(dto.getMothersName());
+        if (dto.getFathersName() != null) student.setFathersName(dto.getFathersName());
+        if (dto.getPassportNo() != null) student.setPassportNo(dto.getPassportNo());
+        if (dto.getPassportValidTill() != null) student.setPassportValidTill(dto.getPassportValidTill());
+        if (dto.getAdhaarCardNo() != null) student.setAdhaarCardNo(dto.getAdhaarCardNo());
+
+        if (dto.getClass12thPassingYear() != null) student.setClass12thPassingYear(dto.getClass12thPassingYear());
+        if (dto.getBaords() != null) student.setBaords(dto.getBaords());
+        if (dto.getClass12thMarks() != null) student.setClass12thMarks(dto.getClass12thMarks());
+        if (dto.getMaxMarks() != null) student.setMaxMarks(dto.getMaxMarks());
+
+        student.setHasGivenNEET(dto.isHasGivenNEET());
+        if (dto.isHasGivenNEET()) {
+            if (dto.getNeetYear() != null) student.setNeetYear(dto.getNeetYear());
+            if (dto.getNeetScore() != null) student.setNeetScore(dto.getNeetScore());
+        }
+
+        if (dto.getIntake() != null) student.setIntake(dto.getIntake());
+        if (dto.getAppliedFor() != null) student.setAppliedFor(dto.getAppliedFor());
+
+        String safeName = student.getFullName().replaceAll("\\s+", "_");
+        if (adhaarFile != null && !adhaarFile.isEmpty()) {
+            student.setAdhaarPath(saveUploadedFile(adhaarFile, "adhaar", safeName + "_adhaar"));
+        }
+        if (passportFile != null && !passportFile.isEmpty()) {
+            student.setPassportPath(saveUploadedFile(passportFile, "passport", safeName + "_passport"));
+        }
+        if (marksheetFile != null && !marksheetFile.isEmpty()) {
+            student.setMarkseetPath(saveUploadedFile(marksheetFile, "marksheet", safeName + "_marks"));
+        }
+        if (neetMarksheetFile != null && !neetMarksheetFile.isEmpty()) {
+            student.setNeetMarksheetPath(saveUploadedFile(neetMarksheetFile, "neet_marksheet", safeName + "_neet_marks"));
+        }
+        if (profileImage != null && !profileImage.isEmpty()) {
+            student.setProfileImagePath(saveUploadedFile(profileImage, "profile", safeName + "_profile"));
+        }
+        if (affidavitFile != null && !affidavitFile.isEmpty()) {
+            student.setAffidavitPath(saveUploadedFile(affidavitFile, "affidavit", safeName + "_affidavit"));
+        }
+
+        student.setAction(action.FORWARD_TO_UNI);
+        student.setActionOnUser(actionOnUser.admission_manager);
+        student.setApplicationStatus(StudentStatus.REGISTERED);
+
+        StudentStatusHistory history = new StudentStatusHistory();
+        history.setStudentApplicationStatus(StudentStatus.REGISTERED);
+        history.setUpdatedBy(dto.getUserNameAgent() != null ? dto.getUserNameAgent() : "Agent");
+        history.setUpdatedByName(userService.resolveFullName(dto.getUserNameAgent() != null ? dto.getUserNameAgent() : "Agent"));
+        history.setUpdatedAt(LocalDateTime.now());
+        history.setRemarks("Application Re-submitted by Agent with updated details.");
+        history.setStudent(student);
+        student.getStudentStatusHistory().add(history);
+
+        return studentRepository.save(student);
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -734,6 +823,7 @@ public class StudentService {
         history.setStudent(student);
         history.setStudentApplicationStatus(StudentStatus.TELEX_PAYMENT_DOCS_SUBMITTED);
         history.setUpdatedBy(agentUsername);
+        history.setUpdatedByName(userService.resolveFullName(agentUsername));
         history.setUpdatedAt(LocalDateTime.now());
         student.getStudentStatusHistory().add(history);
 
@@ -848,9 +938,34 @@ public class StudentService {
         }
 
         // ---- Personnel (flat strings — no entity refs = no infinite loop) ----
+        // ---- Agent (Nested DTO) ----
         if (s.getAgent() != null) {
-            dto.setAgentName(s.getAgent().getFullName());
-            dto.setAgentUserId(s.getAgent().getUserId());
+            AgentPassDTO agentDTO = new AgentPassDTO();
+            // Map all fields you need from Agent entity
+            agentDTO.setId(s.getAgent().getId());
+            agentDTO.setFullName(s.getAgent().getFullName());
+            agentDTO.setUserId(s.getAgent().getUserId());
+            agentDTO.setEmail(s.getAgent().getEmail());
+            agentDTO.setContactNo(s.getAgent().getContactNo());
+            agentDTO.setGender(s.getAgent().getGender());
+            agentDTO.setDesignation(s.getAgent().getDesignation());
+            agentDTO.setStatus(s.getAgent().getStatus());
+
+            // Company details
+            agentDTO.setCompanyName(s.getAgent().getCompanyName());
+            agentDTO.setRegisteredBusinessName(s.getAgent().getRegisteredBusinessName());
+            agentDTO.setBusinessType(s.getAgent().getBusinessType());
+            agentDTO.setRegistrationNumber(s.getAgent().getRegistrationNumber());
+            agentDTO.setPanOrGstNumber(s.getAgent().getPanOrGstNumber());
+            agentDTO.setRegisteredOfficeAddress(s.getAgent().getRegisteredOfficeAddress());
+            agentDTO.setCompanyEmail(s.getAgent().getCompanyEmail());
+            agentDTO.setCompanyContactNo(s.getAgent().getCompanyContactNo());
+            agentDTO.setWebsite(s.getAgent().getWebsite());
+
+            // College Access (map separately if needed)
+            // agentDTO.setCollegeAccess(...);
+
+            dto.setAgent(agentDTO);
         }
         if (s.getAdmissionManager() != null) {
             dto.setAdmissionManagerName(s.getAdmissionManager().getFullName());
@@ -951,6 +1066,14 @@ public class StudentService {
         dto.setPaidTo(s.getPaidTo() != null ? s.getPaidTo().name() : null);
         dto.setPaymentType(s.getPaymentType() != null ? s.getPaymentType().name() : null);
         dto.setPaymentDueDate(s.getPaymentDueDate());
+
+        // ---- Payment Components ----
+        dto.setTelexTuitionFee(s.getTelexTuitionFee());
+        dto.setTelexHostelFee(s.getTelexHostelFee());
+        dto.setTelexMessFee(s.getTelexMessFee());
+        dto.setTelexContractFee(s.getTelexContractFee());
+        dto.setTelexRegistrationFee(s.getTelexRegistrationFee());
+        dto.setTelexOneTimeCharge(s.getTelexOneTimeCharge());
 
         // ---- File Paths ----
         dto.setProfileImagePath(s.getProfileImagePath());

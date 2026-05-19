@@ -50,6 +50,7 @@ public class CollegeService {
             college.setCollegeName(updatedCollege.getCollegeName());
             college.setCity(updatedCollege.getCity());
             college.setCountry(updatedCollege.getCountry());
+            college.setLogoUrl(updatedCollege.getLogoUrl());
             return collegeRepository.save(college);
         }).orElse(null);
     }

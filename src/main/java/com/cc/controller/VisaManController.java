@@ -249,6 +249,7 @@ public class VisaManController {
                                                 ? lastHistory.getStudentApplicationStatus().name()
                                                 : null,
                                         lastHistory.getUpdatedBy(),
+                                        lastHistory.getUpdatedByName(),
                                         lastHistory.getUpdatedAt(),
                                         lastHistory.getRemarks());
                             }

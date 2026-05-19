@@ -44,6 +44,13 @@ public class PassbookForAccountantAgent {
     @Column(name = "paid_by")
     private String paidByAgent;
 
+    @Transient
+    private String paidByAgentFullName;
+
+    @ManyToOne
+    @JoinColumn(name = "sub_account_id")
+    private SubAccount subAccount;
+
     // Getters and Setters
 
     public Long getId() {
@@ -136,5 +143,21 @@ public class PassbookForAccountantAgent {
 
     public void setPaidByAgent(String paidByAgent) {
         this.paidByAgent = paidByAgent;
+    }
+
+    public String getPaidByAgentFullName() {
+        return paidByAgentFullName;
+    }
+
+    public void setPaidByAgentFullName(String paidByAgentFullName) {
+        this.paidByAgentFullName = paidByAgentFullName;
+    }
+
+    public SubAccount getSubAccount() {
+        return subAccount;
+    }
+
+    public void setSubAccount(SubAccount subAccount) {
+        this.subAccount = subAccount;
     }
 }

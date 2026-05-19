@@ -21,6 +21,9 @@ public class Session {
     @Column(name = "academic_year", nullable = false)
     private String academicYear;
 
+    @Column(name = "status")
+    private String status = "ACTIVE"; // ACTIVE or INACTIVE
+
     public Session() {
     }
 
@@ -28,6 +31,13 @@ public class Session {
         this.id = id;
         this.sessionName = sessionName;
         this.academicYear = academicYear;
+    }
+
+    public Session(Long id, String sessionName, String academicYear, String status) {
+        this.id = id;
+        this.sessionName = sessionName;
+        this.academicYear = academicYear;
+        this.status = status;
     }
 
     public Long getId() {
@@ -52,5 +62,13 @@ public class Session {
 
     public void setAcademicYear(String academicYear) {
         this.academicYear = academicYear;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 }

@@ -129,6 +129,7 @@ public class AccountantService {
                 historyEntry.setStudent(savedStudent);
                 historyEntry.setStudentApplicationStatus(com.cc.modals.StudentStatus.PAYMENT_APPROVED);
                 historyEntry.setUpdatedBy(accountantUsername);
+                historyEntry.setUpdatedByName(userService.resolveFullName(accountantUsername));
                 historyEntry.setUpdatedAt(java.time.LocalDateTime.now());
                 studentStatusHistoryRepository.save(historyEntry);
 
@@ -159,6 +160,7 @@ public class AccountantService {
                 paymentHistory.setStudent(student);
                 paymentHistory.setStudentApplicationStatus(com.cc.modals.StudentStatus.FEE_RECEIVED);
                 paymentHistory.setUpdatedBy(accountantUsername);
+                paymentHistory.setUpdatedByName(userService.resolveFullName(accountantUsername));
                 paymentHistory.setUpdatedAt(java.time.LocalDateTime.now());
                 paymentHistory.setRemarks("Payment received: " + receivedAmount + " on " + receivedDate);
                 studentStatusHistoryRepository.save(paymentHistory);
@@ -183,7 +185,7 @@ public class AccountantService {
         }
 
         @org.springframework.transaction.annotation.Transactional
-        public com.cc.modals.Student markTelexPaymentNotReceived(Long studentId, String accountantUsername) {
+        public com.cc.modals.Student markTelexPaymentNotReceived(Long studentId, String accountantUsername, String rejectionRemarks) {
                 com.cc.modals.Student student = studentRepository.findById(studentId)
                                 .orElseThrow(() -> new RuntimeException("Student not found with ID: " + studentId));
 
@@ -197,6 +199,9 @@ public class AccountantService {
 
                 student.setIsTelexAccountantApproved(false);
                 student.setPaymentStatus("Not Received");
+                if (rejectionRemarks != null && !rejectionRemarks.isEmpty()) {
+                        student.setPaymentRejectionRemarks(rejectionRemarks);
+                }
 
                 // History
                 com.cc.modals.StudentStatusHistory history = new com.cc.modals.StudentStatusHistory();
@@ -205,8 +210,13 @@ public class AccountantService {
                                                                                      // could be
                                                                                      // something like PAYMENT_REJECTED
                 history.setUpdatedBy(accountantUsername);
+                history.setUpdatedByName(userService.resolveFullName(accountantUsername));
                 history.setUpdatedAt(java.time.LocalDateTime.now());
-                history.setRemarks("Telex payment marked as NOT RECEIVED");
+                String remarkText = "Telex payment marked as NOT RECEIVED";
+                if (rejectionRemarks != null && !rejectionRemarks.isEmpty()) {
+                        remarkText += " — Remarks: " + rejectionRemarks;
+                }
+                history.setRemarks(remarkText);
                 studentStatusHistoryRepository.save(history);
 
                 return studentRepository.save(student);
@@ -226,6 +236,7 @@ public class AccountantService {
                 history.setStudent(savedStudent);
                 history.setStudentApplicationStatus(com.cc.modals.StudentStatus.VISA_FEE_RECEIVED);
                 history.setUpdatedBy(accountantUsername);
+                history.setUpdatedByName(userService.resolveFullName(accountantUsername));
                 history.setUpdatedAt(java.time.LocalDateTime.now());
                 studentStatusHistoryRepository.save(history);
 
@@ -275,7 +286,8 @@ public class AccountantService {
                                 .sum();
 
                 return new com.cc.DTO.AccountantDashboardStatsDTO(totalAssigned, pending, received, notReceived,
-                                totalAmountReceived, totalAmountPending, totalVisaRequestedByVisaMan, totalAccToVisaManPaidAmount);
+                                totalAmountReceived, totalAmountPending, totalVisaRequestedByVisaMan,
+                                totalAccToVisaManPaidAmount);
         }
 
         public java.util.List<com.cc.DTO.CollectionSummaryDTO> getCollectionSummary(String username) {
@@ -387,7 +399,14 @@ public class AccountantService {
                                                 s.getAccToVisaManPaymentDate(),
                                                 s.getAccToVisaManTxId(),
                                                 s.getAccToVisaManMode(),
-                                                s.getAccToVisaManStatus()))
+                                                s.getAccToVisaManStatus(),
+                                                // NEW: Agent and College enrichment
+                                                s.getAgent() != null ? s.getAgent().getFullName() : null,
+                                                s.getCollege() != null ? s.getCollege().getCollegeName() : null,
+                                                s.getAppliedFor(),
+                                                s.getPaymentRejectionRemarks(),
+                                                s.getVisaMan() != null ? s.getVisaMan().getFullName() : null,
+                                                s.getAgent() != null ? s.getAgent().getFullName() : null))
                                 .collect(java.util.stream.Collectors.toList());
         }
 

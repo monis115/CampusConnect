@@ -41,6 +41,13 @@ public class PassbookVisaManAccountant {
     @Column(name = "requester_name")
     private String requesterName;
 
+    @Transient
+    private String requesterFullName;
+
+    @ManyToOne
+    @JoinColumn(name = "sub_account_id")
+    private SubAccount subAccount;
+
     // Getters and Setters
 
     public Long getId() {
@@ -125,5 +132,21 @@ public class PassbookVisaManAccountant {
 
     public void setRequesterName(String requesterName) {
         this.requesterName = requesterName;
+    }
+
+    public String getRequesterFullName() {
+        return requesterFullName;
+    }
+
+    public void setRequesterFullName(String requesterFullName) {
+        this.requesterFullName = requesterFullName;
+    }
+
+    public SubAccount getSubAccount() {
+        return subAccount;
+    }
+
+    public void setSubAccount(SubAccount subAccount) {
+        this.subAccount = subAccount;
     }
 }

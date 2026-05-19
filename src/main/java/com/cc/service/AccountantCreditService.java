@@ -13,6 +13,9 @@ public class AccountantCreditService {
     @Autowired
     private AccountantCreditRepository accountantCreditRepository;
 
+    @Autowired
+    private com.cc.service.SubAccountService subAccountService;
+
     public List<AccountantCredit> getAllCreditsForAccountant(String username) {
         return accountantCreditRepository.findByAccountantUsernameOrderByCreditDateDesc(username);
     }
@@ -47,6 +50,18 @@ public class AccountantCreditService {
                 break;
             default:
                 throw new IllegalArgumentException("Invalid credit method: " + credit.getMethod());
+        }
+
+        if (credit.getSubAccountId() != null) {
+            String description = "Credit Added via " + credit.getMethod();
+            if ("FRIEND".equalsIgnoreCase(credit.getMethod())) {
+                description += " (" + credit.getFriendName() + ")";
+            } else if ("LOAN".equalsIgnoreCase(credit.getMethod())) {
+                description += " (" + credit.getBankName() + ")";
+            } else if ("CREDIT_CARD".equalsIgnoreCase(credit.getMethod())) {
+                description += " (" + credit.getCardInfo() + ")";
+            }
+            subAccountService.updateBalance(credit.getSubAccountId(), credit.getAmount(), description, "CREDIT-" + System.currentTimeMillis());
         }
 
         return accountantCreditRepository.save(credit);

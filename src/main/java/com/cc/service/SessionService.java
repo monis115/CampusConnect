@@ -22,6 +22,10 @@ public class SessionService {
         return sessionRepository.findAll();
     }
 
+    public List<Session> getActiveSessions() {
+        return sessionRepository.findByStatus("ACTIVE");
+    }
+
     public Session getSessionById(Long id) {
         return sessionRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Session not found with ID: " + id));
@@ -30,8 +34,15 @@ public class SessionService {
     public Session updateSession(Long id, Session sessionDetails) {
         Session session = getSessionById(id);
 
-        session.setSessionName(sessionDetails.getSessionName());
-        session.setAcademicYear(sessionDetails.getAcademicYear());
+        if (sessionDetails.getSessionName() != null) {
+            session.setSessionName(sessionDetails.getSessionName());
+        }
+        if (sessionDetails.getAcademicYear() != null) {
+            session.setAcademicYear(sessionDetails.getAcademicYear());
+        }
+        if (sessionDetails.getStatus() != null) {
+            session.setStatus(sessionDetails.getStatus());
+        }
 
         return sessionRepository.save(session);
     }

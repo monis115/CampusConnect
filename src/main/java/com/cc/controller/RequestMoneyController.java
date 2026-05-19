@@ -55,10 +55,21 @@ public class RequestMoneyController {
 
         String transactionId = (String) paymentDetails.get("transactionId");
         String accountantPaymentMode = (String) paymentDetails.get("accountantPaymentMode");
+        Long subAccountId = null;
+        Object subAccountObj = paymentDetails.get("subAccountId");
+        if (subAccountObj != null) {
+            if (subAccountObj instanceof Integer) {
+                subAccountId = ((Integer) subAccountObj).longValue();
+            } else if (subAccountObj instanceof Long) {
+                subAccountId = (Long) subAccountObj;
+            } else if (subAccountObj instanceof String) {
+                subAccountId = Long.parseLong((String) subAccountObj);
+            }
+        }
 
         try {
             RequestMoney updatedRequest = requestMoneyService.addPayment(id, amountPaid, accountantPaymentMode,
-                    transactionId);
+                    transactionId, subAccountId);
             return ResponseEntity.ok(updatedRequest);
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();

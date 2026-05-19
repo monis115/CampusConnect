@@ -130,6 +130,30 @@ public class AddmissionManagerController {
         }
     }
 
+    // REJECT STUDENT BACK TO AGENT
+    @PostMapping("/reject-student/{studentId}")
+    public ResponseEntity<?> rejectStudentToAgent(
+            @PathVariable Long studentId,
+            @RequestBody Map<String, String> request) {
+        try {
+            String admissionManagerUsername = request.get("admissionManagerUsername");
+            String reason = request.get("reason");
+
+            if (admissionManagerUsername == null || admissionManagerUsername.isEmpty()) {
+                return ResponseEntity.badRequest().body("admissionManagerUsername is required");
+            }
+            if (reason == null || reason.isEmpty()) {
+                return ResponseEntity.badRequest().body("reason is required");
+            }
+
+            Student updatedStudent = service.rejectStudentToAgent(studentId, admissionManagerUsername, reason);
+            return ResponseEntity.ok(updatedStudent);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body("Error rejecting student: " + e.getMessage());
+        }
+    }
+
     // -------------------- APPROVE ADMISSION LETTER --------------------
 
     @PostMapping("/approve-admission-letter/{studentId}")

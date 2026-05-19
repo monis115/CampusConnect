@@ -9,10 +9,15 @@ import com.cc.repository.UniversityPersonRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/colleges")
@@ -248,6 +253,60 @@ public class CollegeController {
             return ResponseEntity.ok("All reports sent successfully to " + email);
         } catch (Exception e) {
             return ResponseEntity.status(500).body("Error sending reports: " + e.getMessage());
+        }
+    }
+
+    // ======================= LOGO UPLOAD =======================
+
+    /**
+     * Upload a logo for a college
+     * Saves to uploads/college-logos/ and updates the college's logoUrl
+     */
+    @PostMapping("/{id}/logo")
+    public ResponseEntity<?> uploadCollegeLogo(
+            @PathVariable Long id,
+            @RequestParam("file") MultipartFile file) {
+        try {
+            if (file.isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of("error", "File is empty"));
+            }
+
+            Optional<College> collegeOpt = collegeService.getCollegeById(id);
+            if (collegeOpt.isEmpty()) {
+                return ResponseEntity.status(404).body(Map.of("error", "College not found"));
+            }
+
+            // Create directory
+            Path uploadPath = Paths.get("uploads/college-logos");
+            if (!Files.exists(uploadPath)) {
+                Files.createDirectories(uploadPath);
+            }
+
+            // Generate unique filename
+            String originalFilename = file.getOriginalFilename();
+            String extension = "";
+            if (originalFilename != null && originalFilename.contains(".")) {
+                extension = originalFilename.substring(originalFilename.lastIndexOf("."));
+            }
+            String uniqueFilename = "college_" + id + "_" + UUID.randomUUID().toString().substring(0, 8) + extension;
+
+            // Save file
+            Path filePath = uploadPath.resolve(uniqueFilename);
+            Files.copy(file.getInputStream(), filePath);
+
+            // Update college logoUrl
+            String logoPath = "uploads/college-logos/" + uniqueFilename;
+            College college = collegeOpt.get();
+            college.setLogoUrl(logoPath);
+            collegeService.createCollege(college); // save() via createCollege
+
+            return ResponseEntity.ok(Map.of(
+                    "logoUrl", logoPath,
+                    "message", "Logo uploaded successfully"));
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body(Map.of("error", "Error uploading logo: " + e.getMessage()));
         }
     }
 }

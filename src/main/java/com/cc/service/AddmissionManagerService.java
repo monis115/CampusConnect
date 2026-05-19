@@ -245,6 +245,7 @@ public class AddmissionManagerService {
                 forwardHistory.setStudent(savedStudent);
                 forwardHistory.setStudentApplicationStatus(StudentStatus.FORWARDED_TO_UNI);
                 forwardHistory.setUpdatedBy(managerUsername);
+                forwardHistory.setUpdatedByName(userService.resolveFullName(managerUsername));
                 forwardHistory.setUpdatedAt(java.time.LocalDateTime.now());
                 forwardHistory.setRemarks(
                                 "Student forwarded to University Coordinator: " + universityPerson.getUserName());
@@ -264,6 +265,7 @@ public class AddmissionManagerService {
                         offerHistory.setStudent(savedStudent);
                         offerHistory.setStudentApplicationStatus(StudentStatus.CONDITIONAL_OFFER_LETTER_GENERATED);
                         offerHistory.setUpdatedBy("SYSTEM");
+                        offerHistory.setUpdatedByName("SYSTEM");
                         offerHistory.setUpdatedAt(java.time.LocalDateTime.now());
                         offerHistory.setRemarks("Conditional Offer Letter generated automatically");
                         statusHistoryRepo.save(offerHistory);
@@ -662,7 +664,32 @@ public class AddmissionManagerService {
                 historyEntry.setStudent(savedStudent);
                 historyEntry.setStudentApplicationStatus(StudentStatus.ADMISSION_LETTER_GENERATED);
                 historyEntry.setUpdatedBy(admissionManagerUsername);
+                historyEntry.setUpdatedByName(userService.resolveFullName(admissionManagerUsername));
                 historyEntry.setUpdatedAt(java.time.LocalDateTime.now());
+                statusHistoryRepo.save(historyEntry);
+
+                return savedStudent;
+        }
+
+        // ===================== REJECT STUDENT BACK TO AGENT =====================
+        @Transactional
+        public Student rejectStudentToAgent(Long studentId, String managerUsername, String reason) {
+                Student student = studentRepo.findById(studentId)
+                                .orElseThrow(() -> new RuntimeException("Student not found with ID: " + studentId));
+
+                student.setApplicationStatus(StudentStatus.REJECTED);
+                student.setActionOnUser(actionOnUser.agent);
+                student.setAction(action.FORWARD_TO_UNI);
+
+                Student savedStudent = studentRepo.save(student);
+
+                StudentStatusHistory historyEntry = new StudentStatusHistory();
+                historyEntry.setStudent(savedStudent);
+                historyEntry.setStudentApplicationStatus(StudentStatus.REJECTED);
+                historyEntry.setUpdatedBy(managerUsername);
+                historyEntry.setUpdatedByName(userService.resolveFullName(managerUsername));
+                historyEntry.setUpdatedAt(java.time.LocalDateTime.now());
+                historyEntry.setRemarks(reason != null && !reason.isEmpty() ? "Reason: " + reason : "Rejected by Admission Manager");
                 statusHistoryRepo.save(historyEntry);
 
                 return savedStudent;

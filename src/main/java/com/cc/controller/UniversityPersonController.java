@@ -107,6 +107,23 @@ public class UniversityPersonController {
         }
     }
 
+    // -------------------- VISA TALAB NUMA UPLOAD --------------------
+
+    @PostMapping("/upload-visa-talab-numa/{studentId}")
+    public ResponseEntity<?> uploadVisaTalabNuma(
+            @PathVariable Long studentId,
+            @RequestParam("file") org.springframework.web.multipart.MultipartFile file,
+            @RequestParam("universityPersonUsername") String universityPersonUsername) {
+
+        try {
+            com.cc.modals.Student updatedStudent = service.uploadVisaTalabNuma(studentId, universityPersonUsername,
+                    file);
+            return ResponseEntity.ok(updatedStudent);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Error uploading Visa Talab Numa: " + e.getMessage());
+        }
+    }
+
     // -------------------- DASHBOARD ENDPOINTS --------------------
 
     @GetMapping("/{username}/dashboard/stats")
@@ -255,6 +272,7 @@ public class UniversityPersonController {
                                                         ? lastHistory.getStudentApplicationStatus().name()
                                                         : null,
                                                 lastHistory.getUpdatedBy(),
+                                                lastHistory.getUpdatedByName(),
                                                 lastHistory.getUpdatedAt(),
                                                 lastHistory.getRemarks());
                                     }

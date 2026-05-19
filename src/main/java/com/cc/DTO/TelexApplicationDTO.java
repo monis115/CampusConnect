@@ -60,6 +60,14 @@ public class TelexApplicationDTO {
     private String durationOfVisaProcedure;
     private String placeOfVisaIssuance;
 
+    // ======================= PAYMENT COMPONENTS =======================
+    private Boolean telexTuitionFee;
+    private Boolean telexHostelFee;
+    private Boolean telexMessFee;
+    private Boolean telexContractFee;
+    private Boolean telexRegistrationFee;
+    private Boolean telexOneTimeCharge;
+
     // ======================= GETTERS & SETTERS =======================
 
     public String getAgentUsername() {
@@ -308,6 +316,54 @@ public class TelexApplicationDTO {
 
     public void setPlaceOfVisaIssuance(String placeOfVisaIssuance) {
         this.placeOfVisaIssuance = placeOfVisaIssuance;
+    }
+
+    public Boolean getTelexTuitionFee() {
+        return telexTuitionFee;
+    }
+
+    public void setTelexTuitionFee(Boolean telexTuitionFee) {
+        this.telexTuitionFee = telexTuitionFee;
+    }
+
+    public Boolean getTelexHostelFee() {
+        return telexHostelFee;
+    }
+
+    public void setTelexHostelFee(Boolean telexHostelFee) {
+        this.telexHostelFee = telexHostelFee;
+    }
+
+    public Boolean getTelexMessFee() {
+        return telexMessFee;
+    }
+
+    public void setTelexMessFee(Boolean telexMessFee) {
+        this.telexMessFee = telexMessFee;
+    }
+
+    public Boolean getTelexContractFee() {
+        return telexContractFee;
+    }
+
+    public void setTelexContractFee(Boolean telexContractFee) {
+        this.telexContractFee = telexContractFee;
+    }
+
+    public Boolean getTelexRegistrationFee() {
+        return telexRegistrationFee;
+    }
+
+    public void setTelexRegistrationFee(Boolean telexRegistrationFee) {
+        this.telexRegistrationFee = telexRegistrationFee;
+    }
+
+    public Boolean getTelexOneTimeCharge() {
+        return telexOneTimeCharge;
+    }
+
+    public void setTelexOneTimeCharge(Boolean telexOneTimeCharge) {
+        this.telexOneTimeCharge = telexOneTimeCharge;
     }
 
 }

@@ -176,6 +176,7 @@ public class DocPersonService {
         history.setStudent(student);
         history.setStudentApplicationStatus(student.getApplicationStatus());
         history.setUpdatedBy("Received by " + docPersonUsername + "Docs " + docsReceivedStr);
+        history.setUpdatedByName(userService.resolveFullName(docPersonUsername));
         history.setUpdatedAt(java.time.LocalDateTime.now());
         history.setRemarks("Documents received on " + receivedDate + ". Docs: " + docsReceivedStr);
         studentStatusHistoryRepository.save(history);
@@ -206,6 +207,7 @@ public class DocPersonService {
             history.setStudent(student);
             history.setStudentApplicationStatus(com.cc.modals.StudentStatus.TELEX_INITIATED);
             history.setUpdatedBy("Verified by " + docPersonUsername);
+            history.setUpdatedByName(userService.resolveFullName(docPersonUsername));
             history.setUpdatedAt(java.time.LocalDateTime.now());
             history.setRemarks(comment != null ? comment : "Documents verified and approved");
             studentStatusHistoryRepository.save(history);
@@ -220,6 +222,7 @@ public class DocPersonService {
             history.setStudent(student);
             history.setStudentApplicationStatus(student.getApplicationStatus());
             history.setUpdatedBy(docPersonUsername);
+            history.setUpdatedByName(userService.resolveFullName(docPersonUsername));
             history.setUpdatedAt(java.time.LocalDateTime.now());
             history.setRemarks("Document verification rejected: " + (comment != null ? comment : "No comment"));
             studentStatusHistoryRepository.save(history);
@@ -249,6 +252,7 @@ public class DocPersonService {
         history.setStudent(student);
         history.setStudentApplicationStatus(student.getApplicationStatus());
         history.setUpdatedBy("Collected by " + docPersonUsername);
+        history.setUpdatedByName(userService.resolveFullName(docPersonUsername));
         history.setUpdatedAt(java.time.LocalDateTime.now());
         history.setRemarks("Documents collected from Visa Manager. Ready to return to student.");
         studentStatusHistoryRepository.save(history);
@@ -276,6 +280,7 @@ public class DocPersonService {
         history.setStudent(student);
         history.setStudentApplicationStatus(student.getApplicationStatus());
         history.setUpdatedBy("Returned by " + docPersonUsername);
+        history.setUpdatedByName(userService.resolveFullName(docPersonUsername));
         history.setUpdatedAt(java.time.LocalDateTime.now());
         history.setRemarks("Documents returned via " + method + " on " + returnedDate);
         studentStatusHistoryRepository.save(history);

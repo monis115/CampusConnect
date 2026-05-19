@@ -272,6 +272,32 @@ public class AgentController {
         }
     }
 
+    @PostMapping("/update-travel-details/{studentId}")
+    public ResponseEntity<?> updateTravelDetails(
+            @PathVariable Long studentId,
+            @org.springframework.web.bind.annotation.RequestParam("agentUsername") String agentUsername,
+            @org.springframework.web.bind.annotation.RequestParam("travelDetails") String travelDetailsJson,
+            @org.springframework.web.bind.annotation.RequestPart(value = "ticketPdf", required = false) org.springframework.web.multipart.MultipartFile ticketPdf) {
+        try {
+            com.fasterxml.jackson.databind.ObjectMapper objectMapper = new com.fasterxml.jackson.databind.ObjectMapper();
+            objectMapper.registerModule(new com.fasterxml.jackson.datatype.jsr310.JavaTimeModule());
+            com.cc.DTO.TravelDetailsDTO details = objectMapper.readValue(travelDetailsJson,
+                    com.cc.DTO.TravelDetailsDTO.class);
+
+            String ticketPdfPath = null;
+            if (ticketPdf != null && !ticketPdf.isEmpty()) {
+                ticketPdfPath = s3StorageService.uploadFile(ticketPdf, "tickets", "travel_ticket");
+            }
+
+            agentService.updateTravelDetails(studentId, agentUsername, details, ticketPdfPath);
+            return ResponseEntity
+                    .ok(java.util.Collections.singletonMap("message", "Travel details updated successfully"));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().body("Error updating travel details: " + e.getMessage());
+        }
+    }
+
     // ======================= DASHBOARD ENDPOINTS =======================
     @GetMapping("/{username}/dashboard/stats")
     public ResponseEntity<?> getAgentDashboardStats(@PathVariable String username) {

@@ -23,14 +23,56 @@ public class AccountantController {
     @Autowired
     private com.cc.repository.PassbookAccountantAgentRepository passbookAccountantAgentRepository;
 
+    @Autowired
+    private com.cc.service.UserService userService;
+
     @GetMapping("/passbook/visaman")
     public ResponseEntity<List<com.cc.modals.PassbookVisaManAccountant>> getPassbookVisaMan() {
-        return ResponseEntity.ok(passbookVisaManAccountantRepository.findAll());
+        List<com.cc.modals.PassbookVisaManAccountant> list = passbookVisaManAccountantRepository.findAll();
+        for (com.cc.modals.PassbookVisaManAccountant pb : list) {
+            pb.setRequesterFullName(userService.resolveFullName(pb.getRequesterName()));
+        }
+        return ResponseEntity.ok(list);
     }
 
     @GetMapping("/passbook/agent")
     public ResponseEntity<List<com.cc.modals.PassbookForAccountantAgent>> getPassbookAgent() {
-        return ResponseEntity.ok(passbookAccountantAgentRepository.findAll());
+        List<com.cc.modals.PassbookForAccountantAgent> list = passbookAccountantAgentRepository.findAll();
+        for (com.cc.modals.PassbookForAccountantAgent pb : list) {
+            pb.setPaidByAgentFullName(userService.resolveFullName(pb.getPaidByAgent()));
+        }
+        return ResponseEntity.ok(list);
+    }
+
+    @Autowired
+    private com.cc.service.SubAccountService subAccountService;
+
+    @Autowired
+    private com.cc.repository.SubAccountTransactionRepository subAccountTransactionRepository;
+
+    // --- SubAccount Endpoints ---
+    @GetMapping("/subaccounts")
+    public ResponseEntity<List<com.cc.modals.SubAccount>> getAllSubAccounts() {
+        return ResponseEntity.ok(subAccountService.getAllSubAccounts());
+    }
+
+    @PostMapping("/subaccounts")
+    public ResponseEntity<com.cc.modals.SubAccount> createSubAccount(@RequestBody com.cc.modals.SubAccount subAccount) {
+        return ResponseEntity.ok(subAccountService.saveSubAccount(subAccount));
+    }
+
+    @PutMapping("/subaccounts/{id}")
+    public ResponseEntity<com.cc.modals.SubAccount> updateSubAccount(@PathVariable Long id,
+            @RequestBody com.cc.modals.SubAccount subAccount) {
+        com.cc.modals.SubAccount existing = subAccountService.getSubAccountById(id);
+        if (existing == null)
+            return ResponseEntity.notFound().build();
+        existing.setBankName(subAccount.getBankName());
+        existing.setAccountNumber(subAccount.getAccountNumber());
+        existing.setSwiftBic(subAccount.getSwiftBic());
+        existing.setBeneficiaryName(subAccount.getBeneficiaryName());
+        existing.setBranchAddress(subAccount.getBranchAddress());
+        return ResponseEntity.ok(subAccountService.saveSubAccount(existing));
     }
 
     // Create
@@ -152,12 +194,14 @@ public class AccountantController {
             @RequestBody java.util.Map<String, String> request) {
         try {
             String accountantUsername = request.get("accountantUsername");
+            String rejectionRemarks = request.get("rejectionRemarks");
 
             if (accountantUsername == null || accountantUsername.isEmpty()) {
                 return ResponseEntity.badRequest().body("accountantUsername is required");
             }
 
-            com.cc.modals.Student updatedStudent = service.markTelexPaymentNotReceived(studentId, accountantUsername);
+            com.cc.modals.Student updatedStudent = service.markTelexPaymentNotReceived(studentId, accountantUsername,
+                    rejectionRemarks);
             return ResponseEntity.ok(updatedStudent);
         } catch (Exception e) {
             e.printStackTrace();
@@ -234,6 +278,16 @@ public class AccountantController {
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(500).body("Error fetching accountant details: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/subaccounts/{id}/transactions")
+    public ResponseEntity<?> getSubAccountTransactions(@PathVariable Long id) {
+        try {
+            return ResponseEntity.ok(subAccountTransactionRepository.findBySubAccountIdOrderByTransactionDateDesc(id));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body("Error fetching transactions: " + e.getMessage());
         }
     }
 }

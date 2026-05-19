@@ -185,11 +185,7 @@ public class VisaController {
             String accountantUsername = (String) request.get("accountantUsername");
             Double amount = Double.valueOf(request.get("amount").toString());
             String currency = (String) request.get("currency");
-            String bankName = (String) request.get("bankName");
-            String accountNumber = (String) request.get("accountNumber");
-            String swiftCode = (String) request.get("swiftCode");
-            String beneficiaryName = (String) request.get("beneficiaryName");
-            String branchAddress = (String) request.get("branchAddress");
+            Long subAccountId = Long.valueOf(request.get("subAccountId").toString());
 
             if (accountantUsername == null || accountantUsername.isEmpty()) {
                 return ResponseEntity.badRequest().body("accountantUsername is required");
@@ -200,15 +196,12 @@ public class VisaController {
             if (currency == null || currency.isEmpty()) {
                 return ResponseEntity.badRequest().body("currency is required");
             }
-            if (bankName == null || bankName.isEmpty()) {
-                return ResponseEntity.badRequest().body("bankName is required");
-            }
-            if (accountNumber == null || accountNumber.isEmpty()) {
-                return ResponseEntity.badRequest().body("accountNumber is required");
+            if (subAccountId == null) {
+                return ResponseEntity.badRequest().body("subAccountId is required");
             }
 
             Student student = visaService.sendBankDetailsToAgent(studentId, accountantUsername, amount, currency,
-                    bankName, accountNumber, swiftCode, beneficiaryName, branchAddress);
+                    subAccountId);
             return ResponseEntity.ok(student);
         } catch (Exception e) {
             return ResponseEntity.status(500).body("Error sending bank details: " + e.getMessage());
@@ -286,6 +279,7 @@ public class VisaController {
             String txId = (String) request.get("txId"); // Optional
             String mode = (String) request.get("mode");
             String paymentDateStr = (String) request.get("paymentDate");
+            Long subAccountId = Long.valueOf(request.get("subAccountId").toString());
 
             if (accountantUsername == null || accountantUsername.isEmpty()) {
                 return ResponseEntity.badRequest().body("accountantUsername is required");
@@ -299,9 +293,13 @@ public class VisaController {
             if (paymentDateStr == null || paymentDateStr.isEmpty()) {
                 return ResponseEntity.badRequest().body("paymentDate is required");
             }
+            if (subAccountId == null) {
+                return ResponseEntity.badRequest().body("subAccountId is required");
+            }
 
             java.time.LocalDate paymentDate = java.time.LocalDate.parse(paymentDateStr);
-            Student student = visaService.payVisaMan(studentId, accountantUsername, amountToPay, txId, mode, paymentDate);
+            Student student = visaService.payVisaMan(studentId, accountantUsername, amountToPay, txId, mode,
+                    paymentDate, subAccountId);
             return ResponseEntity.ok(student);
         } catch (Exception e) {
             return ResponseEntity.status(500).body("Error paying Visa Man: " + e.getMessage());

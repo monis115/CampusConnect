@@ -27,6 +27,12 @@ public class StudentPaymentSummaryDTO {
     private String accToVisaManTxId;
     private String accToVisaManMode;
     private String accToVisaManStatus;
+    private String agentFullName;
+    private String collegeName;
+    private String appliedFor;
+    private String paymentRejectionRemarks;
+    private String visaManFullName;
+    private String agentUserFullName;
 
     public StudentPaymentSummaryDTO() {
     }
@@ -39,7 +45,9 @@ public class StudentPaymentSummaryDTO {
             Double visaPaymentReceivedAmount, java.time.LocalDate visaPaymentReceivedDate,
             String action, String actionOnUser, Double accToVisaManPaidAmount,
             java.time.LocalDate accToVisaManPaymentDate, String accToVisaManTxId,
-            String accToVisaManMode, String accToVisaManStatus) {
+            String accToVisaManMode, String accToVisaManStatus,
+            String agentFullName, String collegeName, String appliedFor,
+            String paymentRejectionRemarks, String visaManFullName, String agentUserFullName) {
         this.studentId = studentId;
         this.applicationId = applicationId;
         this.fullName = fullName;
@@ -66,6 +74,12 @@ public class StudentPaymentSummaryDTO {
         this.accToVisaManTxId = accToVisaManTxId;
         this.accToVisaManMode = accToVisaManMode;
         this.accToVisaManStatus = accToVisaManStatus;
+        this.agentFullName = agentFullName;
+        this.collegeName = collegeName;
+        this.appliedFor = appliedFor;
+        this.paymentRejectionRemarks = paymentRejectionRemarks;
+        this.visaManFullName = visaManFullName;
+        this.agentUserFullName = agentUserFullName;
     }
 
     public Long getStudentId() {
@@ -275,4 +289,22 @@ public class StudentPaymentSummaryDTO {
     public void setAccToVisaManStatus(String accToVisaManStatus) {
         this.accToVisaManStatus = accToVisaManStatus;
     }
+
+    public String getAgentFullName() { return agentFullName; }
+    public void setAgentFullName(String agentFullName) { this.agentFullName = agentFullName; }
+
+    public String getCollegeName() { return collegeName; }
+    public void setCollegeName(String collegeName) { this.collegeName = collegeName; }
+
+    public String getAppliedFor() { return appliedFor; }
+    public void setAppliedFor(String appliedFor) { this.appliedFor = appliedFor; }
+
+    public String getPaymentRejectionRemarks() { return paymentRejectionRemarks; }
+    public void setPaymentRejectionRemarks(String paymentRejectionRemarks) { this.paymentRejectionRemarks = paymentRejectionRemarks; }
+
+    public String getVisaManFullName() { return visaManFullName; }
+    public void setVisaManFullName(String visaManFullName) { this.visaManFullName = visaManFullName; }
+
+    public String getAgentUserFullName() { return agentUserFullName; }
+    public void setAgentUserFullName(String agentUserFullName) { this.agentUserFullName = agentUserFullName; }
 }

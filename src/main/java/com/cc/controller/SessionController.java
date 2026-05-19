@@ -35,6 +35,11 @@ public class SessionController {
         return ResponseEntity.ok(sessionService.getAllSessions());
     }
 
+    @GetMapping("/active")
+    public ResponseEntity<List<Session>> getActiveSessions() {
+        return ResponseEntity.ok(sessionService.getActiveSessions());
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<Session> getSessionById(@PathVariable Long id) {
         return ResponseEntity.ok(sessionService.getSessionById(id));

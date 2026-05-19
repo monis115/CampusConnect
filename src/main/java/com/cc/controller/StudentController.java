@@ -37,7 +37,8 @@ public class StudentController {
             @RequestParam(value = "passportFile", required = false) MultipartFile passportFile,
             @RequestParam(value = "marksheetFile", required = false) MultipartFile marksheetFile,
             @RequestParam(value = "neetMarksheetFile", required = false) MultipartFile neetMarksheetFile,
-            @RequestParam(value = "profileImage", required = false) MultipartFile profileImage) {
+            @RequestParam(value = "profileImage", required = false) MultipartFile profileImage,
+            @RequestParam(value = "affidavitFile", required = false) MultipartFile affidavitFile) {
 
         try {
             System.out.println("LOG [/students/add] Received student JSON: " + studentJson);
@@ -52,7 +53,8 @@ public class StudentController {
                     passportFile,
                     marksheetFile,
                     neetMarksheetFile,
-                    profileImage);
+                    profileImage,
+                    affidavitFile);
 
             return ResponseEntity.ok(savedStudent);
 
@@ -66,6 +68,48 @@ public class StudentController {
             return ResponseEntity.badRequest().body("Validation Error: " + e.getMessage());
         } catch (Exception e) {
             System.err.println("ERROR [/students/add] Unexpected Error: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().body("An unexpected error occurred: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Update an existing student record WITH FILE UPLOADS.
+     */
+    @PutMapping("/update/{studentId}")
+    public ResponseEntity<?> updateStudent(
+            @PathVariable Long studentId,
+            @RequestParam("student") String studentJson,
+            @RequestParam(value = "adhaarFile", required = false) MultipartFile adhaarFile,
+            @RequestParam(value = "passportFile", required = false) MultipartFile passportFile,
+            @RequestParam(value = "marksheetFile", required = false) MultipartFile marksheetFile,
+            @RequestParam(value = "neetMarksheetFile", required = false) MultipartFile neetMarksheetFile,
+            @RequestParam(value = "profileImage", required = false) MultipartFile profileImage,
+            @RequestParam(value = "affidavitFile", required = false) MultipartFile affidavitFile) {
+
+        try {
+            System.out.println("LOG [/students/update] Received student JSON: " + studentJson);
+            StudentDTO studentDTO = objectMapper.readValue(studentJson, StudentDTO.class);
+
+            Student savedStudent = studentService.updateStudent(
+                    studentId,
+                    studentDTO,
+                    adhaarFile,
+                    passportFile,
+                    marksheetFile,
+                    neetMarksheetFile,
+                    profileImage,
+                    affidavitFile);
+
+            return ResponseEntity.ok(savedStudent);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().body("JSON Parsing Error: " + e.getMessage());
+        } catch (RuntimeException e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().body("Validation Error: " + e.getMessage());
+        } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.internalServerError().body("An unexpected error occurred: " + e.getMessage());
         }

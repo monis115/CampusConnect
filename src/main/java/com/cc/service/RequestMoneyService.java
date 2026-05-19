@@ -23,6 +23,8 @@ public class RequestMoneyService {
     private com.cc.repository.AccountantRepository accountantRepository;
     @Autowired
     private com.cc.repository.AgentRepository agentRepository;
+    @Autowired
+    private SubAccountService subAccountService;
 
     public RequestMoney createRequest(RequestMoney requestMoney) {
         // Auto-populate requesterFullName if missing
@@ -74,10 +76,20 @@ public class RequestMoneyService {
     @Autowired
     private com.cc.repository.PaymentTransactionRepository paymentTransactionRepository;
 
-    public RequestMoney addPayment(Long requestId, Double amount, String accountantPaymentMode, String transactionId) {
+    public RequestMoney addPayment(Long requestId, Double amount, String accountantPaymentMode, String transactionId, Long subAccountId) {
         Optional<RequestMoney> optionalRequest = requestMoneyRepository.findById(requestId);
         if (optionalRequest.isPresent()) {
             RequestMoney request = optionalRequest.get();
+            
+            if (subAccountId != null) {
+                com.cc.modals.SubAccount subAccount = subAccountService.getSubAccountById(subAccountId);
+                if (subAccount != null) {
+                    if (subAccount.getBalance() < amount) {
+                        throw new RuntimeException("Insufficient balance in SubAccount.");
+                    }
+                    subAccountService.updateBalance(subAccount.getId(), -amount, "Fund Request Release: " + request.getPurpose(), transactionId);
+                }
+            }
 
             // Create Transaction
             String finalTransactionId = (transactionId != null && !transactionId.isEmpty()) ? transactionId

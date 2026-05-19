@@ -27,6 +27,9 @@ public class TelexService {
         private S3StorageService s3StorageService;
 
         @Autowired
+        private UserService userService;
+
+        @Autowired
         public TelexService(StudentRepository studentRepository, TelexManService telexManService) {
                 this.studentRepository = studentRepository;
                 this.telexManService = telexManService;
@@ -163,6 +166,7 @@ public class TelexService {
                 history.setStudent(student);
                 history.setStudentApplicationStatus(status);
                 history.setUpdatedBy(updatedBy);
+                history.setUpdatedByName(userService.resolveFullName(updatedBy));
                 history.setUpdatedAt(LocalDateTime.now());
                 if (remarks != null) {
                         history.setRemarks(remarks);

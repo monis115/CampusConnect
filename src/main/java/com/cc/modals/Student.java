@@ -76,6 +76,9 @@ public class Student {
 	@Column(columnDefinition = "TEXT")
 	private String adhaarPath;
 
+	@Column(name = "affidavit_path", columnDefinition = "TEXT")
+	private String affidavitPath;
+
 	// preferences: a student can prefer multiple colleges
 	@ManyToMany(fetch = FetchType.LAZY)
 	@JoinTable(name = "student_college_preference", joinColumns = @JoinColumn(name = "student_id"), inverseJoinColumns = @JoinColumn(name = "college_id"))
@@ -117,7 +120,7 @@ public class Student {
 	private StudentStatus nextStep;
 
 	// assigned college (final assignment)
-	@ManyToOne(fetch = FetchType.LAZY)
+	@ManyToOne(fetch = FetchType.EAGER)
 	@JoinColumn(name = "college_id")
 	@JsonIgnoreProperties({ "admissionManager", "universityPerson" })
 	private College college;
@@ -211,6 +214,24 @@ public class Student {
 	@Column(name = "telex_payment_received_date")
 	private LocalDate telexPaymentReceivedDate;
 
+	@Column(name = "telex_tuition_fee")
+	private Boolean telexTuitionFee = false;
+
+	@Column(name = "telex_hostel_fee")
+	private Boolean telexHostelFee = false;
+
+	@Column(name = "telex_mess_fee")
+	private Boolean telexMessFee = false;
+
+	@Column(name = "telex_contract_fee")
+	private Boolean telexContractFee = false;
+
+	@Column(name = "telex_registration_fee")
+	private Boolean telexRegistrationFee = false;
+
+	@Column(name = "telex_one_time_charge")
+	private Boolean telexOneTimeCharge = false;
+
 	@Column(name = "is_telex_accountant_approved")
 	private Boolean isTelexAccountantApproved = false;
 
@@ -219,6 +240,9 @@ public class Student {
 
 	@Column(name = "doc_person_comment", columnDefinition = "TEXT")
 	private String docPersonComment;
+
+	@Column(name = "visa_talab_numa_path", columnDefinition = "TEXT")
+	private String visaTalabNumaPath;
 
 	@OneToMany(mappedBy = "student", cascade = CascadeType.ALL)
 	// This side was likely already there, which caused the error
@@ -352,6 +376,22 @@ public class Student {
 	@Column(name = "visa_passport_copy_path", columnDefinition = "TEXT")
 	private String visaPassportCopyPath;
 
+	// ======================= TRAVEL DETAILS =======================
+	@Column(name = "travel_doj")
+	private LocalDate travelDoj;
+
+	@Column(name = "travel_airlines", columnDefinition = "TEXT")
+	private String travelAirlines;
+
+	@Column(name = "travel_source", columnDefinition = "TEXT")
+	private String travelSource;
+
+	@Column(name = "travel_destination", columnDefinition = "TEXT")
+	private String travelDestination;
+
+	@Column(name = "travel_ticket_pdf_path", columnDefinition = "TEXT")
+	private String travelTicketPdfPath;
+
 	// ======================= VISA PAYMENT FIELDS =======================
 	@Column(name = "visa_man_service_charge")
 	private Double visaManServiceCharge;
@@ -408,6 +448,9 @@ public class Student {
 
 	@Column(name = "visa_bank_branch_address", columnDefinition = "TEXT")
 	private String visaBankBranchAddress;
+
+	@Column(name = "payment_rejection_remarks", columnDefinition = "TEXT")
+	private String paymentRejectionRemarks;
 
 	private Enum action;
 	private Enum actionOnUser;
@@ -623,6 +666,14 @@ public class Student {
 		this.adhaarPath = adhaarPath;
 	}
 
+	public String getAffidavitPath() {
+		return affidavitPath;
+	}
+
+	public void setAffidavitPath(String affidavitPath) {
+		this.affidavitPath = affidavitPath;
+	}
+
 	public String getClass12thPassingYear() {
 		return class12thPassingYear;
 	}
@@ -753,6 +804,14 @@ public class Student {
 		this.conditionalOfferLetterPath = conditionalOfferLetterPath;
 	}
 
+	public String getVisaTalabNumaPath() {
+		return visaTalabNumaPath;
+	}
+
+	public void setVisaTalabNumaPath(String visaTalabNumaPath) {
+		this.visaTalabNumaPath = visaTalabNumaPath;
+	}
+
 	public String getProfileImagePath() {
 		return profileImagePath;
 	}
@@ -801,6 +860,46 @@ public class Student {
 		return visaMan;
 	}
 
+	public LocalDate getTravelDoj() {
+		return travelDoj;
+	}
+
+	public void setTravelDoj(LocalDate travelDoj) {
+		this.travelDoj = travelDoj;
+	}
+
+	public String getTravelAirlines() {
+		return travelAirlines;
+	}
+
+	public void setTravelAirlines(String travelAirlines) {
+		this.travelAirlines = travelAirlines;
+	}
+
+	public String getTravelSource() {
+		return travelSource;
+	}
+
+	public void setTravelSource(String travelSource) {
+		this.travelSource = travelSource;
+	}
+
+	public String getTravelDestination() {
+		return travelDestination;
+	}
+
+	public void setTravelDestination(String travelDestination) {
+		this.travelDestination = travelDestination;
+	}
+
+	public String getTravelTicketPdfPath() {
+		return travelTicketPdfPath;
+	}
+
+	public void setTravelTicketPdfPath(String travelTicketPdfPath) {
+		this.travelTicketPdfPath = travelTicketPdfPath;
+	}
+
 	public void setVisaMan(VisaMan visaMan) {
 		this.visaMan = visaMan;
 	}
@@ -811,6 +910,14 @@ public class Student {
 
 	public void setDocPerson(DocPerson docPerson) {
 		this.docPerson = docPerson;
+	}
+
+	public String getPaymentRejectionRemarks() {
+		return paymentRejectionRemarks;
+	}
+
+	public void setPaymentRejectionRemarks(String paymentRejectionRemarks) {
+		this.paymentRejectionRemarks = paymentRejectionRemarks;
 	}
 
 	@Column(name = "doc_person_assigned_date")
@@ -910,6 +1017,54 @@ public class Student {
 
 	public void setTelexPaymentReceivedDate(LocalDate telexPaymentReceivedDate) {
 		this.telexPaymentReceivedDate = telexPaymentReceivedDate;
+	}
+
+	public Boolean getTelexTuitionFee() {
+		return telexTuitionFee;
+	}
+
+	public void setTelexTuitionFee(Boolean telexTuitionFee) {
+		this.telexTuitionFee = telexTuitionFee;
+	}
+
+	public Boolean getTelexHostelFee() {
+		return telexHostelFee;
+	}
+
+	public void setTelexHostelFee(Boolean telexHostelFee) {
+		this.telexHostelFee = telexHostelFee;
+	}
+
+	public Boolean getTelexMessFee() {
+		return telexMessFee;
+	}
+
+	public void setTelexMessFee(Boolean telexMessFee) {
+		this.telexMessFee = telexMessFee;
+	}
+
+	public Boolean getTelexContractFee() {
+		return telexContractFee;
+	}
+
+	public void setTelexContractFee(Boolean telexContractFee) {
+		this.telexContractFee = telexContractFee;
+	}
+
+	public Boolean getTelexRegistrationFee() {
+		return telexRegistrationFee;
+	}
+
+	public void setTelexRegistrationFee(Boolean telexRegistrationFee) {
+		this.telexRegistrationFee = telexRegistrationFee;
+	}
+
+	public Boolean getTelexOneTimeCharge() {
+		return telexOneTimeCharge;
+	}
+
+	public void setTelexOneTimeCharge(Boolean telexOneTimeCharge) {
+		this.telexOneTimeCharge = telexOneTimeCharge;
 	}
 
 	public Boolean getIsTelexAccountantApproved() {
@@ -1406,5 +1561,39 @@ public class Student {
 
 	public void setHasRaiseReturnRequest(Boolean hasRaiseReturnRequest) {
 		this.hasRaiseReturnRequest = hasRaiseReturnRequest;
+	}
+
+	@OneToOne(mappedBy = "student", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+	@JsonIgnoreProperties({ "student", "agent", "hibernateLazyInitializer", "handler" })
+	private DocumentReturnRequest documentReturnRequest;
+
+	public DocumentReturnRequest getDocumentReturnRequest() {
+		return documentReturnRequest;
+	}
+
+	public void setDocumentReturnRequest(DocumentReturnRequest documentReturnRequest) {
+		this.documentReturnRequest = documentReturnRequest;
+	}
+
+	// ── Computed transient fields for frontend consumption ──
+
+	@jakarta.persistence.Transient
+	@com.fasterxml.jackson.annotation.JsonProperty("agentFullName")
+	public String getAgentFullName() {
+		try {
+			return agent != null ? agent.getFullName() : null;
+		} catch (Exception e) {
+			return null;
+		}
+	}
+
+	@jakarta.persistence.Transient
+	@com.fasterxml.jackson.annotation.JsonProperty("collegeName")
+	public String getCollegeName() {
+		try {
+			return college != null ? college.getCollegeName() : null;
+		} catch (Exception e) {
+			return null;
+		}
 	}
 }
