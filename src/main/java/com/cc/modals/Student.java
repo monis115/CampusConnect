@@ -779,11 +779,7 @@ public class Student {
 	}
 
 	public String getAdmissionLetterPath() {
-		// Only return admission letter path if it's been approved
-		if (this.applicationStatus == StudentStatus.ADMISSION_LETTER_GENERATED) {
-			return admissionLetterPath;
-		}
-		return null; // Hide from students/agents until approved
+		return admissionLetterPath;
 	}
 
 	// Internal method for service layer to check if file actually exists
