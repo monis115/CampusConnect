@@ -1429,6 +1429,28 @@ public class Student {
 		this.readyForDocReturn = readyForDocReturn;
 	}
 
+	@Column(name = "doc_return_request_date")
+	private LocalDate docReturnRequestDate;
+
+	public LocalDate getDocReturnRequestDate() {
+		return docReturnRequestDate;
+	}
+
+	public void setDocReturnRequestDate(LocalDate docReturnRequestDate) {
+		this.docReturnRequestDate = docReturnRequestDate;
+	}
+
+	@Column(name = "passport_return_received_date")
+	private LocalDate passportReturnReceivedDate;
+
+	public LocalDate getPassportReturnReceivedDate() {
+		return passportReturnReceivedDate;
+	}
+
+	public void setPassportReturnReceivedDate(LocalDate passportReturnReceivedDate) {
+		this.passportReturnReceivedDate = passportReturnReceivedDate;
+	}
+
 	// ======================= VISA PAYMENT GETTERS/SETTERS =======================
 	public LocalDateTime getVisaFeePaymentDate() {
 		return visaFeePaymentDate;

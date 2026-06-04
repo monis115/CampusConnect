@@ -817,6 +817,7 @@ public class AgentService {
 
         student.setCanRequestDocReturn(false);// again cant raise return request
         student.setHasRaiseReturnRequest(true); // doc person can now send
+        student.setDocReturnRequestDate(java.time.LocalDate.now());
         studentRepository.save(student);
 
         // Update Student Action
@@ -841,6 +842,47 @@ public class AgentService {
         studentStatusHistoryRepository.save(history);
 
         return documentReturnRequestRepository.save(request);
+    }
+
+    @Transactional
+    public void markDocReceived(Long studentId, String agentUsername) {
+        com.cc.modals.Student student = studentRepository.findById(studentId)
+                .orElseThrow(() -> new RuntimeException("Student not found with ID: " + studentId));
+
+        if (student.getAgent() == null || !student.getAgent().getUserId().equals(agentUsername)) {
+            throw new RuntimeException("Unauthorized: Student is not assigned to this agent");
+        }
+
+        // GUARD: Only allow marking as received if doc person has actually returned the documents
+        if (student.getDocReturnedDate() == null && (student.getDocReturnTrackingId() == null || student.getDocReturnTrackingId().isEmpty())) {
+            throw new RuntimeException("Cannot mark as received: Documents have not been returned by the Doc Person yet. Please wait for the Doc Person to process the return.");
+        }
+
+        // GUARD: Don't allow double-marking
+        if (student.getPassportReturnReceivedDate() != null) {
+            throw new RuntimeException("Documents have already been marked as received.");
+        }
+
+        student.setPassportReturnReceivedDate(java.time.LocalDate.now());
+        
+        // Update history
+        com.cc.modals.StudentStatusHistory history = new com.cc.modals.StudentStatusHistory();
+        history.setStudent(student);
+        history.setStudentApplicationStatus(student.getApplicationStatus());
+        String fullNameAndRole = userService.resolveFullName(agentUsername);
+        history.setUpdatedByName(fullNameAndRole);
+        history.setUpdatedBy(agentUsername);
+        history.setRemarks("Documents received by Agent");
+        history.setUpdatedAt(java.time.LocalDateTime.now());
+        studentStatusHistoryRepository.save(history);
+
+        studentRepository.save(student);
+
+        DocumentReturnRequest request = documentReturnRequestRepository.findByStudentId(studentId);
+        if (request != null) {
+            request.setIsReturned(true); // Can also mark the request as completed
+            documentReturnRequestRepository.save(request);
+        }
     }
 
     @Transactional

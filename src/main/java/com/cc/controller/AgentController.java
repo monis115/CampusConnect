@@ -272,6 +272,19 @@ public class AgentController {
         }
     }
 
+    @PostMapping("/mark-doc-received/{studentId}")
+    public ResponseEntity<?> markDocReceived(
+            @PathVariable Long studentId,
+            @org.springframework.web.bind.annotation.RequestParam("agentUsername") String agentUsername) {
+        try {
+            agentService.markDocReceived(studentId, agentUsername);
+            return ResponseEntity.ok(java.util.Collections.singletonMap("message", "Document marked as received successfully"));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().body("Error marking document as received: " + e.getMessage());
+        }
+    }
+
     @PostMapping("/update-travel-details/{studentId}")
     public ResponseEntity<?> updateTravelDetails(
             @PathVariable Long studentId,
