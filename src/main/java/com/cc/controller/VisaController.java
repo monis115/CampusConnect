@@ -85,10 +85,11 @@ public class VisaController {
             @RequestBody Map<String, String> request) {
         try {
             String managerUsername = request.get("managerUsername");
+            String visaNumber = request.get("visaNumber");
             if (managerUsername == null || managerUsername.isEmpty()) {
                 return ResponseEntity.badRequest().body("managerUsername is required");
             }
-            Student student = visaService.confirmVisaStamped(studentId, managerUsername);
+            Student student = visaService.confirmVisaStamped(studentId, managerUsername, visaNumber);
             return ResponseEntity.ok(student);
         } catch (Exception e) {
             return ResponseEntity.status(500).body("Error confirming Visa Stamped: " + e.getMessage());

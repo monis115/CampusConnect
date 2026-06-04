@@ -734,6 +734,7 @@ public class AgentService {
 
         // Update Status
         student.setApplicationStatus(com.cc.modals.StudentStatus.TELEX_INITIATED);
+        student.setTelexRequestDate(java.time.LocalDate.now());
 
         // Reset approvals if they were previously set (re-submission case)
         student.setIsTelexAccountantApproved(false);

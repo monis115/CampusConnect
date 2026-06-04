@@ -1,6 +1,7 @@
 package com.cc.modals;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -191,6 +192,7 @@ public class Student {
 
 	@Column(name = "telex_issue_date")
 	private LocalDate telexIssueDate;
+	private LocalDate telexRequestDate;
 
 	@Column(name = "telex_documents_path", columnDefinition = "TEXT")
 	private String telexDocumentsPath;
@@ -373,6 +375,9 @@ public class Student {
 	@Column(name = "visa_photo_path", columnDefinition = "TEXT")
 	private String visaPhotoPath;
 
+	@Column(name = "visa_number", columnDefinition = "TEXT")
+	private String visaNumber;
+
 	@Column(name = "visa_passport_copy_path", columnDefinition = "TEXT")
 	private String visaPassportCopyPath;
 
@@ -395,6 +400,9 @@ public class Student {
 	// ======================= VISA PAYMENT FIELDS =======================
 	@Column(name = "visa_man_service_charge")
 	private Double visaManServiceCharge;
+
+	@Column(name = "visa_fee_payment_date")
+	private LocalDateTime visaFeePaymentDate;
 
 	@Column(name = "visa_payment_requested_amount")
 	private Double visaPaymentRequestedAmount;
@@ -959,6 +967,14 @@ public class Student {
 		this.telexIssueDate = telexIssueDate;
 	}
 
+	public LocalDate getTelexRequestDate() {
+		return telexRequestDate;
+	}
+
+	public void setTelexRequestDate(LocalDate telexRequestDate) {
+		this.telexRequestDate = telexRequestDate;
+	}
+
 	public String getTelexDocumentsPath() {
 		return telexDocumentsPath;
 	}
@@ -1357,6 +1373,14 @@ public class Student {
 		this.visaPhotoPath = visaPhotoPath;
 	}
 
+	public String getVisaNumber() {
+		return visaNumber;
+	}
+
+	public void setVisaNumber(String visaNumber) {
+		this.visaNumber = visaNumber;
+	}
+
 	public String getVisaPassportCopyPath() {
 		return visaPassportCopyPath;
 	}
@@ -1406,6 +1430,14 @@ public class Student {
 	}
 
 	// ======================= VISA PAYMENT GETTERS/SETTERS =======================
+	public LocalDateTime getVisaFeePaymentDate() {
+		return visaFeePaymentDate;
+	}
+
+	public void setVisaFeePaymentDate(LocalDateTime visaFeePaymentDate) {
+		this.visaFeePaymentDate = visaFeePaymentDate;
+	}
+
 	public Double getVisaPaymentRequestedAmount() {
 		return visaPaymentRequestedAmount;
 	}

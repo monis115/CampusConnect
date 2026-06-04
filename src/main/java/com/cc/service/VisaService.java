@@ -122,7 +122,7 @@ public class VisaService {
 
         // 5. Confirm Visa Stamped - Visa successfully issued
         @Transactional
-        public Student confirmVisaStamped(Long studentId, String visaManagerUsername) {
+        public Student confirmVisaStamped(Long studentId, String visaManagerUsername, String visaNumber) {
                 Student student = studentRepository.findById(studentId)
                                 .orElseThrow(() -> new RuntimeException("Student not found"));
 
@@ -134,10 +134,14 @@ public class VisaService {
                 // action
                 student.setAction(action.NEED_TO_RETURN_VISA);
 
+                if (visaNumber != null && !visaNumber.trim().isEmpty()) {
+                        student.setVisaNumber(visaNumber);
+                }
+
                 student.setActionOnUser(actionOnUser.visa_manager);
                 student.setApplicationStatus(StudentStatus.VISA_STAMPED);
                 addHistory(student, StudentStatus.VISA_STAMPED, visaManagerUsername,
-                                "Visa successfully issued! Stamped by " + visaManagerUsername);
+                                "Visa successfully issued! Stamped by " + visaManagerUsername + (visaNumber != null ? " with Visa Number: " + visaNumber : ""));
                 return studentRepository.save(student);
         }
 
@@ -284,6 +288,7 @@ public class VisaService {
                 if (confirmationPagePath != null && !confirmationPagePath.isEmpty()) {
                         student.setVisaPaymentConfirmationPath(confirmationPagePath);
                 }
+                student.setVisaFeePaymentDate(LocalDateTime.now());
                 student.setAction(action.CONFIRM_VISA_PAYMENT);
                 student.setActionOnUser(actionOnUser.accountant);
 
