@@ -78,4 +78,18 @@ public class MessageService {
                 msg.getAdmissionManager().getId(),
                 msg.getAdmissionManager().getFullName())).collect(java.util.stream.Collectors.toList());
     }
+
+    public void markMessagesAsReadForStudent(Long studentId, String readerRole) {
+        List<Message> messages = messageRepository.findByStudentIdOrderByTimestampAsc(studentId);
+        boolean updated = false;
+        for (Message msg : messages) {
+            if (!msg.isRead() && !msg.getSenderRole().equals(readerRole)) {
+                msg.setRead(true);
+                updated = true;
+            }
+        }
+        if (updated) {
+            messageRepository.saveAll(messages);
+        }
+    }
 }

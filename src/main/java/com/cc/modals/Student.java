@@ -397,6 +397,12 @@ public class Student {
 	@Column(name = "travel_ticket_pdf_path", columnDefinition = "TEXT")
 	private String travelTicketPdfPath;
 
+	@Column(name = "travel_pnr_number", columnDefinition = "TEXT")
+	private String travelPnrNumber;
+
+	@Column(name = "travel_flight_number", columnDefinition = "TEXT")
+	private String travelFlightNumber;
+
 	// ======================= VISA PAYMENT FIELDS =======================
 	@Column(name = "visa_man_service_charge")
 	private Double visaManServiceCharge;
@@ -902,6 +908,22 @@ public class Student {
 
 	public void setTravelTicketPdfPath(String travelTicketPdfPath) {
 		this.travelTicketPdfPath = travelTicketPdfPath;
+	}
+
+	public String getTravelPnrNumber() {
+		return travelPnrNumber;
+	}
+
+	public void setTravelPnrNumber(String travelPnrNumber) {
+		this.travelPnrNumber = travelPnrNumber;
+	}
+
+	public String getTravelFlightNumber() {
+		return travelFlightNumber;
+	}
+
+	public void setTravelFlightNumber(String travelFlightNumber) {
+		this.travelFlightNumber = travelFlightNumber;
 	}
 
 	public void setVisaMan(VisaMan visaMan) {

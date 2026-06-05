@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -51,5 +52,12 @@ public class MessageController {
     public ResponseEntity<List<com.cc.DTO.MessageDTO>> getMessagesForAgent(@PathVariable Long agentId) {
         List<com.cc.DTO.MessageDTO> messages = messageService.getMessagesForAgent(agentId);
         return ResponseEntity.ok(messages);
+    }
+
+    @PutMapping("/read/student/{studentId}")
+    public ResponseEntity<Void> markAsRead(@PathVariable Long studentId, @RequestBody Map<String, String> payload) {
+        String readerRole = payload.getOrDefault("readerRole", "AGENT");
+        messageService.markMessagesAsReadForStudent(studentId, readerRole);
+        return ResponseEntity.ok().build();
     }
 }

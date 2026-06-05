@@ -898,6 +898,8 @@ public class AgentService {
         if (details.getTravelAirlines() != null) student.setTravelAirlines(details.getTravelAirlines());
         if (details.getTravelSource() != null) student.setTravelSource(details.getTravelSource());
         if (details.getTravelDestination() != null) student.setTravelDestination(details.getTravelDestination());
+        if (details.getPnrNumber() != null) student.setTravelPnrNumber(details.getPnrNumber());
+        if (details.getFlightNumber() != null) student.setTravelFlightNumber(details.getFlightNumber());
         
         if (ticketPdfPath != null) {
             student.setTravelTicketPdfPath(ticketPdfPath);

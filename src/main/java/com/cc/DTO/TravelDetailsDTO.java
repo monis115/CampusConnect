@@ -7,6 +7,8 @@ public class TravelDetailsDTO {
     private String travelAirlines;
     private String travelSource;
     private String travelDestination;
+    private String pnrNumber;
+    private String flightNumber;
 
     public LocalDate getTravelDoj() { return travelDoj; }
     public void setTravelDoj(LocalDate travelDoj) { this.travelDoj = travelDoj; }
@@ -16,4 +18,8 @@ public class TravelDetailsDTO {
     public void setTravelSource(String travelSource) { this.travelSource = travelSource; }
     public String getTravelDestination() { return travelDestination; }
     public void setTravelDestination(String travelDestination) { this.travelDestination = travelDestination; }
+    public String getPnrNumber() { return pnrNumber; }
+    public void setPnrNumber(String pnrNumber) { this.pnrNumber = pnrNumber; }
+    public String getFlightNumber() { return flightNumber; }
+    public void setFlightNumber(String flightNumber) { this.flightNumber = flightNumber; }
 }
