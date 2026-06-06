@@ -7,6 +7,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import org.springframework.http.HttpStatus;
+import java.util.List;
+import com.cc.service.VisaManService;
+
+
+
+import com.cc.DTO.FundReleaseDTO;
+import com.cc.modals.FundRelease;
+
 import com.cc.modals.VisaMan;
 import com.cc.modals.StudentStatusHistory;
 import com.cc.DTO.VisaManDTO;
@@ -17,6 +26,8 @@ import com.cc.service.VisaManService;
 @RestController
 @RequestMapping("/api/visa-man")
 public class VisaManController {
+    @Autowired
+    private VisaManService visaManService;
 
     @Autowired
     private VisaManService service;
@@ -270,6 +281,42 @@ public class VisaManController {
             return ResponseEntity.ok(students);
         } catch (Exception e) {
             return ResponseEntity.status(500).body("Error getting students: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/fund-releases")
+    public ResponseEntity<?> getFundReleases(@RequestParam("username") String username) {
+        try {
+            List<FundReleaseDTO> releases = visaManService.getFundReleases(username);
+            return ResponseEntity.ok(releases);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to fetch fund releases");
+        }
+    }
+
+    @PostMapping("/fund-releases/{id}/confirm")
+    public ResponseEntity<?> confirmFundRelease(@RequestParam("username") String username, @PathVariable("id") Long id) {
+        try {
+            FundRelease release = visaManService.confirmFundRelease(username, id);
+            return ResponseEntity.ok(release);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
+    }
+
+    @PostMapping("/fund-releases/{id}/reject")
+    public ResponseEntity<?> rejectFundRelease(
+            @RequestParam("username") String username, 
+            @PathVariable("id") Long id,
+            @RequestParam("reason") String reason) {
+        try {
+            FundRelease release = visaManService.rejectFundRelease(username, id, reason);
+            return ResponseEntity.ok(release);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
         }
     }
 }

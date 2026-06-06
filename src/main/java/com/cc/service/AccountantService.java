@@ -2,7 +2,21 @@ package com.cc.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import com.cc.modals.FundRelease;
+import com.cc.repository.FundReleaseRepository;
+import com.cc.DTO.FundReleaseRequestDTO;
+import org.springframework.web.multipart.MultipartFile;
+import java.time.LocalDateTime;
+import java.util.Map;
+import java.util.HashMap;
+
 import com.cc.modals.Accountant;
+
+import com.cc.modals.Student;
+import java.util.ArrayList;
+import com.cc.service.S3StorageService;
+
 import com.cc.modals.action;
 import com.cc.modals.actionOnUser;
 import com.cc.repository.AccountantRepository;
@@ -105,6 +119,16 @@ public class AccountantService {
 
         @Autowired
         private com.cc.repository.StudentRepository studentRepository;
+
+    @org.springframework.beans.factory.annotation.Autowired
+    private com.cc.repository.AccountantRepository accountantRepository;
+    
+    @org.springframework.beans.factory.annotation.Autowired
+    private com.cc.repository.FundReleaseRepository fundReleaseRepository;
+    
+    @org.springframework.beans.factory.annotation.Autowired
+    private com.cc.service.S3StorageService s3StorageService;
+
 
         @Autowired
         private com.cc.repository.StudentStatusHistoryRepository studentStatusHistoryRepository;
@@ -457,4 +481,87 @@ public class AccountantService {
                                 studentDTOs.size(),
                                 studentDTOs);
         }
+
+    public FundRelease releaseFund(String username, FundReleaseRequestDTO requestDTO, MultipartFile receiptFile) throws Exception {
+        Accountant accountant = accountantRepository.findByUsername(username).orElse(null);
+        if (accountant == null) {
+            throw new Exception("Accountant not found");
+        }
+
+        Student student = studentRepository.findById(requestDTO.getStudentId())
+                .orElseThrow(() -> new Exception("Student not found"));
+
+        if (student.getVisaPaymentRequestedAmount() == null || student.getVisaPaymentRequestedAmount() == 0) {
+            throw new Exception("Collection Request must be generated before releasing funds.");
+        }
+
+        FundRelease release = new FundRelease();
+        release.setStudent(student);
+        release.setSourceAccountId(requestDTO.getSourceAccountId());
+        
+        release.setBeneficiaryBankName(student.getVisaBankName());
+        release.setBeneficiaryAccountNumber(student.getVisaBankAccountNumber());
+        release.setBeneficiarySwiftCode(student.getVisaBankSwiftCode());
+        
+        release.setVisaFee(student.getVisaPaymentRequestedAmount());
+        release.setServiceCharge(student.getVisaManServiceCharge());
+        
+        double total = (student.getVisaPaymentRequestedAmount() != null ? student.getVisaPaymentRequestedAmount() : 0.0) +
+                       (student.getVisaManServiceCharge() != null ? student.getVisaManServiceCharge() : 0.0);
+        release.setTotalReleasedAmount(total);
+        
+        release.setTransactionReference(requestDTO.getTransactionReference());
+        release.setTransferDate(requestDTO.getTransferDate());
+        release.setRemarks(requestDTO.getRemarks());
+        release.setReleasedBy(accountant.getUsername());
+        release.setReleasedDate(LocalDateTime.now());
+        release.setReleaseStatus("PENDING_CONFIRMATION");
+
+        if (receiptFile != null && !receiptFile.isEmpty()) {
+            String receiptUrl = s3StorageService.uploadFile(receiptFile, "fund_receipts", "receipt_");
+            release.setReceiptUrl(receiptUrl);
+        }
+
+        return fundReleaseRepository.save(release);
+    }
+
+    public List<Map<String, Object>> getOutstandingRecovery() {
+        // Fetch all students who have a visa payment requested but it's not fully paid
+        List<Student> students = studentRepository.findAll().stream()
+                .filter(s -> s.getVisaPaymentRequestedAmount() != null && s.getVisaPaymentRequestedAmount() > 0)
+                .collect(java.util.stream.Collectors.toList());
+
+        List<Map<String, Object>> recoveryList = new ArrayList<>();
+        for (Student s : students) {
+            double finalAmount = (s.getVisaPaymentRequestedAmount() != null ? s.getVisaPaymentRequestedAmount() : 0.0) +
+                                 (s.getVisaManServiceCharge() != null ? s.getVisaManServiceCharge() : 0.0);
+            double amountCollected = s.getVisaPaymentReceivedAmount() != null ? s.getVisaPaymentReceivedAmount() : 0.0;
+            double excessShort = amountCollected - finalAmount;
+
+            String status = "Pending";
+            if (amountCollected > 0 && amountCollected < finalAmount) {
+                status = "Partially Paid";
+            } else if (amountCollected == finalAmount) {
+                status = "Paid";
+            } else if (amountCollected > finalAmount) {
+                status = "Excess Available";
+            }
+
+            Map<String, Object> map = new HashMap<>();
+            map.put("requestId", s.getId()); // Using student ID as request ID for now
+            map.put("studentName", s.getFullName());
+            map.put("agentName", s.getAgent() != null ? s.getAgent().getFullName() : "N/A");
+            map.put("university", s.getCollege() != null ? s.getCollege().getCollegeName() : "N/A");
+            map.put("semester", s.getIntake());
+            map.put("finalAmount", finalAmount);
+            map.put("amountCollected", amountCollected);
+            map.put("excessShort", excessShort);
+            map.put("status", status);
+            map.put("requestDate", s.getVisaBankDetailsSentDate());
+            
+            // Add to list
+            recoveryList.add(map);
+        }
+        return recoveryList;
+    }
 }

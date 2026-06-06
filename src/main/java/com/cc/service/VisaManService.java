@@ -2,7 +2,19 @@ package com.cc.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import com.cc.modals.FundRelease;
+import com.cc.repository.FundReleaseRepository;
+import com.cc.DTO.FundReleaseDTO;
+import java.util.Map;
+import java.util.HashMap;
+
 import com.cc.modals.VisaMan;
+
+import java.util.ArrayList;
+import java.util.stream.Collectors;
+import java.util.List;
+
 import com.cc.repository.VisaManRepository;
 import java.util.List;
 import java.util.Optional;
@@ -60,6 +72,13 @@ public class VisaManService {
     @Autowired
     private com.cc.repository.StudentRepository studentRepository;
 
+    @org.springframework.beans.factory.annotation.Autowired
+    private com.cc.repository.VisaManRepository visaManRepository;
+    
+    @org.springframework.beans.factory.annotation.Autowired
+    private com.cc.repository.FundReleaseRepository fundReleaseRepository;
+
+
     @Autowired
     private com.cc.repository.StudentStatusHistoryRepository studentStatusHistoryRepository;
 
@@ -101,5 +120,63 @@ public class VisaManService {
         studentStatusHistoryRepository.save(history);
 
         return savedStudent;
+    }
+
+    public List<FundReleaseDTO> getFundReleases(String username) {
+        VisaMan visaMan = visaManRepository.findByUsername(username).orElse(null);
+        if (visaMan == null) return new ArrayList<>();
+
+        List<FundRelease> releases = fundReleaseRepository.findByStudent_VisaMan_UsernameOrderByCreatedAtDesc(username);
+        return releases.stream().map(r -> {
+            FundReleaseDTO dto = new FundReleaseDTO();
+            dto.setReleaseId(r.getReleaseId());
+            dto.setStudentId(r.getStudent() != null ? r.getStudent().getId() : null);
+            dto.setStudentName(r.getStudent() != null ? r.getStudent().getFullName() : "N/A");
+            dto.setAgentName(r.getStudent() != null && r.getStudent().getAgent() != null ? r.getStudent().getAgent().getFullName() : "N/A");
+            dto.setUniversity(r.getStudent() != null && r.getStudent().getCollege() != null ? r.getStudent().getCollege().getCollegeName() : "N/A");
+            dto.setSemester(r.getStudent() != null ? r.getStudent().getIntake() : "N/A");
+            dto.setSourceAccount("Visa Operations Account");
+            dto.setBeneficiaryBankName(r.getBeneficiaryBankName());
+            dto.setBeneficiaryAccountNumber(r.getBeneficiaryAccountNumber());
+            dto.setBeneficiarySwiftCode(r.getBeneficiarySwiftCode());
+            dto.setBeneficiaryAccountType(r.getBeneficiaryAccountType());
+            dto.setVisaFee(r.getVisaFee());
+            dto.setServiceCharge(r.getServiceCharge());
+            dto.setTotalReleasedAmount(r.getTotalReleasedAmount());
+            dto.setTransactionReference(r.getTransactionReference());
+            dto.setTransferDate(r.getTransferDate());
+            dto.setReceiptUrl(r.getReceiptUrl());
+            dto.setRemarks(r.getRemarks());
+            dto.setReleasedBy(r.getReleasedBy());
+            dto.setReleasedDate(r.getReleasedDate());
+            dto.setReleaseStatus(r.getReleaseStatus());
+            dto.setRejectionReason(r.getRejectionReason());
+            return dto;
+        }).collect(Collectors.toList());
+    }
+
+    public FundRelease confirmFundRelease(String username, Long releaseId) throws Exception {
+        FundRelease release = fundReleaseRepository.findById(releaseId)
+                .orElseThrow(() -> new Exception("Release not found"));
+        
+        if (!release.getStudent().getVisaMan().getUsername().equals(username)) {
+            throw new Exception("Unauthorized");
+        }
+        
+        release.setReleaseStatus("FUNDS_CONFIRMED");
+        return fundReleaseRepository.save(release);
+    }
+
+    public FundRelease rejectFundRelease(String username, Long releaseId, String reason) throws Exception {
+        FundRelease release = fundReleaseRepository.findById(releaseId)
+                .orElseThrow(() -> new Exception("Release not found"));
+        
+        if (!release.getStudent().getVisaMan().getUsername().equals(username)) {
+            throw new Exception("Unauthorized");
+        }
+        
+        release.setReleaseStatus("REJECTED");
+        release.setRejectionReason(reason);
+        return fundReleaseRepository.save(release);
     }
 }

@@ -7,12 +7,29 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.http.HttpStatus;
+import java.util.Map;
+import java.util.List;
+import com.cc.service.AccountantService;
+import com.cc.repository.AccountantRepository;
+
+
+
+import com.cc.DTO.FundReleaseRequestDTO;
+import com.cc.modals.FundRelease;
+import org.springframework.web.bind.annotation.ModelAttribute;
+
 import com.cc.modals.Accountant;
 import com.cc.service.AccountantService;
 
 @RestController
 @RequestMapping("/api/accountant")
 public class AccountantController {
+    @Autowired
+    private AccountantService accountantService;
+    @Autowired
+    private AccountantRepository accountantRepository;
 
     @Autowired
     private AccountantService service;
@@ -288,6 +305,36 @@ public class AccountantController {
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(500).body("Error fetching transactions: " + e.getMessage());
+        }
+    }
+
+    @PostMapping("/visa-fund-release")
+    public ResponseEntity<?> releaseFund(
+            @RequestParam("username") String username,
+            @ModelAttribute FundReleaseRequestDTO requestDTO,
+            @RequestParam(value = "receiptFile", required = false) MultipartFile receiptFile) {
+        try {
+            FundRelease release = accountantService.releaseFund(username, requestDTO, receiptFile);
+            return ResponseEntity.ok(release);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to release fund: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/outstanding-recovery")
+    public ResponseEntity<?> getOutstandingRecovery(@RequestParam String username) {
+        try {
+            // Verify accountant exists
+            Accountant accountant = accountantRepository.findByUsername(username).orElse(null);
+            if (accountant == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Unauthorized");
+            }
+            List<Map<String, Object>> recoveryList = accountantService.getOutstandingRecovery();
+            return ResponseEntity.ok(recoveryList);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to fetch outstanding recovery: " + e.getMessage());
         }
     }
 }
