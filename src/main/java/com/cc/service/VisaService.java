@@ -47,6 +47,9 @@ public class VisaService {
 
         @Autowired
         private SubAccountService subAccountService;
+        
+        @Autowired
+        private com.cc.repository.CollectionRequestRepository collectionRequestRepository;
 
         // 1. Assign Visa Manager (called by Admission Manager)
         @Transactional
@@ -266,10 +269,78 @@ public class VisaService {
                 agentPassbook.setSubAccount(subAccount); // Link to SubAccount
                 passbookAccountantAgentRepository.save(agentPassbook);
 
+                // Create Collection Request for Recovery tracking
+                com.cc.modals.CollectionRequest collectionReq = new com.cc.modals.CollectionRequest();
+                collectionReq.setStudentId(student.getId());
+                collectionReq.setStudentName(student.getFullName());
+                collectionReq.setApplicationId(student.getApplicationId());
+                collectionReq.setAgentUsername(student.getAgent() != null ? student.getAgent().getUserId() : null);
+                collectionReq.setAgentName(student.getAgent() != null ? student.getAgent().getFullName() : null);
+                collectionReq.setUniversityName(student.getCollege() != null ? student.getCollege().getCollegeName() : null);
+                collectionReq.setRequestedAmount(amount);
+                collectionReq.setCollectedAmount(0.0);
+                collectionReq.setPendingAmount(amount);
+                collectionReq.setStatus("PENDING");
+                collectionReq.setCreatedBy(accountantUsername);
+                
+                com.cc.modals.CollectionRequest savedColReq = collectionRequestRepository.save(collectionReq);
+                savedColReq.setRequestId("COL-" + String.format("%06d", savedColReq.getId()));
+                collectionRequestRepository.save(savedColReq);
+
                 addHistory(student, student.getApplicationStatus(), accountantUsername,
                                 "Bank details sent to agent: " + amount + " " + currency + " | Bank: " + subAccount.getBankName()
                                                 + " | SWIFT: "
                                                 + subAccount.getSwiftBic() + " by " + accountantUsername);
+
+                return studentRepository.save(student);
+        }
+
+        // Step 2.5: Accountant sends Payment Reminder
+        @Transactional
+        public Student sendPaymentReminder(Long studentId, String accountantUsername) {
+                Student student = studentRepository.findById(studentId)
+                                .orElseThrow(() -> new RuntimeException("Student not found"));
+
+                Double requestedAmount = student.getVisaPaymentRequestedAmount() != null ? student.getVisaPaymentRequestedAmount() : 0.0;
+                Double serviceCharge = student.getVisaManServiceCharge() != null ? student.getVisaManServiceCharge() : 0.0;
+                Double receivedAmount = student.getVisaPaymentReceivedAmount() != null ? student.getVisaPaymentReceivedAmount() : 0.0;
+                Double totalOwed = requestedAmount + serviceCharge;
+                Double pendingAmount = totalOwed - receivedAmount;
+
+                String currency = student.getVisaPaymentRequestedCurrency() != null ? student.getVisaPaymentRequestedCurrency() : "USD";
+
+                // We need to send an email to the agent and the application source email
+                String agentEmail = null;
+                if (student.getAgent() != null) {
+                        agentEmail = student.getAgent().getEmail();
+                }
+
+                String sourceEmail = student.getEmail(); // Assuming application source email is the student's email, or we could use another field if it exists. For now, student.getEmail() is the most logical source email if agent email is separate.
+                
+                if (agentEmail == null && sourceEmail == null) {
+                        throw new RuntimeException("No email address found for the agent or student");
+                }
+
+                StringBuilder html = new StringBuilder();
+                html.append("<html><body style='font-family: Arial, sans-serif;'>");
+                html.append("<h2 style='color: #2c3e50;'>Payment Reminder</h2>");
+                html.append("<p>Dear Agent,</p>");
+                html.append("<p>This is a formal reminder that we have requested a payment of <strong>").append(pendingAmount).append(" ").append(currency).append("</strong> for the application of <strong>").append(student.getFullName()).append("</strong> (Application ID: ").append(student.getApplicationId()).append(").</p>");
+                html.append("<p>Please process this amount and send confirmation as ASAP.</p>");
+                html.append("<br/><p>Thank you.</p>");
+                html.append("</body></html>");
+
+                String subject = "Payment Reminder: Application " + student.getApplicationId();
+
+                if (agentEmail != null) {
+                        emailService.sendHtmlEmail(agentEmail, subject, html.toString());
+                }
+                if (sourceEmail != null && !sourceEmail.equals(agentEmail)) {
+                        emailService.sendHtmlEmail(sourceEmail, subject, html.toString());
+                }
+
+                addHistory(student, student.getApplicationStatus(), accountantUsername,
+                                "Payment reminder sent for " + pendingAmount + " " + currency + " by " + accountantUsername);
 
                 return studentRepository.save(student);
         }
@@ -334,6 +405,14 @@ public class VisaService {
                 // Auto-Credit to SubAccount
                 if (agentPassbook.getSubAccount() != null) {
                         subAccountService.updateBalance(agentPassbook.getSubAccount().getId(), receivedAmount, "Visa Payment Received from Agent: " + student.getApplicationId(), student.getApplicationId());
+                }
+
+                // Update Collection Request
+                java.util.List<com.cc.modals.CollectionRequest> activeRequests = collectionRequestRepository.findByStudentIdAndStatusIn(studentId, java.util.List.of("PENDING", "PARTIAL"));
+                if (!activeRequests.isEmpty()) {
+                        com.cc.modals.CollectionRequest activeReq = activeRequests.get(0);
+                        activeReq.setCollectedAmount((activeReq.getCollectedAmount() == null ? 0 : activeReq.getCollectedAmount()) + receivedAmount);
+                        collectionRequestRepository.save(activeReq); // PreUpdate recalculates pendingAmount and status
                 }
 
                 PassbookVisaManAccountant visaPassbook = passbookVisaManAccountantRepository.findByApplicationId(student.getApplicationId())

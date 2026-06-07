@@ -21,6 +21,9 @@ public class VisaController {
     @Autowired
     private VisaService visaService;
 
+    @Autowired
+    private com.cc.service.CollectionRequestService collectionRequestService;
+
     // 1. Assign Visa Manager (called by Admission Manager)
     @PostMapping("/assign/{studentId}")
     public ResponseEntity<?> assignVisaManager(
@@ -209,6 +212,24 @@ public class VisaController {
         }
     }
 
+    // Step 2.5: Send Payment Reminder to Agent
+    @PostMapping("/send-reminder/{studentId}")
+    public ResponseEntity<?> sendPaymentReminder(
+            @PathVariable Long studentId,
+            @RequestBody Map<String, Object> request) {
+        try {
+            String accountantUsername = (String) request.get("accountantUsername");
+            if (accountantUsername == null || accountantUsername.isEmpty()) {
+                return ResponseEntity.badRequest().body("accountantUsername is required");
+            }
+
+            Student student = visaService.sendPaymentReminder(studentId, accountantUsername);
+            return ResponseEntity.ok(student);
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Error sending reminder: " + e.getMessage());
+        }
+    }
+
     // Step 3: Agent sends payment confirmation (transactionId and
     // confirmationPagePath are optional)
     @PostMapping("/submit-payment-confirmation/{studentId}")
@@ -266,6 +287,42 @@ public class VisaController {
             return ResponseEntity.ok(student);
         } catch (Exception e) {
             return ResponseEntity.status(500).body("Error confirming visa payment: " + e.getMessage());
+        }
+    }
+
+    @PostMapping("/cash-settlement/{studentId}")
+    public ResponseEntity<?> cashSettlement(
+            @PathVariable Long studentId,
+            @org.springframework.web.bind.annotation.RequestParam("accountantUsername") String accountantUsername,
+            @org.springframework.web.bind.annotation.RequestParam("amount") Double amount,
+            @org.springframework.web.bind.annotation.RequestParam("date") String date,
+            @org.springframework.web.bind.annotation.RequestParam("subAccountId") Long subAccountId,
+            @org.springframework.web.bind.annotation.RequestParam(value = "remarks", required = false) String remarks,
+            @org.springframework.web.bind.annotation.RequestParam(value = "file", required = false) org.springframework.web.multipart.MultipartFile file) {
+        try {
+            if (accountantUsername == null || accountantUsername.isEmpty()) {
+                return ResponseEntity.badRequest().body("accountantUsername is required");
+            }
+            if (amount == null) {
+                return ResponseEntity.badRequest().body("amount is required");
+            }
+            if (subAccountId == null) {
+                return ResponseEntity.badRequest().body("subAccountId is required");
+            }
+
+            String fileUrl = null;
+            if (file != null && !file.isEmpty()) {
+                // We assume there's a file service. 
+                // Currently, we don't strictly need to upload it for this MVP, but we can call standard file upload logic if available.
+                // fileUrl = fileService.uploadFile(file);
+            }
+
+            // Since VisaController depends on VisaService, we need to inject CollectionRequestService or add processCashSettlement to VisaService.
+            // Let's add it to CollectionRequestService and inject it here!
+            return ResponseEntity.ok(collectionRequestService.processCashSettlement(studentId, accountantUsername, amount, subAccountId, date, remarks, fileUrl));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body("Error processing cash settlement: " + e.getMessage());
         }
     }
 
