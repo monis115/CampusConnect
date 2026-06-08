@@ -24,6 +24,19 @@ public class VisaController {
     @Autowired
     private com.cc.service.CollectionRequestService collectionRequestService;
 
+    @Autowired
+    private com.cc.repository.VisaPaymentTransactionRepository visaPaymentTransactionRepository;
+
+    @org.springframework.web.bind.annotation.GetMapping("/payment-transactions/{studentId}")
+    public ResponseEntity<?> getPaymentTransactions(@PathVariable Long studentId) {
+        try {
+            java.util.List<com.cc.modals.VisaPaymentTransaction> transactions = visaPaymentTransactionRepository.findByStudentIdOrderByTransactionDateDesc(studentId);
+            return ResponseEntity.ok(transactions);
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Error fetching transactions: " + e.getMessage());
+        }
+    }
+
     // 1. Assign Visa Manager (called by Admission Manager)
     @PostMapping("/assign/{studentId}")
     public ResponseEntity<?> assignVisaManager(
@@ -312,14 +325,17 @@ public class VisaController {
 
             String fileUrl = null;
             if (file != null && !file.isEmpty()) {
-                // We assume there's a file service. 
-                // Currently, we don't strictly need to upload it for this MVP, but we can call standard file upload logic if available.
+                // We assume there's a file service.
+                // Currently, we don't strictly need to upload it for this MVP, but we can call
+                // standard file upload logic if available.
                 // fileUrl = fileService.uploadFile(file);
             }
 
-            // Since VisaController depends on VisaService, we need to inject CollectionRequestService or add processCashSettlement to VisaService.
+            // Since VisaController depends on VisaService, we need to inject
+            // CollectionRequestService or add processCashSettlement to VisaService.
             // Let's add it to CollectionRequestService and inject it here!
-            return ResponseEntity.ok(collectionRequestService.processCashSettlement(studentId, accountantUsername, amount, subAccountId, date, remarks, fileUrl));
+            return ResponseEntity.ok(collectionRequestService.processCashSettlement(studentId, accountantUsername,
+                    amount, subAccountId, date, remarks, fileUrl));
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(500).body("Error processing cash settlement: " + e.getMessage());

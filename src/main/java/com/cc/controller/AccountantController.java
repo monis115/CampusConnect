@@ -41,6 +41,9 @@ public class AccountantController {
     private com.cc.repository.PassbookAccountantAgentRepository passbookAccountantAgentRepository;
 
     @Autowired
+    private com.cc.repository.BeneficiaryAccountRepository beneficiaryAccountRepository;
+
+    @Autowired
     private com.cc.service.UserService userService;
 
     @GetMapping("/passbook/visaman")
@@ -68,6 +71,36 @@ public class AccountantController {
     private com.cc.repository.SubAccountTransactionRepository subAccountTransactionRepository;
 
     // --- SubAccount Endpoints ---
+    // --- Beneficiary Account Endpoints ---
+    @GetMapping("/beneficiary-accounts")
+    public ResponseEntity<List<com.cc.modals.BeneficiaryAccount>> getAllBeneficiaryAccounts() {
+        return ResponseEntity.ok(beneficiaryAccountRepository.findAll());
+    }
+
+    @PostMapping("/beneficiary-accounts")
+    public ResponseEntity<com.cc.modals.BeneficiaryAccount> createBeneficiaryAccount(@RequestBody com.cc.modals.BeneficiaryAccount account) {
+        return ResponseEntity.ok(beneficiaryAccountRepository.save(account));
+    }
+
+    @PutMapping("/beneficiary-accounts/{id}")
+    public ResponseEntity<com.cc.modals.BeneficiaryAccount> updateBeneficiaryAccount(@PathVariable Long id, @RequestBody com.cc.modals.BeneficiaryAccount account) {
+        java.util.Optional<com.cc.modals.BeneficiaryAccount> existingOpt = beneficiaryAccountRepository.findById(id);
+        if (!existingOpt.isPresent()) return ResponseEntity.notFound().build();
+        
+        com.cc.modals.BeneficiaryAccount existing = existingOpt.get();
+        existing.setBeneficiaryType(account.getBeneficiaryType());
+        existing.setBeneficiaryName(account.getBeneficiaryName());
+        existing.setBankName(account.getBankName());
+        existing.setAccountNumber(account.getAccountNumber());
+        existing.setIfscCode(account.getIfscCode());
+        existing.setBranchName(account.getBranchName());
+        existing.setUpiId(account.getUpiId());
+        existing.setMobileNumber(account.getMobileNumber());
+        existing.setEmailAddress(account.getEmailAddress());
+        existing.setStatus(account.getStatus());
+        
+        return ResponseEntity.ok(beneficiaryAccountRepository.save(existing));
+    }
     @GetMapping("/subaccounts")
     public ResponseEntity<List<com.cc.modals.SubAccount>> getAllSubAccounts() {
         return ResponseEntity.ok(subAccountService.getAllSubAccounts());

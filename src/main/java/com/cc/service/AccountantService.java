@@ -12,6 +12,8 @@ import java.util.Map;
 import java.util.HashMap;
 
 import com.cc.modals.Accountant;
+import com.cc.modals.BeneficiaryAccount;
+import com.cc.repository.BeneficiaryAccountRepository;
 
 import com.cc.modals.Student;
 import java.util.ArrayList;
@@ -128,6 +130,12 @@ public class AccountantService {
     
     @org.springframework.beans.factory.annotation.Autowired
     private com.cc.service.S3StorageService s3StorageService;
+
+    @org.springframework.beans.factory.annotation.Autowired
+    private BeneficiaryAccountRepository beneficiaryAccountRepository;
+
+    @org.springframework.beans.factory.annotation.Autowired
+    private com.cc.repository.CollectionRequestRepository collectionRequestRepository;
 
 
         @Autowired
@@ -497,11 +505,23 @@ public class AccountantService {
 
         FundRelease release = new FundRelease();
         release.setStudent(student);
+        release.setCollectionRequestId(requestDTO.getCollectionRequestId());
         release.setSourceAccountId(requestDTO.getSourceAccountId());
+        release.setBeneficiaryAccountId(requestDTO.getBeneficiaryAccountId());
         
-        release.setBeneficiaryBankName(student.getVisaBankName());
-        release.setBeneficiaryAccountNumber(student.getVisaBankAccountNumber());
-        release.setBeneficiarySwiftCode(student.getVisaBankSwiftCode());
+        if (requestDTO.getBeneficiaryAccountId() != null) {
+            BeneficiaryAccount beneficiary = beneficiaryAccountRepository.findById(requestDTO.getBeneficiaryAccountId()).orElse(null);
+            if (beneficiary != null) {
+                release.setBeneficiaryBankName(beneficiary.getBankName());
+                release.setBeneficiaryAccountNumber(beneficiary.getAccountNumber());
+                release.setBeneficiarySwiftCode(beneficiary.getIfscCode());
+                release.setBeneficiaryAccountType(beneficiary.getBeneficiaryType());
+            }
+        } else {
+            release.setBeneficiaryBankName(student.getVisaBankName());
+            release.setBeneficiaryAccountNumber(student.getVisaBankAccountNumber());
+            release.setBeneficiarySwiftCode(student.getVisaBankSwiftCode());
+        }
         
         release.setVisaFee(student.getVisaPaymentRequestedAmount());
         release.setServiceCharge(student.getVisaManServiceCharge());
@@ -522,42 +542,38 @@ public class AccountantService {
             release.setReceiptUrl(receiptUrl);
         }
 
-        return fundReleaseRepository.save(release);
+        FundRelease savedRelease = fundReleaseRepository.save(release);
+
+        // Update Student
+        student.setAccToVisaManPaidAmount((student.getAccToVisaManPaidAmount() != null ? student.getAccToVisaManPaidAmount() : 0.0) + total);
+        student.setAccToVisaManStatus("PENDING_CONFIRMATION");
+        student.setAccToVisaManPaymentDate(requestDTO.getTransferDate());
+        student.setAccToVisaManTxId(requestDTO.getTransactionReference());
+        studentRepository.save(student);
+
+        return savedRelease;
     }
 
     public List<Map<String, Object>> getOutstandingRecovery() {
-        // Fetch all students who have a visa payment requested but it's not fully paid
-        List<Student> students = studentRepository.findAll().stream()
-                .filter(s -> s.getVisaPaymentRequestedAmount() != null && s.getVisaPaymentRequestedAmount() > 0)
-                .collect(java.util.stream.Collectors.toList());
+        // Fetch all collection requests that are pending or partially paid
+        List<com.cc.modals.CollectionRequest> requests = collectionRequestRepository.findByStatusIn(List.of("PENDING", "PARTIAL"));
 
         List<Map<String, Object>> recoveryList = new ArrayList<>();
-        for (Student s : students) {
-            double finalAmount = (s.getVisaPaymentRequestedAmount() != null ? s.getVisaPaymentRequestedAmount() : 0.0) +
-                                 (s.getVisaManServiceCharge() != null ? s.getVisaManServiceCharge() : 0.0);
-            double amountCollected = s.getVisaPaymentReceivedAmount() != null ? s.getVisaPaymentReceivedAmount() : 0.0;
-            double excessShort = amountCollected - finalAmount;
-
-            String status = "Pending";
-            if (amountCollected > 0 && amountCollected < finalAmount) {
-                status = "Partially Paid";
-            } else if (amountCollected == finalAmount) {
-                status = "Paid";
-            } else if (amountCollected > finalAmount) {
-                status = "Excess Available";
-            }
-
+        for (com.cc.modals.CollectionRequest req : requests) {
             Map<String, Object> map = new HashMap<>();
-            map.put("requestId", s.getId()); // Using student ID as request ID for now
-            map.put("studentName", s.getFullName());
-            map.put("agentName", s.getAgent() != null ? s.getAgent().getFullName() : "N/A");
-            map.put("university", s.getCollege() != null ? s.getCollege().getCollegeName() : "N/A");
-            map.put("semester", s.getIntake());
-            map.put("finalAmount", finalAmount);
-            map.put("amountCollected", amountCollected);
-            map.put("excessShort", excessShort);
-            map.put("status", status);
-            map.put("requestDate", s.getVisaBankDetailsSentDate());
+            map.put("requestId", req.getRequestId()); 
+            map.put("collectionId", req.getId());
+            map.put("studentName", req.getStudentName());
+            map.put("agentName", req.getAgentName() != null ? req.getAgentName() : "N/A");
+            map.put("university", req.getUniversityName() != null ? req.getUniversityName() : "N/A");
+            map.put("finalAmount", req.getRequestedAmount());
+            map.put("amountCollected", req.getCollectedAmount());
+            map.put("excessShort", req.getPendingAmount() * -1); // Short amount is negative conceptually, or just use pendingAmount
+            map.put("pendingAmount", req.getPendingAmount());
+            map.put("status", req.getStatus());
+            map.put("dueDate", req.getDueDate());
+            map.put("requestDate", req.getCreatedAt());
+            map.put("studentId", req.getStudentId());
             
             // Add to list
             recoveryList.add(map);

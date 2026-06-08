@@ -296,9 +296,10 @@ public class VisaManController {
     }
 
     @PostMapping("/fund-releases/{id}/confirm")
-    public ResponseEntity<?> confirmFundRelease(@RequestParam("username") String username, @PathVariable("id") Long id) {
+    public ResponseEntity<?> confirmFundRelease(@RequestParam("username") String username, @PathVariable("id") Long id, @RequestBody(required = false) java.util.Map<String, String> body) {
         try {
-            FundRelease release = visaManService.confirmFundRelease(username, id);
+            String remarks = body != null ? body.get("remarks") : null;
+            FundRelease release = visaManService.confirmFundRelease(username, id, remarks);
             return ResponseEntity.ok(release);
         } catch (Exception e) {
             e.printStackTrace();
@@ -310,9 +311,11 @@ public class VisaManController {
     public ResponseEntity<?> rejectFundRelease(
             @RequestParam("username") String username, 
             @PathVariable("id") Long id,
-            @RequestParam("reason") String reason) {
+            @RequestBody java.util.Map<String, String> body) {
         try {
-            FundRelease release = visaManService.rejectFundRelease(username, id, reason);
+            String reason = body.get("reason");
+            String remarks = body.get("remarks");
+            FundRelease release = visaManService.rejectFundRelease(username, id, reason, remarks);
             return ResponseEntity.ok(release);
         } catch (Exception e) {
             e.printStackTrace();

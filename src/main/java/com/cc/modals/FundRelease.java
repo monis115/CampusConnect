@@ -12,6 +12,9 @@ public class FundRelease {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long releaseId;
 
+    @Column(name = "collection_request_id")
+    private Long collectionRequestId;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "student_id", nullable = false)
     private Student student;
@@ -30,6 +33,9 @@ public class FundRelease {
 
     @Column(name = "beneficiary_account_type")
     private String beneficiaryAccountType;
+
+    @Column(name = "beneficiary_account_id")
+    private Long beneficiaryAccountId;
 
     @Column(name = "visa_fee")
     private Double visaFee;
@@ -81,6 +87,9 @@ public class FundRelease {
     public Long getReleaseId() { return releaseId; }
     public void setReleaseId(Long releaseId) { this.releaseId = releaseId; }
 
+    public Long getCollectionRequestId() { return collectionRequestId; }
+    public void setCollectionRequestId(Long collectionRequestId) { this.collectionRequestId = collectionRequestId; }
+
     public Student getStudent() { return student; }
     public void setStudent(Student student) { this.student = student; }
 
@@ -98,6 +107,9 @@ public class FundRelease {
 
     public String getBeneficiaryAccountType() { return beneficiaryAccountType; }
     public void setBeneficiaryAccountType(String beneficiaryAccountType) { this.beneficiaryAccountType = beneficiaryAccountType; }
+
+    public Long getBeneficiaryAccountId() { return beneficiaryAccountId; }
+    public void setBeneficiaryAccountId(Long beneficiaryAccountId) { this.beneficiaryAccountId = beneficiaryAccountId; }
 
     public Double getVisaFee() { return visaFee; }
     public void setVisaFee(Double visaFee) { this.visaFee = visaFee; }

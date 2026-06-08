@@ -8,8 +8,10 @@ public class FundReleaseRequestDTO {
 
     private Long studentId;
     private Long sourceAccountId;
+    private Long beneficiaryAccountId;
     private String transactionReference;
     private LocalDate transferDate;
+    private Long collectionRequestId;
     private String remarks;
 
     // Getters and Setters
@@ -19,6 +21,9 @@ public class FundReleaseRequestDTO {
     public Long getSourceAccountId() { return sourceAccountId; }
     public void setSourceAccountId(Long sourceAccountId) { this.sourceAccountId = sourceAccountId; }
 
+    public Long getBeneficiaryAccountId() { return beneficiaryAccountId; }
+    public void setBeneficiaryAccountId(Long beneficiaryAccountId) { this.beneficiaryAccountId = beneficiaryAccountId; }
+
     public String getTransactionReference() { return transactionReference; }
     public void setTransactionReference(String transactionReference) { this.transactionReference = transactionReference; }
 
@@ -27,4 +32,7 @@ public class FundReleaseRequestDTO {
 
     public String getRemarks() { return remarks; }
     public void setRemarks(String remarks) { this.remarks = remarks; }
+
+    public Long getCollectionRequestId() { return collectionRequestId; }
+    public void setCollectionRequestId(Long collectionRequestId) { this.collectionRequestId = collectionRequestId; }
 }

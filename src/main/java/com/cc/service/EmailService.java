@@ -87,4 +87,29 @@ public class EmailService {
             throw new RuntimeException("Failed to send email: " + e.getMessage(), e);
         }
     }
+
+    /**
+     * Send Collection Reminder Email.
+     */
+    public void sendCollectionReminder(String to, com.cc.modals.CollectionRequest req, String templateType) {
+        String subject = "Collection Request Update: " + req.getRequestId();
+        
+        StringBuilder html = new StringBuilder();
+        html.append("<h2>Collection Request Update (").append(templateType).append(")</h2>");
+        html.append("<p><strong>Request ID:</strong> ").append(req.getRequestId()).append("</p>");
+        html.append("<p><strong>Student:</strong> ").append(req.getStudentName()).append(" (").append(req.getApplicationId()).append(")</p>");
+        html.append("<p><strong>Requested Amount:</strong> ").append(req.getRequestedAmount()).append("</p>");
+        html.append("<p><strong>Collected Amount:</strong> ").append(req.getCollectedAmount()).append("</p>");
+        html.append("<p><strong>Outstanding Amount:</strong> ").append(req.getPendingAmount()).append("</p>");
+        html.append("<p><strong>Status:</strong> ").append(req.getStatus()).append("</p>");
+        html.append("<p><strong>Due Date:</strong> ").append(req.getDueDate() != null ? req.getDueDate().toString() : "N/A").append("</p>");
+        
+        if (req.getRemarks() != null) {
+            html.append("<p><strong>Remarks:</strong> ").append(req.getRemarks()).append("</p>");
+        }
+        
+        html.append("<br/><p>Please process the pending amount at your earliest convenience.</p>");
+        
+        sendHtmlEmail(to, subject, html.toString());
+    }
 }

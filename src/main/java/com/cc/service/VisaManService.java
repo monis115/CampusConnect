@@ -8,6 +8,9 @@ import com.cc.repository.FundReleaseRepository;
 import com.cc.DTO.FundReleaseDTO;
 import java.util.Map;
 import java.util.HashMap;
+import com.cc.modals.FundReleaseConfirmation;
+import com.cc.repository.FundReleaseConfirmationRepository;
+import java.time.LocalDateTime;
 
 import com.cc.modals.VisaMan;
 
@@ -78,9 +81,14 @@ public class VisaManService {
     @org.springframework.beans.factory.annotation.Autowired
     private com.cc.repository.FundReleaseRepository fundReleaseRepository;
 
+    @org.springframework.beans.factory.annotation.Autowired
+    private FundReleaseConfirmationRepository fundReleaseConfirmationRepository;
 
     @Autowired
     private com.cc.repository.StudentStatusHistoryRepository studentStatusHistoryRepository;
+
+    @Autowired
+    private com.cc.repository.VisaPaymentTransactionRepository visaPaymentTransactionRepository;
 
     @org.springframework.transaction.annotation.Transactional
     public com.cc.modals.Student submitPassport(Long studentId, String visaManUsername) {
@@ -155,7 +163,7 @@ public class VisaManService {
         }).collect(Collectors.toList());
     }
 
-    public FundRelease confirmFundRelease(String username, Long releaseId) throws Exception {
+    public FundRelease confirmFundRelease(String username, Long releaseId, String remarks) throws Exception {
         FundRelease release = fundReleaseRepository.findById(releaseId)
                 .orElseThrow(() -> new Exception("Release not found"));
         
@@ -164,10 +172,50 @@ public class VisaManService {
         }
         
         release.setReleaseStatus("FUNDS_CONFIRMED");
-        return fundReleaseRepository.save(release);
+        FundRelease savedRelease = fundReleaseRepository.save(release);
+
+        // Update Student Status
+        com.cc.modals.Student student = savedRelease.getStudent();
+        student.setAccToVisaManStatus("SETTLED");
+        studentRepository.save(student);
+
+        FundReleaseConfirmation confirmation = new FundReleaseConfirmation();
+        confirmation.setFundRelease(savedRelease);
+        confirmation.setStudent(savedRelease.getStudent());
+        confirmation.setVisaManagerUsername(username);
+        confirmation.setConfirmationStatus("CONFIRMED");
+        confirmation.setConfirmedBy(username);
+        confirmation.setConfirmedDate(LocalDateTime.now());
+        confirmation.setRemarks(remarks);
+        fundReleaseConfirmationRepository.save(confirmation);
+
+        // History
+        com.cc.modals.StudentStatusHistory history = new com.cc.modals.StudentStatusHistory();
+        history.setStudent(savedRelease.getStudent());
+        history.setStudentApplicationStatus(savedRelease.getStudent().getApplicationStatus());
+        history.setUpdatedBy(username);
+        history.setUpdatedAt(LocalDateTime.now());
+        history.setRemarks("Fund Release Confirmed by Visa Manager. Amount: " + savedRelease.getTotalReleasedAmount() + " INR"
+                + (remarks != null ? ". Remarks: " + remarks : ""));
+        studentStatusHistoryRepository.save(history);
+
+        // Log transaction in Visa Payment Timeline
+        com.cc.modals.VisaPaymentTransaction tx = new com.cc.modals.VisaPaymentTransaction();
+        tx.setStudentId(student.getId());
+        tx.setApplicationId(student.getApplicationId());
+        tx.setTransactionType("FUNDS_RECEIVED_BY_VISAMAN");
+        tx.setAmount(savedRelease.getTotalReleasedAmount());
+        tx.setCurrency("INR");
+        tx.setActorUsername(username);
+        tx.setActorRole("VISA_MANAGER");
+        tx.setRemarks("Visa Manager confirmed receipt of funds: " + savedRelease.getTotalReleasedAmount() + " INR"
+                + (remarks != null ? ". Remarks: " + remarks : ""));
+        visaPaymentTransactionRepository.save(tx);
+
+        return savedRelease;
     }
 
-    public FundRelease rejectFundRelease(String username, Long releaseId, String reason) throws Exception {
+    public FundRelease rejectFundRelease(String username, Long releaseId, String reason, String remarks) throws Exception {
         FundRelease release = fundReleaseRepository.findById(releaseId)
                 .orElseThrow(() -> new Exception("Release not found"));
         
@@ -177,6 +225,46 @@ public class VisaManService {
         
         release.setReleaseStatus("REJECTED");
         release.setRejectionReason(reason);
-        return fundReleaseRepository.save(release);
+        FundRelease savedRelease = fundReleaseRepository.save(release);
+
+        // Update Student Status
+        com.cc.modals.Student student = savedRelease.getStudent();
+        student.setAccToVisaManStatus("REJECTED");
+        studentRepository.save(student);
+
+        FundReleaseConfirmation confirmation = new FundReleaseConfirmation();
+        confirmation.setFundRelease(savedRelease);
+        confirmation.setStudent(savedRelease.getStudent());
+        confirmation.setVisaManagerUsername(username);
+        confirmation.setConfirmationStatus("REJECTED");
+        confirmation.setConfirmedBy(username);
+        confirmation.setConfirmedDate(LocalDateTime.now());
+        confirmation.setRemarks(remarks);
+        confirmation.setRejectionReason(reason);
+        fundReleaseConfirmationRepository.save(confirmation);
+
+        // History
+        com.cc.modals.StudentStatusHistory history = new com.cc.modals.StudentStatusHistory();
+        history.setStudent(savedRelease.getStudent());
+        history.setStudentApplicationStatus(savedRelease.getStudent().getApplicationStatus());
+        history.setUpdatedBy(username);
+        history.setUpdatedAt(LocalDateTime.now());
+        history.setRemarks("Fund Release Rejected by Visa Manager. Reason: " + reason
+                + (remarks != null ? ". Remarks: " + remarks : ""));
+        studentStatusHistoryRepository.save(history);
+
+        // Log transaction in Visa Payment Timeline
+        com.cc.modals.VisaPaymentTransaction tx = new com.cc.modals.VisaPaymentTransaction();
+        tx.setStudentId(student.getId());
+        tx.setApplicationId(student.getApplicationId());
+        tx.setTransactionType("FUNDS_REJECTED_BY_VISAMAN");
+        tx.setAmount(savedRelease.getTotalReleasedAmount());
+        tx.setCurrency("INR");
+        tx.setActorUsername(username);
+        tx.setActorRole("VISA_MANAGER");
+        tx.setRemarks("Visa Manager rejected funds release. Reason: " + reason);
+        visaPaymentTransactionRepository.save(tx);
+
+        return savedRelease;
     }
 }
