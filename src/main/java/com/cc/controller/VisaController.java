@@ -331,11 +331,8 @@ public class VisaController {
                 // fileUrl = fileService.uploadFile(file);
             }
 
-            // Since VisaController depends on VisaService, we need to inject
-            // CollectionRequestService or add processCashSettlement to VisaService.
-            // Let's add it to CollectionRequestService and inject it here!
-            return ResponseEntity.ok(collectionRequestService.processCashSettlement(studentId, accountantUsername,
-                    amount, subAccountId, date, remarks, fileUrl));
+            java.time.LocalDate settlementDate = java.time.LocalDate.parse(date);
+            return ResponseEntity.ok(visaService.processCashSettlement(studentId, accountantUsername, amount, subAccountId, settlementDate, remarks));
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(500).body("Error processing cash settlement: " + e.getMessage());

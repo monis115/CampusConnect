@@ -18,6 +18,9 @@ public class SubAccount {
     private String beneficiaryName;
     private String branchAddress;
 
+    private String accountType = "BANK"; // "BANK" or "CASH"
+    private String cashAccountName; // e.g. "Petty Cash - Rahul"
+
     private Double balance = 0.0;
 
     // Getters and Setters
@@ -76,5 +79,21 @@ public class SubAccount {
 
     public void setBalance(Double balance) {
         this.balance = balance;
+    }
+
+    public String getAccountType() {
+        return accountType;
+    }
+
+    public void setAccountType(String accountType) {
+        this.accountType = accountType;
+    }
+
+    public String getCashAccountName() {
+        return cashAccountName;
+    }
+
+    public void setCashAccountName(String cashAccountName) {
+        this.cashAccountName = cashAccountName;
     }
 }

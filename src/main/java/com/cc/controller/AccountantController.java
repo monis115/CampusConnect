@@ -122,7 +122,28 @@ public class AccountantController {
         existing.setSwiftBic(subAccount.getSwiftBic());
         existing.setBeneficiaryName(subAccount.getBeneficiaryName());
         existing.setBranchAddress(subAccount.getBranchAddress());
+        existing.setAccountType(subAccount.getAccountType());
+        existing.setCashAccountName(subAccount.getCashAccountName());
         return ResponseEntity.ok(subAccountService.saveSubAccount(existing));
+    }
+
+    @PostMapping("/subaccounts/internal-transfer")
+    public ResponseEntity<?> internalTransfer(@RequestBody java.util.Map<String, Object> payload) {
+        try {
+            Long sourceId = Long.valueOf(payload.get("sourceId").toString());
+            Long destId = Long.valueOf(payload.get("destId").toString());
+            Double amount = Double.valueOf(payload.get("amount").toString());
+            String description = (String) payload.get("description");
+
+            subAccountService.internalTransfer(sourceId, destId, amount, description);
+            
+            return ResponseEntity.ok(java.util.Collections.singletonMap("message", "Transfer successful"));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body("Error processing internal transfer: " + e.getMessage());
+        }
     }
 
     // Create

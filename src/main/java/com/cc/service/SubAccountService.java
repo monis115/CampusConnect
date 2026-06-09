@@ -40,4 +40,48 @@ public class SubAccountService {
             transactionRepository.save(tx);
         }
     }
+
+    public void internalTransfer(Long sourceId, Long destId, Double amount, String description) {
+        if (amount == null || amount <= 0) {
+            throw new IllegalArgumentException("Transfer amount must be greater than zero.");
+        }
+        if (sourceId.equals(destId)) {
+            throw new IllegalArgumentException("Source and destination accounts must be different.");
+        }
+
+        SubAccount sourceAccount = getSubAccountById(sourceId);
+        SubAccount destAccount = getSubAccountById(destId);
+
+        if (sourceAccount == null || destAccount == null) {
+            throw new IllegalArgumentException("Source or destination account not found.");
+        }
+
+        if ("CASH".equalsIgnoreCase(sourceAccount.getAccountType()) || "CASH".equalsIgnoreCase(sourceAccount.getBankName())) {
+            throw new IllegalArgumentException("Source account cannot be a CASH account.");
+        }
+        if ("CASH".equalsIgnoreCase(destAccount.getAccountType()) || "CASH".equalsIgnoreCase(destAccount.getBankName())) {
+            throw new IllegalArgumentException("Destination account cannot be a CASH account.");
+        }
+
+        if (sourceAccount.getBalance() < amount) {
+            throw new IllegalArgumentException("Insufficient balance in source account.");
+        }
+
+        // Deduct from source
+        sourceAccount.setBalance(sourceAccount.getBalance() - amount);
+        subAccountRepository.save(sourceAccount);
+
+        // Add to destination
+        destAccount.setBalance(destAccount.getBalance() + amount);
+        subAccountRepository.save(destAccount);
+
+        // Record transactions
+        String refId = "INT-TRF-" + System.currentTimeMillis();
+        
+        com.cc.modals.SubAccountTransaction txSource = new com.cc.modals.SubAccountTransaction(sourceAccount, "DEBIT", amount, description + " (To " + destAccount.getBankName() + ")", refId);
+        transactionRepository.save(txSource);
+
+        com.cc.modals.SubAccountTransaction txDest = new com.cc.modals.SubAccountTransaction(destAccount, "CREDIT", amount, description + " (From " + sourceAccount.getBankName() + ")", refId);
+        transactionRepository.save(txDest);
+    }
 }

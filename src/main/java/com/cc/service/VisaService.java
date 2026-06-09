@@ -430,6 +430,12 @@ public class VisaService {
         @Transactional
         public Student confirmVisaPaymentReceived(Long studentId, String accountantUsername, Double receivedAmount,
                         java.time.LocalDate receivedDate) {
+                return confirmVisaPaymentReceived(studentId, accountantUsername, receivedAmount, receivedDate, null);
+        }
+
+        @Transactional
+        public Student confirmVisaPaymentReceived(Long studentId, String accountantUsername, Double receivedAmount,
+                        java.time.LocalDate receivedDate, Long explicitSubAccountId) {
                 Student student = studentRepository.findById(studentId)
                                 .orElseThrow(() -> new RuntimeException("Student not found"));
 
@@ -468,8 +474,13 @@ public class VisaService {
                 passbookAccountantAgentRepository.save(agentPassbook);
 
                 // Auto-Credit to SubAccount
-                if (agentPassbook.getSubAccount() != null) {
-                        subAccountService.updateBalance(agentPassbook.getSubAccount().getId(), receivedAmount,
+                Long creditSubAccountId = explicitSubAccountId;
+                if (creditSubAccountId == null && agentPassbook.getSubAccount() != null) {
+                        creditSubAccountId = agentPassbook.getSubAccount().getId();
+                }
+
+                if (creditSubAccountId != null) {
+                        subAccountService.updateBalance(creditSubAccountId, receivedAmount,
                                         "Visa Payment Received from Agent: " + student.getApplicationId(),
                                         student.getApplicationId());
                 }
@@ -518,8 +529,8 @@ public class VisaService {
         @Transactional
         public Student processCashSettlement(Long studentId, String accountantUsername, Double amount,
                         Long subAccountId, java.time.LocalDate date, String remarks) {
-                // 1. Process it as a normal received payment
-                Student student = confirmVisaPaymentReceived(studentId, accountantUsername, amount, date);
+                // 1. Process it as a normal received payment with explicit subAccountId
+                Student student = confirmVisaPaymentReceived(studentId, accountantUsername, amount, date, subAccountId);
 
                 // 2. Add an explicit VisaPaymentTransaction for CASH SETTLEMENT
                 com.cc.modals.VisaPaymentTransaction tx = new com.cc.modals.VisaPaymentTransaction();

@@ -278,10 +278,15 @@ public class AccountantService {
         // ======================= DASHBOARD METHODS =======================
 
         public com.cc.DTO.AccountantDashboardStatsDTO getDashboardStats(String username) {
-                Accountant accountant = repository.findByUsername(username)
-                                .orElseThrow(() -> new RuntimeException("Accountant not found: " + username));
+                java.util.List<com.cc.modals.Student> students;
+                if ("admin".equalsIgnoreCase(username)) {
+                        students = studentRepository.findAll();
+                } else {
+                        Accountant accountant = repository.findByUsername(username)
+                                        .orElseThrow(() -> new RuntimeException("Accountant not found: " + username));
+                        students = accountant.getStudents();
+                }
 
-                java.util.List<com.cc.modals.Student> students = accountant.getStudents();
                 if (students == null || students.isEmpty()) {
                         return new com.cc.DTO.AccountantDashboardStatsDTO(0L, 0L, 0L, 0L, 0.0, 0.0, 0.0, 0.0);
                 }
@@ -323,10 +328,15 @@ public class AccountantService {
         }
 
         public java.util.List<com.cc.DTO.CollectionSummaryDTO> getCollectionSummary(String username) {
-                Accountant accountant = repository.findByUsername(username)
-                                .orElseThrow(() -> new RuntimeException("Accountant not found: " + username));
+                java.util.List<com.cc.modals.Student> students;
+                if ("admin".equalsIgnoreCase(username)) {
+                        students = studentRepository.findAll();
+                } else {
+                        Accountant accountant = repository.findByUsername(username)
+                                        .orElseThrow(() -> new RuntimeException("Accountant not found: " + username));
+                        students = accountant.getStudents();
+                }
 
-                java.util.List<com.cc.modals.Student> students = accountant.getStudents();
                 java.util.List<com.cc.DTO.CollectionSummaryDTO> summaries = new java.util.ArrayList<>();
 
                 java.time.LocalDate today = java.time.LocalDate.now();
@@ -395,10 +405,15 @@ public class AccountantService {
         }
 
         public java.util.List<com.cc.DTO.StudentPaymentSummaryDTO> getAssignedStudents(String username) {
-                Accountant accountant = repository.findByUsername(username)
-                                .orElseThrow(() -> new RuntimeException("Accountant not found: " + username));
+                java.util.List<com.cc.modals.Student> students;
+                if ("admin".equalsIgnoreCase(username)) {
+                        students = studentRepository.findAll();
+                } else {
+                        Accountant accountant = repository.findByUsername(username)
+                                        .orElseThrow(() -> new RuntimeException("Accountant not found: " + username));
+                        students = accountant.getStudents();
+                }
 
-                java.util.List<com.cc.modals.Student> students = accountant.getStudents();
                 if (students == null) {
                         return new java.util.ArrayList<>();
                 }
