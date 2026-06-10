@@ -130,4 +130,21 @@ public class RequestMoneyService {
     public RequestMoney getRequestById(Long id) {
         return requestMoneyRepository.findById(id).orElse(null);
     }
+
+    public RequestMoney updateStatus(Long id, String status, String remarks) {
+        Optional<RequestMoney> optionalRequest = requestMoneyRepository.findById(id);
+        if (optionalRequest.isPresent()) {
+            RequestMoney request = optionalRequest.get();
+            if (status != null) {
+                request.setStatus(status);
+            }
+            if ("REJECTED".equalsIgnoreCase(status) && remarks != null) {
+                request.setRejectionRemarks(remarks);
+            }
+            request.setUpdatedAt(LocalDateTime.now());
+            return requestMoneyRepository.save(request);
+        } else {
+            throw new RuntimeException("Request not found with id: " + id);
+        }
+    }
 }

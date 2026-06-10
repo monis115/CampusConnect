@@ -42,6 +42,18 @@ public class RequestMoneyController {
         }
     }
 
+    @PutMapping("/update-status/{id}")
+    public ResponseEntity<?> updateStatus(@PathVariable Long id, @RequestBody Map<String, String> payload) {
+        String status = payload.get("status");
+        String remarks = payload.get("rejectionRemarks");
+        try {
+            RequestMoney updatedRequest = requestMoneyService.updateStatus(id, status, remarks);
+            return ResponseEntity.ok(updatedRequest);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
     @PostMapping("/pay/{id}")
     public ResponseEntity<RequestMoney> addPayment(@PathVariable Long id,
             @RequestBody Map<String, Object> paymentDetails) {

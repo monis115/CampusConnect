@@ -30,13 +30,17 @@ public class SubAccountService {
     }
 
     public void updateBalance(Long id, Double amount, String description, String referenceId) {
+        updateBalance(id, amount, description, referenceId, "UNKNOWN");
+    }
+
+    public void updateBalance(Long id, Double amount, String description, String referenceId, String paymentMethod) {
         SubAccount account = getSubAccountById(id);
         if (account != null) {
             account.setBalance(account.getBalance() + amount);
             subAccountRepository.save(account);
 
             String type = amount >= 0 ? "CREDIT" : "DEBIT";
-            com.cc.modals.SubAccountTransaction tx = new com.cc.modals.SubAccountTransaction(account, type, Math.abs(amount), description, referenceId);
+            com.cc.modals.SubAccountTransaction tx = new com.cc.modals.SubAccountTransaction(account, type, Math.abs(amount), description, referenceId, paymentMethod);
             transactionRepository.save(tx);
         }
     }
@@ -56,13 +60,6 @@ public class SubAccountService {
             throw new IllegalArgumentException("Source or destination account not found.");
         }
 
-        if ("CASH".equalsIgnoreCase(sourceAccount.getAccountType()) || "CASH".equalsIgnoreCase(sourceAccount.getBankName())) {
-            throw new IllegalArgumentException("Source account cannot be a CASH account.");
-        }
-        if ("CASH".equalsIgnoreCase(destAccount.getAccountType()) || "CASH".equalsIgnoreCase(destAccount.getBankName())) {
-            throw new IllegalArgumentException("Destination account cannot be a CASH account.");
-        }
-
         if (sourceAccount.getBalance() < amount) {
             throw new IllegalArgumentException("Insufficient balance in source account.");
         }
@@ -78,10 +75,52 @@ public class SubAccountService {
         // Record transactions
         String refId = "INT-TRF-" + System.currentTimeMillis();
         
-        com.cc.modals.SubAccountTransaction txSource = new com.cc.modals.SubAccountTransaction(sourceAccount, "DEBIT", amount, description + " (To " + destAccount.getBankName() + ")", refId);
+        com.cc.modals.SubAccountTransaction txSource = new com.cc.modals.SubAccountTransaction(sourceAccount, "DEBIT", amount, description + " (To " + destAccount.getBankName() + ")", refId, "INTERNAL");
         transactionRepository.save(txSource);
 
-        com.cc.modals.SubAccountTransaction txDest = new com.cc.modals.SubAccountTransaction(destAccount, "CREDIT", amount, description + " (From " + sourceAccount.getBankName() + ")", refId);
+        com.cc.modals.SubAccountTransaction txDest = new com.cc.modals.SubAccountTransaction(destAccount, "CREDIT", amount, description + " (From " + sourceAccount.getBankName() + ")", refId, "INTERNAL");
         transactionRepository.save(txDest);
+    }
+
+    public void processDeposit(Long destId, Double amount, String depositorName, String depositedDate, String transactionId, String paymentMethod) {
+        if (amount == null || amount <= 0) {
+            throw new IllegalArgumentException("Deposit amount must be greater than zero.");
+        }
+        SubAccount destAccount = getSubAccountById(destId);
+        if (destAccount == null) {
+            throw new IllegalArgumentException("Destination account not found.");
+        }
+
+        String description = "Deposit by " + depositorName + " via " + paymentMethod + " on " + depositedDate;
+        String refId = (transactionId != null && !transactionId.trim().isEmpty()) ? transactionId : "DEP-" + System.currentTimeMillis();
+
+        updateBalance(destId, amount, description, refId, paymentMethod);
+    }
+
+    public void processWithdrawal(Long sourceId, Double amount, String withdrawerName, String withdrawnDate, String transactionId, String paymentMethod, String chequeDetails) {
+        if (amount == null || amount <= 0) {
+            throw new IllegalArgumentException("Withdrawal amount must be greater than zero.");
+        }
+        SubAccount sourceAccount = getSubAccountById(sourceId);
+        if (sourceAccount == null) {
+            throw new IllegalArgumentException("Source account not found.");
+        }
+
+        if (sourceAccount.getBalance() < amount) {
+            throw new IllegalArgumentException("Insufficient funds available in this account.");
+        }
+
+        String methodDetails = paymentMethod;
+        if ("CHEQUE".equalsIgnoreCase(paymentMethod) && chequeDetails != null && !chequeDetails.trim().isEmpty()) {
+            methodDetails += " (Cheque No: " + chequeDetails + ")";
+        } else if ("CASH".equalsIgnoreCase(paymentMethod) && chequeDetails != null && !chequeDetails.trim().isEmpty()) {
+            methodDetails += " (Reason: " + chequeDetails + ")";
+        }
+
+        String description = "Withdrawal by " + withdrawerName + " via " + methodDetails + " on " + withdrawnDate;
+        String refId = (transactionId != null && !transactionId.trim().isEmpty()) ? transactionId : "WDL-" + System.currentTimeMillis();
+
+        // Update balance handles DEBIT creation since amount passed is negative
+        updateBalance(sourceId, -amount, description, refId, paymentMethod);
     }
 }

@@ -19,19 +19,27 @@ public class SubAccountTransaction {
     private LocalDateTime transactionDate;
     private String description;
     private String referenceId; // e.g., txId or applicationId
+    private String paymentMethod;
 
     public SubAccountTransaction() {
     }
 
     public SubAccountTransaction(SubAccount subAccount, String transactionType, Double amount, String description,
-            String referenceId) {
+            String referenceId, String paymentMethod) {
         this.subAccount = subAccount;
         this.transactionType = transactionType;
         this.amount = amount;
         this.description = description;
         this.referenceId = referenceId;
+        this.paymentMethod = paymentMethod;
         this.transactionDate = LocalDateTime.now();
     }
+
+    public SubAccountTransaction(SubAccount subAccount, String transactionType, Double amount, String description,
+            String referenceId) {
+        this(subAccount, transactionType, amount, description, referenceId, "UNKNOWN");
+    }
+
 
     // Getters and Setters
 
@@ -89,5 +97,13 @@ public class SubAccountTransaction {
 
     public void setReferenceId(String referenceId) {
         this.referenceId = referenceId;
+    }
+
+    public String getPaymentMethod() {
+        return paymentMethod;
+    }
+
+    public void setPaymentMethod(String paymentMethod) {
+        this.paymentMethod = paymentMethod;
     }
 }

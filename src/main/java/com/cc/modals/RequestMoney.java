@@ -37,9 +37,12 @@ public class RequestMoney {
     @Column(nullable = false, length = 1000)
     private String bankDetails; // JSON or formatted string with details
 
-    private String status = "PENDING"; // PENDING, PAID, PARTIAL
+    private String status = "PENDING"; // PENDING, PAID, PARTIAL, REJECTED
 
     private Double amountPaid = 0.0;
+
+    @Column(length = 1000)
+    private String rejectionRemarks;
 
     @OneToMany(mappedBy = "requestMoney", cascade = CascadeType.ALL)
     @JsonIgnoreProperties("requestMoney")
@@ -168,6 +171,14 @@ public class RequestMoney {
 
     public void setAmountPaid(Double amountPaid) {
         this.amountPaid = amountPaid;
+    }
+
+    public String getRejectionRemarks() {
+        return rejectionRemarks;
+    }
+
+    public void setRejectionRemarks(String rejectionRemarks) {
+        this.rejectionRemarks = rejectionRemarks;
     }
 
     public LocalDateTime getCreatedAt() {

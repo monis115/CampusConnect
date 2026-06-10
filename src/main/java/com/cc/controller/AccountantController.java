@@ -146,6 +146,49 @@ public class AccountantController {
         }
     }
 
+    @PostMapping("/subaccounts/deposit")
+    public ResponseEntity<?> deposit(@RequestBody java.util.Map<String, Object> payload) {
+        try {
+            Long destId = Long.valueOf(payload.get("destId").toString());
+            Double amount = Double.valueOf(payload.get("amount").toString());
+            String depositorName = (String) payload.get("depositorName");
+            String depositedDate = (String) payload.get("depositedDate");
+            String transactionId = (String) payload.get("transactionId");
+            String paymentMethod = (String) payload.get("paymentMethod");
+
+            subAccountService.processDeposit(destId, amount, depositorName, depositedDate, transactionId, paymentMethod);
+            
+            return ResponseEntity.ok(java.util.Collections.singletonMap("message", "Deposit successful"));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body("Error processing deposit: " + e.getMessage());
+        }
+    }
+
+    @PostMapping("/subaccounts/withdraw")
+    public ResponseEntity<?> withdraw(@RequestBody java.util.Map<String, Object> payload) {
+        try {
+            Long sourceId = Long.valueOf(payload.get("sourceId").toString());
+            Double amount = Double.valueOf(payload.get("amount").toString());
+            String withdrawerName = (String) payload.get("withdrawerName");
+            String withdrawnDate = (String) payload.get("withdrawnDate");
+            String transactionId = (String) payload.get("transactionId");
+            String paymentMethod = (String) payload.get("paymentMethod");
+            String chequeDetails = (String) payload.get("chequeDetails");
+
+            subAccountService.processWithdrawal(sourceId, amount, withdrawerName, withdrawnDate, transactionId, paymentMethod, chequeDetails);
+            
+            return ResponseEntity.ok(java.util.Collections.singletonMap("message", "Withdrawal successful"));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body("Error processing withdrawal: " + e.getMessage());
+        }
+    }
+
     // Create
     @PostMapping
     public ResponseEntity<Accountant> create(@RequestBody Accountant entity) {
@@ -359,6 +402,32 @@ public class AccountantController {
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(500).body("Error fetching transactions: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/subaccounts/transactions/all")
+    public ResponseEntity<?> getAllSubAccountTransactions(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "100") int size,
+            @RequestParam(required = false) Long bankId,
+            @RequestParam(required = false) String startDate,
+            @RequestParam(required = false) String endDate) {
+        try {
+            org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(page, size);
+            java.time.LocalDateTime start = null;
+            java.time.LocalDateTime end = null;
+            
+            if (startDate != null && !startDate.isEmpty()) {
+                start = java.time.LocalDate.parse(startDate).atStartOfDay();
+            }
+            if (endDate != null && !endDate.isEmpty()) {
+                end = java.time.LocalDate.parse(endDate).atTime(23, 59, 59, 999999999);
+            }
+            
+            return ResponseEntity.ok(subAccountTransactionRepository.findFilteredTransactions(bankId, start, end, pageable));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body("Error fetching all transactions: " + e.getMessage());
         }
     }
 
