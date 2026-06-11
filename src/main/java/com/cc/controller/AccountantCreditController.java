@@ -30,4 +30,27 @@ public class AccountantCreditController {
             return ResponseEntity.badRequest().body(null);
         }
     }
+
+    @PostMapping("/{creditId}/repay")
+    public ResponseEntity<?> recordRepayment(
+            @PathVariable Long creditId,
+            @RequestParam(required = false) Long subAccountId,
+            @RequestParam Double amount,
+            @RequestParam(required = false) String notes) {
+        try {
+            return ResponseEntity.ok(accountantCreditService.recordRepayment(creditId, subAccountId, amount, notes));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @GetMapping("/{creditId}/installments")
+    public ResponseEntity<?> getCreditInstallments(@PathVariable Long creditId) {
+        return ResponseEntity.ok(accountantCreditService.getCreditInstallments(creditId));
+    }
+
+    @GetMapping("/{creditId}/transactions")
+    public ResponseEntity<?> getCreditTransactions(@PathVariable Long creditId) {
+        return ResponseEntity.ok(accountantCreditService.getCreditTransactions(creditId));
+    }
 }

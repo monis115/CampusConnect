@@ -1,5 +1,6 @@
 package com.cc.modals;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -36,11 +37,19 @@ public class AccountantCredit {
     private String emiDetails;
 
     private Double amountRepaid = 0.0;
-    private String status; // ACTIVE, REPAID
+    private String status; // ACTIVE, REPAID, PARTIALLY_PAID
 
     private String accountantUsername;
 
     private Long subAccountId;
+
+    private Double outstandingAmount;
+    private String repaymentStructure;
+    private Double totalRepaymentAmount;
+    private Double installmentAmount;
+    
+    @Column(length = 1000)
+    private String purpose;
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
@@ -54,6 +63,13 @@ public class AccountantCredit {
         }
         if (amountRepaid == null) {
             amountRepaid = 0.0;
+        }
+        if (outstandingAmount == null && totalRepaymentAmount != null) {
+            outstandingAmount = totalRepaymentAmount;
+        } else if (outstandingAmount == null && amount != null) {
+            outstandingAmount = amount;
+        } else if (outstandingAmount == null) {
+            outstandingAmount = 0.0;
         }
     }
 
@@ -204,5 +220,45 @@ public class AccountantCredit {
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public Double getOutstandingAmount() {
+        return outstandingAmount;
+    }
+
+    public void setOutstandingAmount(Double outstandingAmount) {
+        this.outstandingAmount = outstandingAmount;
+    }
+
+    public String getPurpose() {
+        return purpose;
+    }
+
+    public void setPurpose(String purpose) {
+        this.purpose = purpose;
+    }
+
+    public String getRepaymentStructure() {
+        return repaymentStructure;
+    }
+
+    public void setRepaymentStructure(String repaymentStructure) {
+        this.repaymentStructure = repaymentStructure;
+    }
+
+    public Double getTotalRepaymentAmount() {
+        return totalRepaymentAmount;
+    }
+
+    public void setTotalRepaymentAmount(Double totalRepaymentAmount) {
+        this.totalRepaymentAmount = totalRepaymentAmount;
+    }
+
+    public Double getInstallmentAmount() {
+        return installmentAmount;
+    }
+
+    public void setInstallmentAmount(Double installmentAmount) {
+        this.installmentAmount = installmentAmount;
     }
 }
