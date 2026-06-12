@@ -35,11 +35,38 @@ public class AccountantCreditController {
     public ResponseEntity<?> recordRepayment(
             @PathVariable Long creditId,
             @RequestParam(required = false) Long subAccountId,
-            @RequestParam Double amount,
-            @RequestParam(required = false) String notes) {
+            @RequestParam java.math.BigDecimal amount,
+            @RequestParam(required = false) String notes,
+            @RequestParam(defaultValue = "SYSTEM") String username) {
         try {
-            return ResponseEntity.ok(accountantCreditService.recordRepayment(creditId, subAccountId, amount, notes));
+            return ResponseEntity.ok(accountantCreditService.recordRepayment(creditId, subAccountId, amount, notes, username));
         } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @PostMapping("/{creditId}/foreclose")
+    public ResponseEntity<?> processForeclosure(
+            @PathVariable Long creditId,
+            @RequestParam(required = false) java.math.BigDecimal foreclosureChargePercentage,
+            @RequestParam(required = false) Long subAccountId,
+            @RequestParam(defaultValue = "SYSTEM") String username) {
+        try {
+            return ResponseEntity.ok(accountantCreditService.processForeclosure(creditId, foreclosureChargePercentage, subAccountId, username));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @PostMapping("/{creditId}/prepay")
+    public ResponseEntity<?> processPrepayment(
+            @PathVariable Long creditId,
+            @RequestParam java.math.BigDecimal amount,
+            @RequestParam com.cc.service.engine.PrepaymentEngine.PrepaymentStrategy strategy,
+            @RequestParam(defaultValue = "SYSTEM") String username) {
+        try {
+            return ResponseEntity.ok(accountantCreditService.processPrepayment(creditId, amount, strategy, username));
+        } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
@@ -49,8 +76,73 @@ public class AccountantCreditController {
         return ResponseEntity.ok(accountantCreditService.getCreditInstallments(creditId));
     }
 
-    @GetMapping("/{creditId}/transactions")
-    public ResponseEntity<?> getCreditTransactions(@PathVariable Long creditId) {
+    @GetMapping("/{creditId}/ledger")
+    public ResponseEntity<?> getCreditLedger(@PathVariable Long creditId) {
         return ResponseEntity.ok(accountantCreditService.getCreditTransactions(creditId));
+    }
+    
+    @GetMapping("/{creditId}/timeline")
+    public ResponseEntity<?> getCreditTimeline(@PathVariable Long creditId) {
+        return ResponseEntity.ok(accountantCreditService.getTimelineEvents(creditId));
+    }
+
+    @PutMapping("/{creditId}/details")
+    public ResponseEntity<?> updateCreditDetails(@PathVariable Long creditId, @RequestBody com.cc.DTO.CreditDetailsUpdateRequest request) {
+        try {
+            return ResponseEntity.ok(accountantCreditService.updateCreditDetails(creditId, request));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @Autowired
+    private com.cc.service.PdfGenerationService pdfGenerationService;
+
+    @GetMapping("/{creditId}/closure-certificate")
+    public ResponseEntity<byte[]> downloadClosureCertificate(@PathVariable Long creditId) {
+        try {
+            byte[] pdfBytes = pdfGenerationService.generateClosureCertificate(creditId);
+            org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
+            headers.setContentType(org.springframework.http.MediaType.APPLICATION_PDF);
+            headers.setContentDispositionFormData("attachment", "Closure_Certificate_CR" + creditId + ".pdf");
+            return new ResponseEntity<>(pdfBytes, headers, org.springframework.http.HttpStatus.OK);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(null);
+        }
+    }
+    @Autowired
+    private com.cc.repository.CreditInstallmentRepository creditInstallmentRepository;
+
+    @GetMapping("/calendar/{username}")
+    public ResponseEntity<?> getLiabilityCalendar(@PathVariable String username) {
+        // Fetch all pending/overdue installments for the accountant across all active loans
+        java.util.List<com.cc.modals.CreditInstallment> pending = creditInstallmentRepository
+            .findByCreditAccountantUsernameAndStatusIn(username, java.util.Arrays.asList("PENDING", "OVERDUE"));
+        
+        // Sort by due date
+        pending.sort(java.util.Comparator.comparing(com.cc.modals.CreditInstallment::getDueDate));
+        
+        return ResponseEntity.ok(pending);
+    }
+    
+    @Autowired
+    private com.cc.repository.FinancialAlertRepository financialAlertRepository;
+    
+    @GetMapping("/alerts/{username}")
+    public ResponseEntity<?> getFinancialAlerts(@PathVariable String username) {
+        java.util.List<com.cc.modals.FinancialAlert> alerts = financialAlertRepository
+            .findByAccountantUsernameOrderByCreatedAtDesc(username);
+        return ResponseEntity.ok(alerts);
+    }
+    
+    @PostMapping("/alerts/{alertId}/read")
+    public ResponseEntity<?> markAlertAsRead(@PathVariable Long alertId) {
+        com.cc.modals.FinancialAlert alert = financialAlertRepository.findById(alertId).orElse(null);
+        if (alert != null) {
+            alert.setRead(true);
+            financialAlertRepository.save(alert);
+            return ResponseEntity.ok().build();
+        }
+        return ResponseEntity.notFound().build();
     }
 }

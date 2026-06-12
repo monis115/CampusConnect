@@ -10,4 +10,5 @@ import java.util.List;
 public interface AccountantCreditRepository extends JpaRepository<AccountantCredit, Long> {
     List<AccountantCredit> findByAccountantUsernameOrderByCreditDateDesc(String accountantUsername);
     List<AccountantCredit> findByAccountantUsernameAndStatusOrderByCreditDateDesc(String accountantUsername, String status);
+    List<AccountantCredit> findByStatus(String status);
 }

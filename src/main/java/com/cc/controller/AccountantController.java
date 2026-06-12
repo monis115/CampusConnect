@@ -68,6 +68,9 @@ public class AccountantController {
     private com.cc.service.SubAccountService subAccountService;
 
     @Autowired
+    private com.cc.service.AdvancedTransactionService advancedTransactionService;
+
+    @Autowired
     private com.cc.repository.SubAccountTransactionRepository subAccountTransactionRepository;
 
     // --- SubAccount Endpoints ---
@@ -405,6 +408,16 @@ public class AccountantController {
         }
     }
 
+    @PostMapping("/transactions/advanced-summary")
+    public ResponseEntity<?> getAdvancedTransactionSummary(@RequestBody com.cc.DTO.AdvancedTransactionRequestDTO request) {
+        try {
+            return ResponseEntity.ok(advancedTransactionService.getAdvancedSummary(request));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body("Error fetching advanced transactions: " + e.getMessage());
+        }
+    }
+
     @GetMapping("/subaccounts/transactions/all")
     public ResponseEntity<?> getAllSubAccountTransactions(
             @RequestParam(defaultValue = "0") int page,
@@ -459,5 +472,9 @@ public class AccountantController {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to fetch outstanding recovery: " + e.getMessage());
         }
+    }
+    @GetMapping("/transactions/advanced-filter-options")
+    public ResponseEntity<Map<String, List<String>>> getAdvancedFilterOptions() {
+        return ResponseEntity.ok(advancedTransactionService.getFilterOptions());
     }
 }

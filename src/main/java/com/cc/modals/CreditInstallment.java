@@ -1,6 +1,7 @@
 package com.cc.modals;
 
 import jakarta.persistence.*;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -17,12 +18,31 @@ public class CreditInstallment {
 
     private Integer installmentNum;
     private LocalDate dueDate;
-    private Double installmentAmount;
-    private Double paidAmount = 0.0;
+    
+    @Column(precision = 19, scale = 4)
+    private BigDecimal installmentAmount;
+    
+    @Column(precision = 19, scale = 4)
+    private BigDecimal principalPortion;
+    
+    @Column(precision = 19, scale = 4)
+    private BigDecimal interestPortion;
+    
+    @Column(precision = 19, scale = 4)
+    private BigDecimal remainingPrincipal;
+    
+    @Column(precision = 19, scale = 4)
+    private BigDecimal remainingInterest;
+    
+    @Column(precision = 19, scale = 4)
+    private BigDecimal paidAmount = BigDecimal.ZERO;
     
     // PENDING, PAID, OVERDUE
     private String status = "PENDING";
     private LocalDateTime paidDate;
+
+    @Column(precision = 19, scale = 4)
+    private BigDecimal penaltyAmount = BigDecimal.ZERO;
 
     // Getters and Setters
     public Long getId() {
@@ -49,19 +69,51 @@ public class CreditInstallment {
         this.dueDate = dueDate;
     }
 
-    public Double getInstallmentAmount() {
+    public BigDecimal getInstallmentAmount() {
         return installmentAmount;
     }
 
-    public void setInstallmentAmount(Double installmentAmount) {
+    public void setInstallmentAmount(BigDecimal installmentAmount) {
         this.installmentAmount = installmentAmount;
     }
 
-    public Double getPaidAmount() {
+    public BigDecimal getPrincipalPortion() {
+        return principalPortion;
+    }
+
+    public void setPrincipalPortion(BigDecimal principalPortion) {
+        this.principalPortion = principalPortion;
+    }
+
+    public BigDecimal getInterestPortion() {
+        return interestPortion;
+    }
+
+    public void setInterestPortion(BigDecimal interestPortion) {
+        this.interestPortion = interestPortion;
+    }
+
+    public BigDecimal getRemainingPrincipal() {
+        return remainingPrincipal;
+    }
+
+    public void setRemainingPrincipal(BigDecimal remainingPrincipal) {
+        this.remainingPrincipal = remainingPrincipal;
+    }
+
+    public BigDecimal getRemainingInterest() {
+        return remainingInterest;
+    }
+
+    public void setRemainingInterest(BigDecimal remainingInterest) {
+        this.remainingInterest = remainingInterest;
+    }
+
+    public BigDecimal getPaidAmount() {
         return paidAmount;
     }
 
-    public void setPaidAmount(Double paidAmount) {
+    public void setPaidAmount(BigDecimal paidAmount) {
         this.paidAmount = paidAmount;
     }
 
@@ -87,5 +139,13 @@ public class CreditInstallment {
 
     public void setInstallmentNum(Integer installmentNum) {
         this.installmentNum = installmentNum;
+    }
+
+    public BigDecimal getPenaltyAmount() {
+        return penaltyAmount;
+    }
+
+    public void setPenaltyAmount(BigDecimal penaltyAmount) {
+        this.penaltyAmount = penaltyAmount;
     }
 }

@@ -8,6 +8,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -18,11 +19,15 @@ public class AccountantCredit {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private Double amount;
+    @Column(precision = 19, scale = 4)
+    private BigDecimal amount;
+    
     private String method; // FRIEND, LOAN, CREDIT_CARD
     private LocalDate creditDate;
     private LocalDate dueDate;
-    private Double interestRate;
+    
+    @Column(precision = 19, scale = 4)
+    private BigDecimal interestRate;
 
     // Friend specific
     private String friendName;
@@ -35,21 +40,42 @@ public class AccountantCredit {
     // Credit Card specific
     private String cardInfo;
     private String emiDetails;
+    
+    @Column(precision = 19, scale = 4)
+    private BigDecimal cardLimit;
+    private LocalDate statementDate;
 
-    private Double amountRepaid = 0.0;
-    private String status; // ACTIVE, REPAID, PARTIALLY_PAID
+    @Column(precision = 19, scale = 4)
+    private BigDecimal amountRepaid = BigDecimal.ZERO;
+    
+    private String status; // ACTIVE, CLOSED, FORECLOSED
+    private String interestModel; // FLAT, REDUCING
+    private String healthScore; // HEALTHY, ATTENTION, CRITICAL
 
     private String accountantUsername;
-
     private Long subAccountId;
 
-    private Double outstandingAmount;
+    @Column(precision = 19, scale = 4)
+    private BigDecimal outstandingAmount;
+    
     private String repaymentStructure;
-    private Double totalRepaymentAmount;
-    private Double installmentAmount;
+    
+    @Column(precision = 19, scale = 4)
+    private BigDecimal totalRepaymentAmount;
+    
+    @Column(precision = 19, scale = 4)
+    private BigDecimal installmentAmount;
     
     @Column(length = 1000)
     private String purpose;
+
+    private String lateFeeType; // PERCENTAGE, FIXED_AMOUNT
+
+    @Column(precision = 19, scale = 4)
+    private BigDecimal lateFeeValue;
+
+    @Column(precision = 19, scale = 4)
+    private BigDecimal fixedLateFine;
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
@@ -61,15 +87,30 @@ public class AccountantCredit {
         if (status == null) {
             status = "ACTIVE";
         }
+        if (healthScore == null) {
+            healthScore = "HEALTHY";
+        }
+        if (interestModel == null) {
+            interestModel = "REDUCING";
+        }
         if (amountRepaid == null) {
-            amountRepaid = 0.0;
+            amountRepaid = BigDecimal.ZERO;
         }
         if (outstandingAmount == null && totalRepaymentAmount != null) {
             outstandingAmount = totalRepaymentAmount;
         } else if (outstandingAmount == null && amount != null) {
             outstandingAmount = amount;
         } else if (outstandingAmount == null) {
-            outstandingAmount = 0.0;
+            outstandingAmount = BigDecimal.ZERO;
+        }
+        if (lateFeeType == null) {
+            lateFeeType = "PERCENTAGE";
+        }
+        if (lateFeeValue == null) {
+            lateFeeValue = BigDecimal.ZERO;
+        }
+        if (fixedLateFine == null) {
+            fixedLateFine = BigDecimal.ZERO;
         }
     }
 
@@ -86,11 +127,11 @@ public class AccountantCredit {
         this.id = id;
     }
 
-    public Double getAmount() {
+    public BigDecimal getAmount() {
         return amount;
     }
 
-    public void setAmount(Double amount) {
+    public void setAmount(BigDecimal amount) {
         this.amount = amount;
     }
 
@@ -118,11 +159,11 @@ public class AccountantCredit {
         this.dueDate = dueDate;
     }
 
-    public Double getInterestRate() {
+    public BigDecimal getInterestRate() {
         return interestRate;
     }
 
-    public void setInterestRate(Double interestRate) {
+    public void setInterestRate(BigDecimal interestRate) {
         this.interestRate = interestRate;
     }
 
@@ -174,11 +215,27 @@ public class AccountantCredit {
         this.emiDetails = emiDetails;
     }
 
-    public Double getAmountRepaid() {
+    public BigDecimal getCardLimit() {
+        return cardLimit;
+    }
+
+    public void setCardLimit(BigDecimal cardLimit) {
+        this.cardLimit = cardLimit;
+    }
+
+    public LocalDate getStatementDate() {
+        return statementDate;
+    }
+
+    public void setStatementDate(LocalDate statementDate) {
+        this.statementDate = statementDate;
+    }
+
+    public BigDecimal getAmountRepaid() {
         return amountRepaid;
     }
 
-    public void setAmountRepaid(Double amountRepaid) {
+    public void setAmountRepaid(BigDecimal amountRepaid) {
         this.amountRepaid = amountRepaid;
     }
 
@@ -188,6 +245,22 @@ public class AccountantCredit {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public String getInterestModel() {
+        return interestModel;
+    }
+
+    public void setInterestModel(String interestModel) {
+        this.interestModel = interestModel;
+    }
+
+    public String getHealthScore() {
+        return healthScore;
+    }
+
+    public void setHealthScore(String healthScore) {
+        this.healthScore = healthScore;
     }
 
     public String getAccountantUsername() {
@@ -206,6 +279,46 @@ public class AccountantCredit {
         this.subAccountId = subAccountId;
     }
 
+    public BigDecimal getOutstandingAmount() {
+        return outstandingAmount;
+    }
+
+    public void setOutstandingAmount(BigDecimal outstandingAmount) {
+        this.outstandingAmount = outstandingAmount;
+    }
+
+    public String getRepaymentStructure() {
+        return repaymentStructure;
+    }
+
+    public void setRepaymentStructure(String repaymentStructure) {
+        this.repaymentStructure = repaymentStructure;
+    }
+
+    public BigDecimal getTotalRepaymentAmount() {
+        return totalRepaymentAmount;
+    }
+
+    public void setTotalRepaymentAmount(BigDecimal totalRepaymentAmount) {
+        this.totalRepaymentAmount = totalRepaymentAmount;
+    }
+
+    public BigDecimal getInstallmentAmount() {
+        return installmentAmount;
+    }
+
+    public void setInstallmentAmount(BigDecimal installmentAmount) {
+        this.installmentAmount = installmentAmount;
+    }
+
+    public String getPurpose() {
+        return purpose;
+    }
+
+    public void setPurpose(String purpose) {
+        this.purpose = purpose;
+    }
+
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
@@ -222,43 +335,27 @@ public class AccountantCredit {
         this.updatedAt = updatedAt;
     }
 
-    public Double getOutstandingAmount() {
-        return outstandingAmount;
+    public String getLateFeeType() {
+        return lateFeeType;
     }
 
-    public void setOutstandingAmount(Double outstandingAmount) {
-        this.outstandingAmount = outstandingAmount;
+    public void setLateFeeType(String lateFeeType) {
+        this.lateFeeType = lateFeeType;
     }
 
-    public String getPurpose() {
-        return purpose;
+    public BigDecimal getLateFeeValue() {
+        return lateFeeValue;
     }
 
-    public void setPurpose(String purpose) {
-        this.purpose = purpose;
+    public void setLateFeeValue(BigDecimal lateFeeValue) {
+        this.lateFeeValue = lateFeeValue;
     }
 
-    public String getRepaymentStructure() {
-        return repaymentStructure;
+    public BigDecimal getFixedLateFine() {
+        return fixedLateFine;
     }
 
-    public void setRepaymentStructure(String repaymentStructure) {
-        this.repaymentStructure = repaymentStructure;
-    }
-
-    public Double getTotalRepaymentAmount() {
-        return totalRepaymentAmount;
-    }
-
-    public void setTotalRepaymentAmount(Double totalRepaymentAmount) {
-        this.totalRepaymentAmount = totalRepaymentAmount;
-    }
-
-    public Double getInstallmentAmount() {
-        return installmentAmount;
-    }
-
-    public void setInstallmentAmount(Double installmentAmount) {
-        this.installmentAmount = installmentAmount;
+    public void setFixedLateFine(BigDecimal fixedLateFine) {
+        this.fixedLateFine = fixedLateFine;
     }
 }
