@@ -9,13 +9,14 @@ public class TelexManDTO {
     private String status;
     private String role;
     private Integer studentCount;
+    private String profilePhotoPath;
 
     // Constructors
     public TelexManDTO() {
     }
 
     public TelexManDTO(Long id, String username, String fullName, String email,
-            String contactNumber, String status, String role, Integer studentCount) {
+            String contactNumber, String status, String role, Integer studentCount, String profilePhotoPath) {
         this.id = id;
         this.username = username;
         this.fullName = fullName;
@@ -24,6 +25,7 @@ public class TelexManDTO {
         this.status = status;
         this.role = role;
         this.studentCount = studentCount;
+        this.profilePhotoPath = profilePhotoPath;
     }
 
     // Getters and Setters
@@ -89,5 +91,13 @@ public class TelexManDTO {
 
     public void setStudentCount(Integer studentCount) {
         this.studentCount = studentCount;
+    }
+
+    public String getProfilePhotoPath() {
+        return profilePhotoPath;
+    }
+
+    public void setProfilePhotoPath(String profilePhotoPath) {
+        this.profilePhotoPath = profilePhotoPath;
     }
 }

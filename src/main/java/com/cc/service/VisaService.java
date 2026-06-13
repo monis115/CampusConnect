@@ -76,6 +76,33 @@ public class VisaService {
                 return studentRepository.save(student);
         }
 
+        // 1.5 Assign Visa Manager (called by Telex Manager)
+        @Transactional
+        public Student assignVisaManagerByTelexMan(Long studentId, String telexManagerUsername,
+                        String visaPersonUsername) {
+                Student student = studentRepository.findById(studentId)
+                                .orElseThrow(() -> new RuntimeException("Student not found"));
+
+                if (student.getVisaMan() != null) {
+                        throw new RuntimeException("Student is already assigned to a Visa Manager");
+                }
+
+                VisaMan visaPerson = visaManService.getByUsername(visaPersonUsername)
+                                .orElseThrow(() -> new RuntimeException(
+                                                "Visa Person not found with username: " + visaPersonUsername));
+
+                student.setAction(action.REQUEST_FOR_VISA_PAYMENT_TO_ACCOUNTANT);
+                student.setActionOnUser(actionOnUser.visa_manager);
+                student.setVisaMan(visaPerson);
+                student.setApplicationStatus(StudentStatus.VISA_FEE_PENDING);
+
+                addHistory(student, StudentStatus.VISA_FEE_PENDING, telexManagerUsername,
+                                "Assigned to Visa Person: " + visaPersonUsername + " directly by Telex Manager: "
+                                                + telexManagerUsername);
+
+                return studentRepository.save(student);
+        }
+
         // 2. Confirm Visa Fee
         public Student confirmVisaFee(Long studentId, String visaManagerUsername) {
                 Student student = studentRepository.findById(studentId)
@@ -436,7 +463,8 @@ public class VisaService {
         @Transactional
         public Student confirmVisaPaymentReceived(Long studentId, String accountantUsername, Double receivedAmount,
                         java.time.LocalDate receivedDate, Long explicitSubAccountId) {
-                return confirmVisaPaymentReceived(studentId, accountantUsername, receivedAmount, receivedDate, explicitSubAccountId, "UNKNOWN");
+                return confirmVisaPaymentReceived(studentId, accountantUsername, receivedAmount, receivedDate,
+                                explicitSubAccountId, "UNKNOWN");
         }
 
         @Transactional
@@ -535,8 +563,10 @@ public class VisaService {
         @Transactional
         public Student processCashSettlement(Long studentId, String accountantUsername, Double amount,
                         Long subAccountId, java.time.LocalDate date, String remarks) {
-                // 1. Process it as a normal received payment with explicit subAccountId and CASH payment method
-                Student student = confirmVisaPaymentReceived(studentId, accountantUsername, amount, date, subAccountId, "CASH");
+                // 1. Process it as a normal received payment with explicit subAccountId and
+                // CASH payment method
+                Student student = confirmVisaPaymentReceived(studentId, accountantUsername, amount, date, subAccountId,
+                                "CASH");
 
                 // 2. Add an explicit VisaPaymentTransaction for CASH SETTLEMENT
                 com.cc.modals.VisaPaymentTransaction tx = new com.cc.modals.VisaPaymentTransaction();

@@ -195,4 +195,43 @@ public class TelexController {
             return ResponseEntity.status(500).body("Error fetching all managers stats: " + e.getMessage());
         }
     }
+
+    // 9. Verify Telex Documents
+    @PostMapping("/verify-docs/{studentId}")
+    public ResponseEntity<?> verifyTelexDocs(
+            @PathVariable Long studentId,
+            @RequestBody Map<String, String> request) {
+        try {
+            String managerUsername = request.get("managerUsername");
+
+            if (managerUsername == null || managerUsername.isEmpty()) {
+                return ResponseEntity.badRequest().body("managerUsername is required");
+            }
+
+            Student student = telexService.verifyTelexDocs(studentId, managerUsername);
+            return ResponseEntity.ok(student);
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Error verifying documents: " + e.getMessage());
+        }
+    }
+
+    // 10. Reject Telex Request
+    @PostMapping("/reject/{studentId}")
+    public ResponseEntity<?> rejectTelexRequest(
+            @PathVariable Long studentId,
+            @RequestBody Map<String, String> request) {
+        try {
+            String managerUsername = request.get("managerUsername");
+            String reason = request.get("reason");
+
+            if (managerUsername == null || managerUsername.isEmpty()) {
+                return ResponseEntity.badRequest().body("managerUsername is required");
+            }
+
+            Student student = telexService.rejectTelexRequest(studentId, managerUsername, reason);
+            return ResponseEntity.ok(student);
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Error rejecting telex request: " + e.getMessage());
+        }
+    }
 }

@@ -733,15 +733,21 @@ public class AgentService {
         }
 
         // Update Status
-        student.setApplicationStatus(com.cc.modals.StudentStatus.TELEX_INITIATED);
-        student.setTelexRequestDate(java.time.LocalDate.now());
+        if (student.getApplicationStatus() == com.cc.modals.StudentStatus.REJECTED_BY_TELEX) {
+            student.setApplicationStatus(com.cc.modals.StudentStatus.APPLIED_FOR_TELEX);
+            student.setTelexRequestDate(java.time.LocalDate.now());
+            student.setAction(action.UPLOAD_TELEX_DOCS);
+            student.setActionOnUser(actionOnUser.telex_manager);
+        } else {
+            student.setApplicationStatus(com.cc.modals.StudentStatus.TELEX_INITIATED);
+            student.setTelexRequestDate(java.time.LocalDate.now());
+            student.setAction(action.CONFIRM_DOCS);
+            student.setActionOnUser(actionOnUser.doc_manager);
+        }
 
         // Reset approvals if they were previously set (re-submission case)
         student.setIsTelexAccountantApproved(false);
         student.setIsTelexDocApproved(false);
-
-        student.setAction(action.CONFIRM_DOCS);
-        student.setActionOnUser(actionOnUser.doc_manager);
 
         com.cc.modals.Student savedStudent = studentRepository.save(student);
 
@@ -809,7 +815,8 @@ public class AgentService {
             request.setTicketPdfPath(ticketPdfPath);
         }
 
-        // Update Status to TRAVELLING since document return is requested with travel details
+        // Update Status to TRAVELLING since document return is requested with travel
+        // details
         student.setApplicationStatus(com.cc.modals.StudentStatus.TRAVELLING);
 
         // Initially false, will be true when Visa Manager returns docs
@@ -845,6 +852,33 @@ public class AgentService {
     }
 
     @Transactional
+    public void requestVisaStamping(Long studentId, String agentUsername) {
+        com.cc.modals.Student student = studentRepository.findById(studentId)
+                .orElseThrow(() -> new RuntimeException("Student not found with ID: " + studentId));
+
+        if (student.getAgent() == null || !student.getAgent().getUserId().equals(agentUsername)) {
+            throw new RuntimeException("Unauthorized: Student is not assigned to this agent");
+        }
+
+        if (student.getApplicationStatus() != com.cc.modals.StudentStatus.TELEX_NUMBER_ISSUED) {
+            throw new RuntimeException("Visa stamping can only be requested after Telex is issued.");
+        }
+
+        student.setAction(action.ASSIGN_TO_VISA_MAN);
+        student.setActionOnUser(actionOnUser.admission_manager);
+
+        com.cc.modals.StudentStatusHistory history = new com.cc.modals.StudentStatusHistory();
+        history.setStudent(student);
+        history.setStudentApplicationStatus(student.getApplicationStatus());
+        history.setUpdatedBy(agentUsername);
+        history.setRemarks("Agent requested Visa Stamping. Pending Admission Manager approval.");
+        history.setUpdatedAt(java.time.LocalDateTime.now());
+        studentStatusHistoryRepository.save(history);
+
+        studentRepository.save(student);
+    }
+
+    @Transactional
     public void markDocReceived(Long studentId, String agentUsername) {
         com.cc.modals.Student student = studentRepository.findById(studentId)
                 .orElseThrow(() -> new RuntimeException("Student not found with ID: " + studentId));
@@ -853,9 +887,12 @@ public class AgentService {
             throw new RuntimeException("Unauthorized: Student is not assigned to this agent");
         }
 
-        // GUARD: Only allow marking as received if doc person has actually returned the documents
-        if (student.getDocReturnedDate() == null && (student.getDocReturnTrackingId() == null || student.getDocReturnTrackingId().isEmpty())) {
-            throw new RuntimeException("Cannot mark as received: Documents have not been returned by the Doc Person yet. Please wait for the Doc Person to process the return.");
+        // GUARD: Only allow marking as received if doc person has actually returned the
+        // documents
+        if (student.getDocReturnedDate() == null
+                && (student.getDocReturnTrackingId() == null || student.getDocReturnTrackingId().isEmpty())) {
+            throw new RuntimeException(
+                    "Cannot mark as received: Documents have not been returned by the Doc Person yet. Please wait for the Doc Person to process the return.");
         }
 
         // GUARD: Don't allow double-marking
@@ -864,7 +901,7 @@ public class AgentService {
         }
 
         student.setPassportReturnReceivedDate(java.time.LocalDate.now());
-        
+
         // Update history
         com.cc.modals.StudentStatusHistory history = new com.cc.modals.StudentStatusHistory();
         history.setStudent(student);
@@ -886,7 +923,8 @@ public class AgentService {
     }
 
     @Transactional
-    public void updateTravelDetails(Long studentId, String agentUsername, com.cc.DTO.TravelDetailsDTO details, String ticketPdfPath) {
+    public void updateTravelDetails(Long studentId, String agentUsername, com.cc.DTO.TravelDetailsDTO details,
+            String ticketPdfPath) {
         com.cc.modals.Student student = studentRepository.findById(studentId)
                 .orElseThrow(() -> new RuntimeException("Student not found with ID: " + studentId));
 
@@ -894,13 +932,19 @@ public class AgentService {
             throw new RuntimeException("Unauthorized: Student is not assigned to this agent");
         }
 
-        if (details.getTravelDoj() != null) student.setTravelDoj(details.getTravelDoj());
-        if (details.getTravelAirlines() != null) student.setTravelAirlines(details.getTravelAirlines());
-        if (details.getTravelSource() != null) student.setTravelSource(details.getTravelSource());
-        if (details.getTravelDestination() != null) student.setTravelDestination(details.getTravelDestination());
-        if (details.getPnrNumber() != null) student.setTravelPnrNumber(details.getPnrNumber());
-        if (details.getFlightNumber() != null) student.setTravelFlightNumber(details.getFlightNumber());
-        
+        if (details.getTravelDoj() != null)
+            student.setTravelDoj(details.getTravelDoj());
+        if (details.getTravelAirlines() != null)
+            student.setTravelAirlines(details.getTravelAirlines());
+        if (details.getTravelSource() != null)
+            student.setTravelSource(details.getTravelSource());
+        if (details.getTravelDestination() != null)
+            student.setTravelDestination(details.getTravelDestination());
+        if (details.getPnrNumber() != null)
+            student.setTravelPnrNumber(details.getPnrNumber());
+        if (details.getFlightNumber() != null)
+            student.setTravelFlightNumber(details.getFlightNumber());
+
         if (ticketPdfPath != null) {
             student.setTravelTicketPdfPath(ticketPdfPath);
         }
@@ -917,7 +961,8 @@ public class AgentService {
         String fullNameAndRole = userService.resolveFullName(agentUsername);
         history.setUpdatedByName(fullNameAndRole);
         history.setUpdatedBy(agentUsername);
-        history.setRemarks("Updated Travel Details: DOJ " + details.getTravelDoj() + ", Airlines " + details.getTravelAirlines());
+        history.setRemarks(
+                "Updated Travel Details: DOJ " + details.getTravelDoj() + ", Airlines " + details.getTravelAirlines());
         history.setUpdatedAt(java.time.LocalDateTime.now());
         studentStatusHistoryRepository.save(history);
     }

@@ -151,6 +151,9 @@ public class TelexManService {
         student.setTelexIssueDate(issueDate);
         student.setApplicationStatus(com.cc.modals.StudentStatus.TELEX_NUMBER_ISSUED);
 
+        student.setAction(com.cc.modals.action.NEED_TO_REQUEST_VISA_STAMPING);
+        student.setActionOnUser(com.cc.modals.actionOnUser.agent);
+
         com.cc.modals.Student savedStudent = studentRepository.save(student);
 
         // History

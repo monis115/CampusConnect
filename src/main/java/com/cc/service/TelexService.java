@@ -106,10 +106,10 @@ public class TelexService {
                 student.setTelexIssueDate(java.time.LocalDate.now());
                 student.setApplicationStatus(StudentStatus.TELEX_NUMBER_ISSUED);
 
-                student.setAction(action.ASSIGN_TO_VISA_MAN);
-                student.setActionOnUser(actionOnUser.admission_manager);
+                student.setAction(action.NEED_TO_REQUEST_VISA_STAMPING);
+                student.setActionOnUser(actionOnUser.agent);
 
-                addHistory(student, StudentStatus.TELEX_NUMBER_ISSUED, telexManagerUsername);
+                addHistory(student, StudentStatus.TELEX_NUMBER_ISSUED, telexManagerUsername, "Telex Number Issued. Waiting for Agent to request Visa Stamping");
 
                 return studentRepository.save(student);
         }
@@ -144,6 +144,45 @@ public class TelexService {
 
                 student.setTelexDocumentsPath(paths.toString());
                 addHistory(student, student.getApplicationStatus(), managerUsername, "Uploaded Documents");
+
+                return studentRepository.save(student);
+        }
+
+        // 6. Reject Telex Request
+        public Student rejectTelexRequest(Long studentId, String managerUsername, String reason) {
+                Student student = studentRepository.findById(studentId)
+                                .orElseThrow(() -> new RuntimeException("Student not found"));
+
+                if (student.getTelexMan() == null || !student.getTelexMan().getUsername().equals(managerUsername)) {
+                        throw new RuntimeException("Unauthorized: Only assigned Telex Manager can perform this action");
+                }
+
+                student.setApplicationStatus(StudentStatus.REJECTED_BY_TELEX);
+                student.setAction(action.INITIATE_TELEX);
+                student.setActionOnUser(actionOnUser.agent);
+                student.setIsTelexDocsVerified(false);
+
+                String remarks = "Telex Request Rejected by " + managerUsername;
+                if (reason != null && !reason.isEmpty()) {
+                        remarks += ". Reason: " + reason;
+                }
+                addHistory(student, StudentStatus.REJECTED_BY_TELEX, managerUsername, remarks);
+
+                return studentRepository.save(student);
+        }
+
+        // 7. Verify Telex Documents
+        public Student verifyTelexDocs(Long studentId, String managerUsername) {
+                Student student = studentRepository.findById(studentId)
+                                .orElseThrow(() -> new RuntimeException("Student not found"));
+
+                if (student.getTelexMan() == null || !student.getTelexMan().getUsername().equals(managerUsername)) {
+                        throw new RuntimeException("Unauthorized: Only assigned Telex Manager can perform this action");
+                }
+
+                student.setIsTelexDocsVerified(true);
+                
+                addHistory(student, student.getApplicationStatus(), managerUsername, "Verified Required Documents for Telex");
 
                 return studentRepository.save(student);
         }

@@ -56,7 +56,8 @@ public class TelexManController {
                         t.getContactNumber(),
                         t.getStatus(),
                         t.getRole(),
-                        t.getStudents() != null ? t.getStudents().size() : 0))
+                        t.getStudents() != null ? t.getStudents().size() : 0,
+                        t.getProfilePhotoPath()))
                 .collect(java.util.stream.Collectors.toList());
         return ResponseEntity.ok(result);
     }
@@ -89,6 +90,9 @@ public class TelexManController {
             }
             if (updates.containsKey("contactNumber")) {
                 entity.setContactNumber((String) updates.get("contactNumber"));
+            }
+            if (updates.containsKey("profilePhotoPath")) {
+                entity.setProfilePhotoPath((String) updates.get("profilePhotoPath"));
             }
 
             return ResponseEntity.ok(service.update(id, entity));

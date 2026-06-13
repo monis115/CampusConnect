@@ -152,6 +152,9 @@ public class Student {
 	@Column(nullable = true)
 	private Boolean hasRaiseReturnRequest = false;
 
+	@Column(nullable = false, columnDefinition = "boolean default false")
+	private Boolean isTelexDocsVerified = false;
+
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "university_person_id")
 	@JsonBackReference(value = "up-student")
@@ -1667,5 +1670,13 @@ public class Student {
 		} catch (Exception e) {
 			return null;
 		}
+	}
+
+	public Boolean getIsTelexDocsVerified() {
+		return isTelexDocsVerified;
+	}
+
+	public void setIsTelexDocsVerified(Boolean isTelexDocsVerified) {
+		this.isTelexDocsVerified = isTelexDocsVerified;
 	}
 }

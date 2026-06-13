@@ -33,6 +33,9 @@ public class TelexMan {
     @Column(nullable = false)
     private String role = "TelexManager";
 
+    @Column(name = "profile_photo_path")
+    private String profilePhotoPath;
+
     @OneToMany(mappedBy = "telexMan", cascade = CascadeType.ALL)
     @JsonIgnoreProperties("telexMan")
     private java.util.List<Student> students = new java.util.ArrayList<>();
@@ -111,6 +114,14 @@ public class TelexMan {
 
     public void setRole(String role) {
         this.role = role;
+    }
+
+    public String getProfilePhotoPath() {
+        return profilePhotoPath;
+    }
+
+    public void setProfilePhotoPath(String profilePhotoPath) {
+        this.profilePhotoPath = profilePhotoPath;
     }
 
     public java.util.List<Student> getStudents() {

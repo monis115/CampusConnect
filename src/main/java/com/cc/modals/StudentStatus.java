@@ -21,6 +21,7 @@ public enum StudentStatus {
     // Telex Process
     TELEX_PAYMENT_DOCS_SUBMITTED, // Agent submitted
     APPLIED_FOR_TELEX,
+    REJECTED_BY_TELEX,
     TELEX_FEE_RECIEVED,
     TELEX_INITIATED, // Approved by Accountant & Doc
     TELEX_APPLICATION_SUBMITTED_TO_UNIVERSITY,

@@ -60,6 +60,29 @@ public class VisaController {
         }
     }
 
+    // 1.5 Assign Visa Manager by Telex Manager
+    @PostMapping("/assign-by-telex/{studentId}")
+    public ResponseEntity<?> assignVisaManagerByTelexMan(
+            @PathVariable Long studentId,
+            @RequestBody Map<String, String> request) {
+        try {
+            String telexManagerUsername = request.get("telexManagerUsername");
+            String visaPersonUsername = request.get("visaPersonUsername");
+
+            if (telexManagerUsername == null || telexManagerUsername.isEmpty()) {
+                return ResponseEntity.badRequest().body("telexManagerUsername is required");
+            }
+            if (visaPersonUsername == null || visaPersonUsername.isEmpty()) {
+                return ResponseEntity.badRequest().body("visaPersonUsername is required");
+            }
+
+            Student student = visaService.assignVisaManagerByTelexMan(studentId, telexManagerUsername, visaPersonUsername);
+            return ResponseEntity.ok(student);
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Error assigning Visa Manager: " + e.getMessage());
+        }
+    }
+
     // 2. Confirm Visa Fee
     @PostMapping("/fee-received/{studentId}")
     public ResponseEntity<?> confirmVisaFee(

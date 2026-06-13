@@ -272,6 +272,19 @@ public class AgentController {
         }
     }
 
+    @PostMapping("/request-visa-stamping/{studentId}")
+    public ResponseEntity<?> requestVisaStamping(
+            @PathVariable Long studentId,
+            @org.springframework.web.bind.annotation.RequestParam("agentUsername") String agentUsername) {
+        try {
+            agentService.requestVisaStamping(studentId, agentUsername);
+            return ResponseEntity.ok(java.util.Collections.singletonMap("message", "Visa stamping requested successfully"));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().body("Error requesting visa stamping: " + e.getMessage());
+        }
+    }
+
     @PostMapping("/mark-doc-received/{studentId}")
     public ResponseEntity<?> markDocReceived(
             @PathVariable Long studentId,
