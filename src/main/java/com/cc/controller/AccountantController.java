@@ -127,6 +127,9 @@ public class AccountantController {
         existing.setBranchAddress(subAccount.getBranchAddress());
         existing.setAccountType(subAccount.getAccountType());
         existing.setCashAccountName(subAccount.getCashAccountName());
+        existing.setCompanyAccount(subAccount.getCompanyAccount());
+        existing.setLocation(subAccount.getLocation());
+        existing.setContactNo(subAccount.getContactNo());
         return ResponseEntity.ok(subAccountService.saveSubAccount(existing));
     }
 

@@ -20,6 +20,9 @@ public class SubAccount {
 
     private String accountType = "BANK"; // "BANK" or "CASH"
     private String cashAccountName; // e.g. "Petty Cash - Rahul"
+    private String companyAccount;
+    private String location;
+    private String contactNo;
 
     private Double balance = 0.0;
 
@@ -95,5 +98,29 @@ public class SubAccount {
 
     public void setCashAccountName(String cashAccountName) {
         this.cashAccountName = cashAccountName;
+    }
+
+    public String getCompanyAccount() {
+        return companyAccount;
+    }
+
+    public void setCompanyAccount(String companyAccount) {
+        this.companyAccount = companyAccount;
+    }
+
+    public String getLocation() {
+        return location;
+    }
+
+    public void setLocation(String location) {
+        this.location = location;
+    }
+
+    public String getContactNo() {
+        return contactNo;
+    }
+
+    public void setContactNo(String contactNo) {
+        this.contactNo = contactNo;
     }
 }
