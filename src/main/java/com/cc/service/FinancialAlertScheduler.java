@@ -49,16 +49,13 @@ public class FinancialAlertScheduler {
         // 2. Overdue Alerts
         List<CreditInstallment> overdue = installmentRepository.findByStatusAndDueDateBefore("PENDING", today);
         for (CreditInstallment inst : overdue) {
-            // we probably don't want to spam every day. Let's just create one if it became overdue yesterday.
-            if (inst.getDueDate().equals(today.minusDays(1))) {
-                createAlert(
-                    inst.getCredit().getAccountantUsername(),
-                    inst.getCredit().getId(),
-                    "OVERDUE",
-                    "EMI Overdue",
-                    "Installment of ₹" + inst.getInstallmentAmount() + " due on " + inst.getDueDate() + " is now overdue for " + getLenderName(inst.getCredit()) + "."
-                );
-            }
+            createAlert(
+                inst.getCredit().getAccountantUsername(),
+                inst.getCredit().getId(),
+                "OVERDUE",
+                "EMI Overdue",
+                "Installment of ₹" + inst.getInstallmentAmount() + " due on " + inst.getDueDate() + " is now overdue for " + getLenderName(inst.getCredit()) + "."
+            );
         }
         
         // 3. Foreclosure Opportunity Alerts (e.g. if Cash Flow is high, but we can't easily check user balance here, 
