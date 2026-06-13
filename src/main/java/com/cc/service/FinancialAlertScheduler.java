@@ -106,6 +106,12 @@ public class FinancialAlertScheduler {
     }
     
     private void createAlert(String username, Long creditId, String type, String title, String msg) {
+        // Idempotency check: don't create if exact message already exists
+        boolean exists = alertRepository.findByAccountantUsernameOrderByCreatedAtDesc(username)
+                .stream()
+                .anyMatch(a -> a.getMessage().equals(msg) && a.getCreditId().equals(creditId));
+        if (exists) return;
+
         FinancialAlert alert = new FinancialAlert();
         alert.setAccountantUsername(username);
         alert.setCreditId(creditId);

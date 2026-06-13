@@ -128,8 +128,14 @@ public class AccountantCreditController {
     @Autowired
     private com.cc.repository.FinancialAlertRepository financialAlertRepository;
     
+    @Autowired
+    private com.cc.service.FinancialAlertScheduler financialAlertScheduler;
+    
     @GetMapping("/alerts/{username}")
     public ResponseEntity<?> getFinancialAlerts(@PathVariable String username) {
+        // Automatically run system checks to ensure latest alerts are generated dynamically
+        financialAlertScheduler.generateDailyFinancialAlerts();
+        
         java.util.List<com.cc.modals.FinancialAlert> alerts = financialAlertRepository
             .findByAccountantUsernameOrderByCreatedAtDesc(username);
         return ResponseEntity.ok(alerts);
