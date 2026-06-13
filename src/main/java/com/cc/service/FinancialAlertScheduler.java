@@ -47,7 +47,7 @@ public class FinancialAlertScheduler {
         }
         
         // 2. Overdue Alerts
-        List<CreditInstallment> overdue = installmentRepository.findByStatusAndDueDateBefore("PENDING", today);
+        List<CreditInstallment> overdue = installmentRepository.findByStatusInAndDueDateBefore(java.util.Arrays.asList("PENDING", "OVERDUE"), today);
         for (CreditInstallment inst : overdue) {
             createAlert(
                 inst.getCredit().getAccountantUsername(),
