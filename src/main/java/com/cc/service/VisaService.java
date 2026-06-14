@@ -491,8 +491,6 @@ public class VisaService {
                 boolean isFullyPaid = newTotalReceived >= totalRequired;
 
                 if (isFullyPaid) {
-                        student.setAction(action.COLLECT_PASSPORT_FRM_DOC_PERSON);
-                        student.setActionOnUser(actionOnUser.visa_manager);
                         student.setApplicationStatus(StudentStatus.VISA_PAYMENT_CONFIRMED);
                 } else {
                         // Partial payment confirmed — transition to request remaining from agent

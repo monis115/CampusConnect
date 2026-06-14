@@ -177,6 +177,8 @@ public class VisaManService {
         // Update Student Status
         com.cc.modals.Student student = savedRelease.getStudent();
         student.setAccToVisaManStatus("SETTLED");
+        student.setAction(com.cc.modals.action.COLLECT_PASSPORT_FRM_DOC_PERSON);
+        student.setActionOnUser(com.cc.modals.actionOnUser.visa_manager);
         studentRepository.save(student);
 
         FundReleaseConfirmation confirmation = new FundReleaseConfirmation();

@@ -57,6 +57,9 @@ public class RequestMoney {
     @Column(columnDefinition = "TEXT")
     private String qrCode; // Base64 or URL
 
+    @Column(nullable = false)
+    private String currency = "INR";
+
     public RequestMoney() {
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
@@ -73,6 +76,7 @@ public class RequestMoney {
         this.legacyPaymentMode = requesterPaymentMode; // Sync legacy field
         this.bankDetails = bankDetails;
         this.qrCode = qrCode;
+        this.currency = "INR";
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
     }
@@ -155,6 +159,14 @@ public class RequestMoney {
 
     public void setQrCode(String qrCode) {
         this.qrCode = qrCode;
+    }
+
+    public String getCurrency() {
+        return currency;
+    }
+
+    public void setCurrency(String currency) {
+        this.currency = currency;
     }
 
     public String getStatus() {
