@@ -19,6 +19,15 @@ public class TelexApplicationDTO {
     private LocalDate docTentativeReachDate;
     private String otherCourierDetails; // For "Other" courier partner selection
 
+    // ======================= AGENT DOCUMENT CHECKLIST =======================
+    private Boolean agentSentPassport;
+    private Boolean agentSent10thMarksheet;
+    private Boolean agentSent12thMarksheet;
+    private Boolean agentSentAadharCard;
+    private Boolean agentSentMedicalReport;
+    private Boolean agentSentOtherDocuments;
+    private String agentOtherDocumentsRemarks;
+
     // ======================= PAYMENT DETAILS =======================
     private Boolean hasPaid;
     private Double paidAmount;
@@ -149,6 +158,27 @@ public class TelexApplicationDTO {
     public void setOtherCourierDetails(String otherCourierDetails) {
         this.otherCourierDetails = otherCourierDetails;
     }
+
+    public Boolean getAgentSentPassport() { return agentSentPassport; }
+    public void setAgentSentPassport(Boolean agentSentPassport) { this.agentSentPassport = agentSentPassport; }
+
+    public Boolean getAgentSent10thMarksheet() { return agentSent10thMarksheet; }
+    public void setAgentSent10thMarksheet(Boolean agentSent10thMarksheet) { this.agentSent10thMarksheet = agentSent10thMarksheet; }
+
+    public Boolean getAgentSent12thMarksheet() { return agentSent12thMarksheet; }
+    public void setAgentSent12thMarksheet(Boolean agentSent12thMarksheet) { this.agentSent12thMarksheet = agentSent12thMarksheet; }
+
+    public Boolean getAgentSentAadharCard() { return agentSentAadharCard; }
+    public void setAgentSentAadharCard(Boolean agentSentAadharCard) { this.agentSentAadharCard = agentSentAadharCard; }
+
+    public Boolean getAgentSentMedicalReport() { return agentSentMedicalReport; }
+    public void setAgentSentMedicalReport(Boolean agentSentMedicalReport) { this.agentSentMedicalReport = agentSentMedicalReport; }
+
+    public Boolean getAgentSentOtherDocuments() { return agentSentOtherDocuments; }
+    public void setAgentSentOtherDocuments(Boolean agentSentOtherDocuments) { this.agentSentOtherDocuments = agentSentOtherDocuments; }
+
+    public String getAgentOtherDocumentsRemarks() { return agentOtherDocumentsRemarks; }
+    public void setAgentOtherDocumentsRemarks(String agentOtherDocumentsRemarks) { this.agentOtherDocumentsRemarks = agentOtherDocumentsRemarks; }
 
     public Boolean getHasPaid() {
         return hasPaid;

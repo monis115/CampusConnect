@@ -131,7 +131,12 @@ public class DocPersonService {
             Boolean received12thMarksheet,
             Boolean received10thMarksheet,
             Boolean receivedNeetScorecard,
-            Boolean receivedPassport) {
+            Boolean receivedPassport,
+            Boolean receivedAadharCard,
+            Boolean receivedMedicalReport,
+            Boolean receivedOtherDocuments,
+            String receivedOtherDocumentsRemarks,
+            String physicalStatus) {
         com.cc.modals.Student student = studentRepository.findById(studentId)
                 .orElseThrow(() -> new RuntimeException("Student not found with ID: " + studentId));
 
@@ -154,9 +159,20 @@ public class DocPersonService {
             student.setReceivedNeetScorecard(receivedNeetScorecard);
         if (receivedPassport != null)
             student.setReceivedPassport(receivedPassport);
+        if (receivedAadharCard != null)
+            student.setReceivedAadharCard(receivedAadharCard);
+        if (receivedMedicalReport != null)
+            student.setReceivedMedicalReport(receivedMedicalReport);
+        if (receivedOtherDocuments != null)
+            student.setReceivedOtherDocuments(receivedOtherDocuments);
+        if (receivedOtherDocumentsRemarks != null)
+            student.setReceivedOtherDocumentsRemarks(receivedOtherDocumentsRemarks);
 
-        student.setAction(action.VERIFY_DOCS);
-        student.setActionOnUser(actionOnUser.doc_manager);
+        // Only move to Verify stage if documents were actually received
+        if (!"NOT_RECEIVED".equals(physicalStatus)) {
+            student.setAction(action.VERIFY_DOCS);
+            student.setActionOnUser(actionOnUser.doc_manager);
+        }
 
         // Build remarks with received documents
         StringBuilder docsReceived = new StringBuilder();

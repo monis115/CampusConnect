@@ -605,6 +605,15 @@ public class AgentService {
         if (details.getDocDeliveryMethod() != null)
             student.setDocDeliveryMethod(details.getDocDeliveryMethod());
 
+        // Agent Dispatch Checklist
+        if (details.getAgentSentPassport() != null) student.setAgentSentPassport(details.getAgentSentPassport());
+        if (details.getAgentSent10thMarksheet() != null) student.setAgentSent10thMarksheet(details.getAgentSent10thMarksheet());
+        if (details.getAgentSent12thMarksheet() != null) student.setAgentSent12thMarksheet(details.getAgentSent12thMarksheet());
+        if (details.getAgentSentAadharCard() != null) student.setAgentSentAadharCard(details.getAgentSentAadharCard());
+        if (details.getAgentSentMedicalReport() != null) student.setAgentSentMedicalReport(details.getAgentSentMedicalReport());
+        if (details.getAgentSentOtherDocuments() != null) student.setAgentSentOtherDocuments(details.getAgentSentOtherDocuments());
+        if (details.getAgentOtherDocumentsRemarks() != null) student.setAgentOtherDocumentsRemarks(details.getAgentOtherDocumentsRemarks());
+
         // Store Courier Partner and Tracking ID separately
         String courierPartner = details.getCourierPartner();
         if ("OTHER".equals(courierPartner) && details.getOtherCourierDetails() != null) {

@@ -280,7 +280,29 @@ public class Student {
 	@Column(name = "doc_received_date")
 	private LocalDate docReceivedDate;
 
-	// Document Receipt Tracking - which specific documents were received
+	// Agent Document Dispatch Tracking (What the agent claims to have sent)
+	@Column(name = "agent_sent_passport")
+	private Boolean agentSentPassport = false;
+
+	@Column(name = "agent_sent_10th_marksheet")
+	private Boolean agentSent10thMarksheet = false;
+
+	@Column(name = "agent_sent_12th_marksheet")
+	private Boolean agentSent12thMarksheet = false;
+
+	@Column(name = "agent_sent_aadhar_card")
+	private Boolean agentSentAadharCard = false;
+
+	@Column(name = "agent_sent_medical_report")
+	private Boolean agentSentMedicalReport = false;
+
+	@Column(name = "agent_sent_other_docs")
+	private Boolean agentSentOtherDocuments = false;
+
+	@Column(name = "agent_other_docs_remarks", columnDefinition = "TEXT")
+	private String agentOtherDocumentsRemarks;
+
+	// Document Receipt Tracking - which specific documents were received by DM
 	@Column(name = "received_12th_marksheet")
 	private Boolean received12thMarksheet = false;
 
@@ -292,6 +314,18 @@ public class Student {
 
 	@Column(name = "received_passport")
 	private Boolean receivedPassport = false;
+
+	@Column(name = "received_aadhar_card")
+	private Boolean receivedAadharCard = false;
+
+	@Column(name = "received_medical_report")
+	private Boolean receivedMedicalReport = false;
+
+	@Column(name = "received_other_docs")
+	private Boolean receivedOtherDocuments = false;
+
+	@Column(name = "received_other_docs_remarks", columnDefinition = "TEXT")
+	private String receivedOtherDocumentsRemarks;
 
 	@Column(name = "doc_returned_date")
 	private LocalDate docReturnedDate;
@@ -1217,6 +1251,39 @@ public class Student {
 	public void setReceivedPassport(Boolean receivedPassport) {
 		this.receivedPassport = receivedPassport;
 	}
+
+	public Boolean getReceivedAadharCard() { return receivedAadharCard; }
+	public void setReceivedAadharCard(Boolean receivedAadharCard) { this.receivedAadharCard = receivedAadharCard; }
+
+	public Boolean getReceivedMedicalReport() { return receivedMedicalReport; }
+	public void setReceivedMedicalReport(Boolean receivedMedicalReport) { this.receivedMedicalReport = receivedMedicalReport; }
+
+	public Boolean getReceivedOtherDocuments() { return receivedOtherDocuments; }
+	public void setReceivedOtherDocuments(Boolean receivedOtherDocuments) { this.receivedOtherDocuments = receivedOtherDocuments; }
+
+	public String getReceivedOtherDocumentsRemarks() { return receivedOtherDocumentsRemarks; }
+	public void setReceivedOtherDocumentsRemarks(String receivedOtherDocumentsRemarks) { this.receivedOtherDocumentsRemarks = receivedOtherDocumentsRemarks; }
+
+	public Boolean getAgentSentPassport() { return agentSentPassport; }
+	public void setAgentSentPassport(Boolean agentSentPassport) { this.agentSentPassport = agentSentPassport; }
+
+	public Boolean getAgentSent10thMarksheet() { return agentSent10thMarksheet; }
+	public void setAgentSent10thMarksheet(Boolean agentSent10thMarksheet) { this.agentSent10thMarksheet = agentSent10thMarksheet; }
+
+	public Boolean getAgentSent12thMarksheet() { return agentSent12thMarksheet; }
+	public void setAgentSent12thMarksheet(Boolean agentSent12thMarksheet) { this.agentSent12thMarksheet = agentSent12thMarksheet; }
+
+	public Boolean getAgentSentAadharCard() { return agentSentAadharCard; }
+	public void setAgentSentAadharCard(Boolean agentSentAadharCard) { this.agentSentAadharCard = agentSentAadharCard; }
+
+	public Boolean getAgentSentMedicalReport() { return agentSentMedicalReport; }
+	public void setAgentSentMedicalReport(Boolean agentSentMedicalReport) { this.agentSentMedicalReport = agentSentMedicalReport; }
+
+	public Boolean getAgentSentOtherDocuments() { return agentSentOtherDocuments; }
+	public void setAgentSentOtherDocuments(Boolean agentSentOtherDocuments) { this.agentSentOtherDocuments = agentSentOtherDocuments; }
+
+	public String getAgentOtherDocumentsRemarks() { return agentOtherDocumentsRemarks; }
+	public void setAgentOtherDocumentsRemarks(String agentOtherDocumentsRemarks) { this.agentOtherDocumentsRemarks = agentOtherDocumentsRemarks; }
 
 	// ======================= PAYMENT DETAILS GETTERS/SETTERS
 	// =======================

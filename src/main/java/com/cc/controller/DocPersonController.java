@@ -95,11 +95,19 @@ public class DocPersonController {
             Boolean received10thMarksheet = (Boolean) request.get("received10thMarksheet");
             Boolean receivedNeetScorecard = (Boolean) request.get("receivedNeetScorecard");
             Boolean receivedPassport = (Boolean) request.get("receivedPassport");
+            Boolean receivedAadharCard = (Boolean) request.get("receivedAadharCard");
+            Boolean receivedMedicalReport = (Boolean) request.get("receivedMedicalReport");
+            Boolean receivedOtherDocuments = (Boolean) request.get("receivedOtherDocuments");
+            String receivedOtherDocumentsRemarks = (String) request.get("receivedOtherDocumentsRemarks");
+            String physicalStatus = (String) request.get("physicalStatus");
 
             if (receivedDateStr == null) {
                 return ResponseEntity.badRequest().body("receivedDate is required");
             }
-            if (docPersonUsername == null || docPersonUsername.isEmpty()) {
+
+            // Retrieve doc person details
+            String docPersonUsername1 = (String) request.get("docPersonUsername");
+            if (docPersonUsername1 == null) {
                 return ResponseEntity.badRequest().body("docPersonUsername is required");
             }
 
@@ -107,11 +115,16 @@ public class DocPersonController {
             com.cc.modals.Student updatedStudent = service.receiveDocs(
                     studentId,
                     receivedDate,
-                    docPersonUsername,
+                    docPersonUsername1,
                     received12thMarksheet,
                     received10thMarksheet,
                     receivedNeetScorecard,
-                    receivedPassport);
+                    receivedPassport,
+                    receivedAadharCard,
+                    receivedMedicalReport,
+                    receivedOtherDocuments,
+                    receivedOtherDocumentsRemarks,
+                    physicalStatus);
             return ResponseEntity.ok(updatedStudent);
         } catch (Exception e) {
             e.printStackTrace();
