@@ -480,4 +480,46 @@ public class AccountantController {
     public ResponseEntity<Map<String, List<String>>> getAdvancedFilterOptions() {
         return ResponseEntity.ok(advancedTransactionService.getFilterOptions());
     }
+
+    // ======================= ENTERPRISE HUB ENDPOINTS =======================
+
+    @GetMapping("/enterprise/forecast")
+    public ResponseEntity<?> getEnterpriseForecast(@RequestParam String username) {
+        try {
+            return ResponseEntity.ok(accountantService.getEnterpriseForecast(username));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/enterprise/heatmap")
+    public ResponseEntity<?> getEnterpriseHeatmap(@RequestParam String username) {
+        try {
+            return ResponseEntity.ok(accountantService.getEnterpriseHeatmap(username));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/enterprise/audit")
+    public ResponseEntity<?> getEnterpriseAudit(@RequestParam String username) {
+        try {
+            return ResponseEntity.ok(accountantService.getEnterpriseAudit(username));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: " + e.getMessage());
+        }
+    }
+
+    @PostMapping("/enterprise/eod-lock")
+    public ResponseEntity<?> lockEodVault(@RequestParam String username) {
+        try {
+            return ResponseEntity.ok(accountantService.lockEod(username));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: " + e.getMessage());
+        }
+    }
 }

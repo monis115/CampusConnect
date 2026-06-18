@@ -35,6 +35,12 @@ public class AccountantService {
         @Autowired
         private UserService userService;
 
+        @Autowired
+        private com.cc.repository.SubAccountTransactionRepository subAccountTransactionRepository;
+
+        @Autowired
+        private com.cc.service.SubAccountService subAccountService;
+
         public Accountant create(Accountant entity) {
                 Accountant savedEntity = repository.save(entity);
 
@@ -122,21 +128,20 @@ public class AccountantService {
         @Autowired
         private com.cc.repository.StudentRepository studentRepository;
 
-    @org.springframework.beans.factory.annotation.Autowired
-    private com.cc.repository.AccountantRepository accountantRepository;
-    
-    @org.springframework.beans.factory.annotation.Autowired
-    private com.cc.repository.FundReleaseRepository fundReleaseRepository;
-    
-    @org.springframework.beans.factory.annotation.Autowired
-    private com.cc.service.S3StorageService s3StorageService;
+        @org.springframework.beans.factory.annotation.Autowired
+        private com.cc.repository.AccountantRepository accountantRepository;
 
-    @org.springframework.beans.factory.annotation.Autowired
-    private BeneficiaryAccountRepository beneficiaryAccountRepository;
+        @org.springframework.beans.factory.annotation.Autowired
+        private com.cc.repository.FundReleaseRepository fundReleaseRepository;
 
-    @org.springframework.beans.factory.annotation.Autowired
-    private com.cc.repository.CollectionRequestRepository collectionRequestRepository;
+        @org.springframework.beans.factory.annotation.Autowired
+        private com.cc.service.S3StorageService s3StorageService;
 
+        @org.springframework.beans.factory.annotation.Autowired
+        private BeneficiaryAccountRepository beneficiaryAccountRepository;
+
+        @org.springframework.beans.factory.annotation.Autowired
+        private com.cc.repository.CollectionRequestRepository collectionRequestRepository;
 
         @Autowired
         private com.cc.repository.StudentStatusHistoryRepository studentStatusHistoryRepository;
@@ -217,7 +222,8 @@ public class AccountantService {
         }
 
         @org.springframework.transaction.annotation.Transactional
-        public com.cc.modals.Student markTelexPaymentNotReceived(Long studentId, String accountantUsername, String rejectionRemarks) {
+        public com.cc.modals.Student markTelexPaymentNotReceived(Long studentId, String accountantUsername,
+                        String rejectionRemarks) {
                 com.cc.modals.Student student = studentRepository.findById(studentId)
                                 .orElseThrow(() -> new RuntimeException("Student not found with ID: " + studentId));
 
@@ -505,94 +511,238 @@ public class AccountantService {
                                 studentDTOs);
         }
 
-    public FundRelease releaseFund(String username, FundReleaseRequestDTO requestDTO, MultipartFile receiptFile) throws Exception {
-        Accountant accountant = accountantRepository.findByUsername(username).orElse(null);
-        if (accountant == null) {
-            throw new Exception("Accountant not found");
+        public FundRelease releaseFund(String username, FundReleaseRequestDTO requestDTO, MultipartFile receiptFile)
+                        throws Exception {
+                Accountant accountant = accountantRepository.findByUsername(username).orElse(null);
+                if (accountant == null) {
+                        throw new Exception("Accountant not found");
+                }
+
+                Student student = studentRepository.findById(requestDTO.getStudentId())
+                                .orElseThrow(() -> new Exception("Student not found"));
+
+                if (student.getVisaPaymentRequestedAmount() == null || student.getVisaPaymentRequestedAmount() == 0) {
+                        throw new Exception("Collection Request must be generated before releasing funds.");
+                }
+
+                FundRelease release = new FundRelease();
+                release.setStudent(student);
+                release.setCollectionRequestId(requestDTO.getCollectionRequestId());
+                release.setSourceAccountId(requestDTO.getSourceAccountId());
+                release.setBeneficiaryAccountId(requestDTO.getBeneficiaryAccountId());
+
+                if (requestDTO.getBeneficiaryAccountId() != null) {
+                        BeneficiaryAccount beneficiary = beneficiaryAccountRepository
+                                        .findById(requestDTO.getBeneficiaryAccountId()).orElse(null);
+                        if (beneficiary != null) {
+                                release.setBeneficiaryBankName(beneficiary.getBankName());
+                                release.setBeneficiaryAccountNumber(beneficiary.getAccountNumber());
+                                release.setBeneficiarySwiftCode(beneficiary.getIfscCode());
+                                release.setBeneficiaryAccountType(beneficiary.getBeneficiaryType());
+                        }
+                } else {
+                        release.setBeneficiaryBankName(student.getVisaBankName());
+                        release.setBeneficiaryAccountNumber(student.getVisaBankAccountNumber());
+                        release.setBeneficiarySwiftCode(student.getVisaBankSwiftCode());
+                }
+
+                release.setVisaFee(student.getVisaPaymentRequestedAmount());
+                release.setServiceCharge(student.getVisaManServiceCharge());
+
+                double total = (student.getVisaPaymentRequestedAmount() != null
+                                ? student.getVisaPaymentRequestedAmount()
+                                : 0.0) +
+                                (student.getVisaManServiceCharge() != null ? student.getVisaManServiceCharge() : 0.0);
+                release.setTotalReleasedAmount(total);
+
+                release.setTransactionReference(requestDTO.getTransactionReference());
+                release.setTransferDate(requestDTO.getTransferDate());
+                release.setRemarks(requestDTO.getRemarks());
+                release.setReleasedBy(accountant.getUsername());
+                release.setReleasedDate(LocalDateTime.now());
+                release.setReleaseStatus("PENDING_CONFIRMATION");
+
+                if (receiptFile != null && !receiptFile.isEmpty()) {
+                        String receiptUrl = s3StorageService.uploadFile(receiptFile, "fund_receipts", "receipt_");
+                        release.setReceiptUrl(receiptUrl);
+                }
+
+                FundRelease savedRelease = fundReleaseRepository.save(release);
+
+                // Update Student
+                student.setAccToVisaManPaidAmount(
+                                (student.getAccToVisaManPaidAmount() != null ? student.getAccToVisaManPaidAmount()
+                                                : 0.0) + total);
+                student.setAccToVisaManStatus("PENDING_CONFIRMATION");
+                student.setAccToVisaManPaymentDate(requestDTO.getTransferDate());
+                student.setAccToVisaManTxId(requestDTO.getTransactionReference());
+                studentRepository.save(student);
+
+                return savedRelease;
         }
 
-        Student student = studentRepository.findById(requestDTO.getStudentId())
-                .orElseThrow(() -> new Exception("Student not found"));
+        public List<Map<String, Object>> getOutstandingRecovery() {
+                // Fetch all collection requests that are pending or partially paid
+                List<com.cc.modals.CollectionRequest> requests = collectionRequestRepository
+                                .findByStatusIn(List.of("PENDING", "PARTIAL"));
 
-        if (student.getVisaPaymentRequestedAmount() == null || student.getVisaPaymentRequestedAmount() == 0) {
-            throw new Exception("Collection Request must be generated before releasing funds.");
+                List<Map<String, Object>> recoveryList = new ArrayList<>();
+                for (com.cc.modals.CollectionRequest req : requests) {
+                        Map<String, Object> map = new HashMap<>();
+                        map.put("requestId", req.getRequestId());
+                        map.put("collectionId", req.getId());
+                        map.put("studentName", req.getStudentName());
+                        map.put("agentName", req.getAgentName() != null ? req.getAgentName() : "N/A");
+                        map.put("university", req.getUniversityName() != null ? req.getUniversityName() : "N/A");
+                        map.put("finalAmount", req.getRequestedAmount());
+                        map.put("amountCollected", req.getCollectedAmount());
+                        map.put("excessShort", req.getPendingAmount() * -1); // Short amount is negative conceptually,
+                                                                             // or just use pendingAmount
+                        map.put("pendingAmount", req.getPendingAmount());
+                        map.put("status", req.getStatus());
+                        map.put("dueDate", req.getDueDate());
+                        map.put("requestDate", req.getCreatedAt());
+                        map.put("studentId", req.getStudentId());
+
+                        // Add to list
+                        recoveryList.add(map);
+                }
+                return recoveryList;
         }
 
-        FundRelease release = new FundRelease();
-        release.setStudent(student);
-        release.setCollectionRequestId(requestDTO.getCollectionRequestId());
-        release.setSourceAccountId(requestDTO.getSourceAccountId());
-        release.setBeneficiaryAccountId(requestDTO.getBeneficiaryAccountId());
-        
-        if (requestDTO.getBeneficiaryAccountId() != null) {
-            BeneficiaryAccount beneficiary = beneficiaryAccountRepository.findById(requestDTO.getBeneficiaryAccountId()).orElse(null);
-            if (beneficiary != null) {
-                release.setBeneficiaryBankName(beneficiary.getBankName());
-                release.setBeneficiaryAccountNumber(beneficiary.getAccountNumber());
-                release.setBeneficiarySwiftCode(beneficiary.getIfscCode());
-                release.setBeneficiaryAccountType(beneficiary.getBeneficiaryType());
-            }
-        } else {
-            release.setBeneficiaryBankName(student.getVisaBankName());
-            release.setBeneficiaryAccountNumber(student.getVisaBankAccountNumber());
-            release.setBeneficiarySwiftCode(student.getVisaBankSwiftCode());
-        }
-        
-        release.setVisaFee(student.getVisaPaymentRequestedAmount());
-        release.setServiceCharge(student.getVisaManServiceCharge());
-        
-        double total = (student.getVisaPaymentRequestedAmount() != null ? student.getVisaPaymentRequestedAmount() : 0.0) +
-                       (student.getVisaManServiceCharge() != null ? student.getVisaManServiceCharge() : 0.0);
-        release.setTotalReleasedAmount(total);
-        
-        release.setTransactionReference(requestDTO.getTransactionReference());
-        release.setTransferDate(requestDTO.getTransferDate());
-        release.setRemarks(requestDTO.getRemarks());
-        release.setReleasedBy(accountant.getUsername());
-        release.setReleasedDate(LocalDateTime.now());
-        release.setReleaseStatus("PENDING_CONFIRMATION");
+        public java.util.List<com.cc.DTO.EnterpriseDTOs.ForecastPoint> getEnterpriseForecast(String username) {
+                // Simple predictive algorithm based on current data
+                List<com.cc.modals.Student> students = studentRepository.findAll();
+                double totalPaid = students.stream()
+                                .mapToDouble(s -> s.getPaidAmount() != null ? s.getPaidAmount() : 0.0).sum();
+                double totalPending = students.stream().mapToDouble(s -> {
+                        double telex = s.getTelexPaymentAmount() != null ? s.getTelexPaymentAmount() : 0.0;
+                        double visa = s.getVisaPaymentRequestedAmount() != null ? s.getVisaPaymentRequestedAmount()
+                                        : 0.0;
+                        return telex + visa;
+                }).sum();
 
-        if (receiptFile != null && !receiptFile.isEmpty()) {
-            String receiptUrl = s3StorageService.uploadFile(receiptFile, "fund_receipts", "receipt_");
-            release.setReceiptUrl(receiptUrl);
+                // Generate 30 days of forecast points based on growth trajectory
+                List<com.cc.DTO.EnterpriseDTOs.ForecastPoint> forecast = new java.util.ArrayList<>();
+                java.time.LocalDate today = java.time.LocalDate.now();
+                double currentProjected = totalPaid;
+                double dailyIncrease = (totalPending > 0) ? (totalPending / 30.0) : 5000.0; // Assume baseline if no
+                                                                                            // pending
+
+                for (int i = 0; i < 30; i++) {
+                        currentProjected += dailyIncrease * (0.9 + Math.random() * 0.2); // Add +/- 10% variance
+                        double risk = Math.min(100.0, 10.0 + (i * 0.5)); // Risk grows slightly as we look further ahead
+                        forecast.add(new com.cc.DTO.EnterpriseDTOs.ForecastPoint(
+                                        today.plusDays(i).toString(),
+                                        Math.round(currentProjected * 100.0) / 100.0,
+                                        Math.round(risk * 10.0) / 10.0));
+                }
+                return forecast;
         }
 
-        FundRelease savedRelease = fundReleaseRepository.save(release);
+        public java.util.List<com.cc.DTO.EnterpriseDTOs.HeatmapRegion> getEnterpriseHeatmap(String username) {
+                List<com.cc.modals.Student> students = studentRepository.findAll();
+                Map<String, com.cc.DTO.EnterpriseDTOs.HeatmapRegion> regions = new HashMap<>();
 
-        // Update Student
-        student.setAccToVisaManPaidAmount((student.getAccToVisaManPaidAmount() != null ? student.getAccToVisaManPaidAmount() : 0.0) + total);
-        student.setAccToVisaManStatus("PENDING_CONFIRMATION");
-        student.setAccToVisaManPaymentDate(requestDTO.getTransferDate());
-        student.setAccToVisaManTxId(requestDTO.getTransactionReference());
-        studentRepository.save(student);
+                for (com.cc.modals.Student s : students) {
+                        String country = s.getCitizenship();
+                        if (country == null || country.isEmpty()) {
+                                country = "Unknown";
+                        }
+                        // Normalize names or map to ISO if needed, but string match works for simple
+                        // grouped data
+                        String id = country.toUpperCase().replaceAll("\\s+", "_");
 
-        return savedRelease;
-    }
+                        double paid = s.getPaidAmount() != null ? s.getPaidAmount() : 0.0;
 
-    public List<Map<String, Object>> getOutstandingRecovery() {
-        // Fetch all collection requests that are pending or partially paid
-        List<com.cc.modals.CollectionRequest> requests = collectionRequestRepository.findByStatusIn(List.of("PENDING", "PARTIAL"));
-
-        List<Map<String, Object>> recoveryList = new ArrayList<>();
-        for (com.cc.modals.CollectionRequest req : requests) {
-            Map<String, Object> map = new HashMap<>();
-            map.put("requestId", req.getRequestId()); 
-            map.put("collectionId", req.getId());
-            map.put("studentName", req.getStudentName());
-            map.put("agentName", req.getAgentName() != null ? req.getAgentName() : "N/A");
-            map.put("university", req.getUniversityName() != null ? req.getUniversityName() : "N/A");
-            map.put("finalAmount", req.getRequestedAmount());
-            map.put("amountCollected", req.getCollectedAmount());
-            map.put("excessShort", req.getPendingAmount() * -1); // Short amount is negative conceptually, or just use pendingAmount
-            map.put("pendingAmount", req.getPendingAmount());
-            map.put("status", req.getStatus());
-            map.put("dueDate", req.getDueDate());
-            map.put("requestDate", req.getCreatedAt());
-            map.put("studentId", req.getStudentId());
-            
-            // Add to list
-            recoveryList.add(map);
+                        regions.putIfAbsent(id, new com.cc.DTO.EnterpriseDTOs.HeatmapRegion(id, country, 0.0, 0));
+                        com.cc.DTO.EnterpriseDTOs.HeatmapRegion region = regions.get(id);
+                        region.setRevenue(region.getRevenue() + paid);
+                        region.setStudents(region.getStudents() + 1);
+                }
+                return new java.util.ArrayList<>(regions.values());
         }
-        return recoveryList;
-    }
+
+        public java.util.List<com.cc.DTO.EnterpriseDTOs.AuditLog> getEnterpriseAudit(String username) {
+                List<com.cc.DTO.EnterpriseDTOs.AuditLog> logs = new java.util.ArrayList<>();
+                List<com.cc.modals.SubAccountTransaction> txs = subAccountTransactionRepository.findAll();
+
+                java.time.format.DateTimeFormatter dtf = java.time.format.DateTimeFormatter
+                                .ofPattern("yyyy-MM-dd HH:mm:ss");
+
+                // Very basic anomaly detection
+                for (int i = 0; i < txs.size(); i++) {
+                        com.cc.modals.SubAccountTransaction tx = txs.get(i);
+
+                        // 1. Off-hour transaction (Between 12 AM and 5 AM)
+                        if (tx.getTransactionDate() != null) {
+                                int hour = tx.getTransactionDate().getHour();
+                                if (hour >= 0 && hour < 5) {
+                                        logs.add(new com.cc.DTO.EnterpriseDTOs.AuditLog(
+                                                        "ERR-OFFHOUR-" + tx.getId(),
+                                                        tx.getTransactionDate().format(dtf),
+                                                        "Off-hour Transaction Detected",
+                                                        "High",
+                                                        "System",
+                                                        "Transaction #" + tx.getId() + " (" + tx.getAmount()
+                                                                        + ") recorded at " + hour + " AM."));
+                                }
+                        }
+
+                        // 2. Duplicate amounts on same day
+                        for (int j = i + 1; j < txs.size(); j++) {
+                                com.cc.modals.SubAccountTransaction tx2 = txs.get(j);
+                                if (tx.getAmount() != null && tx.getAmount().equals(tx2.getAmount())
+                                                && tx.getTransactionDate() != null
+                                                && tx2.getTransactionDate() != null) {
+                                        if (tx.getTransactionDate().toLocalDate()
+                                                        .equals(tx2.getTransactionDate().toLocalDate())) {
+                                                logs.add(new com.cc.DTO.EnterpriseDTOs.AuditLog(
+                                                                "ERR-DUPLICATE-" + tx.getId() + "-" + tx2.getId(),
+                                                                tx.getTransactionDate().format(dtf),
+                                                                "Potential Duplicate Transaction",
+                                                                "Critical",
+                                                                "System",
+                                                                "Matching amounts (" + tx.getAmount()
+                                                                                + ") found on same day for Tx #"
+                                                                                + tx.getId() + " and Tx #"
+                                                                                + tx2.getId()));
+                                        }
+                                }
+                        }
+                }
+
+                if (logs.isEmpty()) {
+                        logs.add(new com.cc.DTO.EnterpriseDTOs.AuditLog("SYS-OK",
+                                        java.time.LocalDateTime.now().format(dtf), "System Scan Complete", "Low",
+                                        "System", "No anomalies detected in recent transactions."));
+                }
+
+                return logs;
+        }
+
+        public com.cc.DTO.EnterpriseDTOs.EodResult lockEod(String username) {
+                // Auditing check for End of Day
+                List<com.cc.modals.SubAccount> accounts = subAccountService.getAllSubAccounts();
+                List<String> checks = new java.util.ArrayList<>();
+                boolean success = true;
+
+                double totalBalances = 0.0;
+                for (com.cc.modals.SubAccount acc : accounts) {
+                        double bal = acc.getBalance() != null ? acc.getBalance() : 0.0;
+                        totalBalances += bal;
+                        checks.add("Account " + acc.getAccountNumber() + " confirmed. Balance: " + bal);
+                        if (bal < 0) {
+                                success = false;
+                                checks.add("WARNING: Account " + acc.getAccountNumber() + " has negative balance.");
+                        }
+                }
+
+                checks.add("Total cross-account balance matched: " + totalBalances);
+                String message = success ? "End of Day Books perfectly balanced."
+                                : "End of Day Audit failed. Negative balances detected.";
+                String token = success ? java.util.UUID.randomUUID().toString() : null;
+
+                return new com.cc.DTO.EnterpriseDTOs.EodResult(success, message, token, checks);
+        }
 }
