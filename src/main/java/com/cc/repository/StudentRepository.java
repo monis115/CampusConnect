@@ -388,4 +388,25 @@ public interface StudentRepository extends JpaRepository<Student, Long> {
                         @org.springframework.data.repository.query.Param("start") java.time.LocalDateTime start,
                         @org.springframework.data.repository.query.Param("end") java.time.LocalDateTime end);
 
+        @org.springframework.data.jpa.repository.Query("SELECT s FROM Student s WHERE s.admissionManager.username = :username AND (LOWER(s.fullName) LIKE LOWER(CONCAT('%', :query, '%')) OR LOWER(s.email) LIKE LOWER(CONCAT('%', :query, '%')) OR LOWER(s.applicationId) LIKE LOWER(CONCAT('%', :query, '%')))")
+        java.util.List<Student> searchByAdmissionManager(@org.springframework.data.repository.query.Param("username") String username, @org.springframework.data.repository.query.Param("query") String query);
+
+        @org.springframework.data.jpa.repository.Query("SELECT s FROM Student s WHERE s.visaMan.username = :username AND (LOWER(s.fullName) LIKE LOWER(CONCAT('%', :query, '%')) OR LOWER(s.email) LIKE LOWER(CONCAT('%', :query, '%')) OR LOWER(s.applicationId) LIKE LOWER(CONCAT('%', :query, '%')))")
+        java.util.List<Student> searchByVisaMan(@org.springframework.data.repository.query.Param("username") String username, @org.springframework.data.repository.query.Param("query") String query);
+
+        @org.springframework.data.jpa.repository.Query("SELECT s FROM Student s WHERE s.telexMan.username = :username AND (LOWER(s.fullName) LIKE LOWER(CONCAT('%', :query, '%')) OR LOWER(s.email) LIKE LOWER(CONCAT('%', :query, '%')) OR LOWER(s.applicationId) LIKE LOWER(CONCAT('%', :query, '%')))")
+        java.util.List<Student> searchByTelexMan(@org.springframework.data.repository.query.Param("username") String username, @org.springframework.data.repository.query.Param("query") String query);
+
+        @org.springframework.data.jpa.repository.Query("SELECT s FROM Student s WHERE s.docPerson.username = :username AND (LOWER(s.fullName) LIKE LOWER(CONCAT('%', :query, '%')) OR LOWER(s.email) LIKE LOWER(CONCAT('%', :query, '%')) OR LOWER(s.applicationId) LIKE LOWER(CONCAT('%', :query, '%')))")
+        java.util.List<Student> searchByDocPerson(@org.springframework.data.repository.query.Param("username") String username, @org.springframework.data.repository.query.Param("query") String query);
+
+        @org.springframework.data.jpa.repository.Query("SELECT s FROM Student s WHERE s.accountant.username = :username AND (LOWER(s.fullName) LIKE LOWER(CONCAT('%', :query, '%')) OR LOWER(s.email) LIKE LOWER(CONCAT('%', :query, '%')) OR LOWER(s.applicationId) LIKE LOWER(CONCAT('%', :query, '%')))")
+        java.util.List<Student> searchByAccountant(@org.springframework.data.repository.query.Param("username") String username, @org.springframework.data.repository.query.Param("query") String query);
+
+        @org.springframework.data.jpa.repository.Query("SELECT s FROM Student s WHERE s.universityPerson.userName = :username AND (LOWER(s.fullName) LIKE LOWER(CONCAT('%', :query, '%')) OR LOWER(s.email) LIKE LOWER(CONCAT('%', :query, '%')) OR LOWER(s.applicationId) LIKE LOWER(CONCAT('%', :query, '%')))")
+        java.util.List<Student> searchByUniversityPerson(@org.springframework.data.repository.query.Param("username") String username, @org.springframework.data.repository.query.Param("query") String query);
+
+        @org.springframework.data.jpa.repository.Query("SELECT s FROM Student s WHERE s.agent.userId = :username AND (LOWER(s.fullName) LIKE LOWER(CONCAT('%', :query, '%')) OR LOWER(s.email) LIKE LOWER(CONCAT('%', :query, '%')) OR LOWER(s.applicationId) LIKE LOWER(CONCAT('%', :query, '%')))")
+        java.util.List<Student> searchByAgent(@org.springframework.data.repository.query.Param("username") String username, @org.springframework.data.repository.query.Param("query") String query);
+
 }

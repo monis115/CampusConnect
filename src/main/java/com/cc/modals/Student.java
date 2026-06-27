@@ -440,6 +440,23 @@ public class Student {
 	@Column(name = "travel_flight_number", columnDefinition = "TEXT")
 	private String travelFlightNumber;
 
+	// ======================= ADMISSION PLAN =======================
+	@Column(name = "admission_plan_status", length = 50)
+	private String admissionPlanStatus;
+
+	@Column(name = "admission_notes", columnDefinition = "TEXT")
+	private String admissionNotes;
+
+	// ======================= DRIVER & PICKUP DETAILS =======================
+	@Column(name = "pickup_driver_name", columnDefinition = "TEXT")
+	private String pickupDriverName;
+
+	@Column(name = "pickup_driver_contact", columnDefinition = "TEXT")
+	private String pickupDriverContact;
+
+	@Column(name = "pickup_vehicle_info", columnDefinition = "TEXT")
+	private String pickupVehicleInfo;
+
 	// ======================= VISA PAYMENT FIELDS =======================
 	@Column(name = "visa_man_service_charge")
 	private Double visaManServiceCharge;
@@ -1745,5 +1762,45 @@ public class Student {
 
 	public void setIsTelexDocsVerified(Boolean isTelexDocsVerified) {
 		this.isTelexDocsVerified = isTelexDocsVerified;
+	}
+
+	public String getAdmissionPlanStatus() {
+		return admissionPlanStatus;
+	}
+
+	public void setAdmissionPlanStatus(String admissionPlanStatus) {
+		this.admissionPlanStatus = admissionPlanStatus;
+	}
+
+	public String getAdmissionNotes() {
+		return admissionNotes;
+	}
+
+	public void setAdmissionNotes(String admissionNotes) {
+		this.admissionNotes = admissionNotes;
+	}
+
+	public String getPickupDriverName() {
+		return pickupDriverName;
+	}
+
+	public void setPickupDriverName(String pickupDriverName) {
+		this.pickupDriverName = pickupDriverName;
+	}
+
+	public String getPickupDriverContact() {
+		return pickupDriverContact;
+	}
+
+	public void setPickupDriverContact(String pickupDriverContact) {
+		this.pickupDriverContact = pickupDriverContact;
+	}
+
+	public String getPickupVehicleInfo() {
+		return pickupVehicleInfo;
+	}
+
+	public void setPickupVehicleInfo(String pickupVehicleInfo) {
+		this.pickupVehicleInfo = pickupVehicleInfo;
 	}
 }

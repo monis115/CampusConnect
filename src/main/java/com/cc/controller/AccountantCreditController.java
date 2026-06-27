@@ -39,7 +39,8 @@ public class AccountantCreditController {
             @RequestParam(required = false) String notes,
             @RequestParam(defaultValue = "SYSTEM") String username) {
         try {
-            return ResponseEntity.ok(accountantCreditService.recordRepayment(creditId, subAccountId, amount, notes, username));
+            return ResponseEntity
+                    .ok(accountantCreditService.recordRepayment(creditId, subAccountId, amount, notes, username));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
@@ -52,7 +53,8 @@ public class AccountantCreditController {
             @RequestParam(required = false) Long subAccountId,
             @RequestParam(defaultValue = "SYSTEM") String username) {
         try {
-            return ResponseEntity.ok(accountantCreditService.processForeclosure(creditId, foreclosureChargePercentage, subAccountId, username));
+            return ResponseEntity.ok(accountantCreditService.processForeclosure(creditId, foreclosureChargePercentage,
+                    subAccountId, username));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
@@ -80,14 +82,15 @@ public class AccountantCreditController {
     public ResponseEntity<?> getCreditLedger(@PathVariable Long creditId) {
         return ResponseEntity.ok(accountantCreditService.getCreditTransactions(creditId));
     }
-    
+
     @GetMapping("/{creditId}/timeline")
     public ResponseEntity<?> getCreditTimeline(@PathVariable Long creditId) {
         return ResponseEntity.ok(accountantCreditService.getTimelineEvents(creditId));
     }
 
     @PutMapping("/{creditId}/details")
-    public ResponseEntity<?> updateCreditDetails(@PathVariable Long creditId, @RequestBody com.cc.DTO.CreditDetailsUpdateRequest request) {
+    public ResponseEntity<?> updateCreditDetails(@PathVariable Long creditId,
+            @RequestBody com.cc.DTO.CreditDetailsUpdateRequest request) {
         try {
             return ResponseEntity.ok(accountantCreditService.updateCreditDetails(creditId, request));
         } catch (IllegalArgumentException e) {
@@ -110,37 +113,40 @@ public class AccountantCreditController {
             return ResponseEntity.badRequest().body(null);
         }
     }
+
     @Autowired
     private com.cc.repository.CreditInstallmentRepository creditInstallmentRepository;
 
     @GetMapping("/calendar/{username}")
     public ResponseEntity<?> getLiabilityCalendar(@PathVariable String username) {
-        // Fetch all pending/overdue installments for the accountant across all active loans
+        // Fetch all pending/overdue installments for the accountant across all active
+        // loans
         java.util.List<com.cc.modals.CreditInstallment> pending = creditInstallmentRepository
-            .findByCreditAccountantUsernameAndStatusIn(username, java.util.Arrays.asList("PENDING", "OVERDUE"));
-        
+                .findByCreditAccountantUsernameAndStatusIn(username, java.util.Arrays.asList("PENDING", "OVERDUE"));
+
         // Sort by due date
         pending.sort(java.util.Comparator.comparing(com.cc.modals.CreditInstallment::getDueDate));
-        
+
         return ResponseEntity.ok(pending);
     }
-    
+
     @Autowired
     private com.cc.repository.FinancialAlertRepository financialAlertRepository;
-    
+
     @Autowired
     private com.cc.service.FinancialAlertScheduler financialAlertScheduler;
-    
+
     @GetMapping("/alerts/{username}")
     public ResponseEntity<?> getFinancialAlerts(@PathVariable String username) {
-        // Automatically run system checks to ensure latest alerts are generated dynamically
+        // Automatically run system checks to ensure latest alerts are generated
+        // dynamically
         financialAlertScheduler.generateDailyFinancialAlerts();
-        
+
         java.util.List<com.cc.modals.FinancialAlert> alerts = financialAlertRepository
-            .findByAccountantUsernameOrderByCreatedAtDesc(username);
+                .findByAccountantUsernameOrderByCreatedAtDesc(username);
         return ResponseEntity.ok(alerts);
     }
-    
+
     @PostMapping("/alerts/{alertId}/read")
     public ResponseEntity<?> markAlertAsRead(@PathVariable Long alertId) {
         com.cc.modals.FinancialAlert alert = financialAlertRepository.findById(alertId).orElse(null);

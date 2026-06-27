@@ -247,18 +247,50 @@ public class AddmissionManagerController {
 
     // 4. Send All Managers Report via Email
     @PostMapping("/reports/all/email")
-    public ResponseEntity<Map<String, String>> sendAllManagersReportEmail(
-            @RequestParam(defaultValue = "yearly") String period,
+    public ResponseEntity<Map<String, Object>> sendAllManagersReportEmail(
+            @RequestParam(defaultValue = "weekly") String period,
             @RequestParam String email) {
         try {
             service.sendAllManagersReportByEmail(period, email);
-            Map<String, String> response = new HashMap<>();
-            response.put("message", "All managers report sent successfully to " + email);
-            return ResponseEntity.ok(response);
-        } catch (RuntimeException e) {
-            Map<String, String> error = new HashMap<>();
-            error.put("error", "Failed to send email: " + e.getMessage());
-            return ResponseEntity.status(500).body(error);
+            return ResponseEntity
+                    .ok(Map.of("success", true, "message", "All-managers report successfully queued for emailing."));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("success", false, "message", "Failed to send report: " + e.getMessage()));
+        }
+    }
+
+    @PutMapping("/student/{studentId}/admission-plan")
+    public ResponseEntity<?> updateAdmissionPlan(
+            @PathVariable Long studentId,
+            @RequestBody java.util.Map<String, String> payload) {
+        try {
+            String status = payload.get("admissionPlanStatus");
+            String notes = payload.get("admissionNotes");
+            com.cc.modals.Student updatedStudent = service.updateAdmissionPlan(studentId, status, notes);
+            return ResponseEntity.ok(updatedStudent);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("success", false, "message", "Failed to update admission plan: " + e.getMessage()));
+        }
+    }
+
+    @PutMapping("/student/bulk-assign-driver")
+    public ResponseEntity<?> bulkAssignDriver(
+            @RequestBody java.util.Map<String, Object> payload) {
+        try {
+            @SuppressWarnings("unchecked")
+            java.util.List<Integer> studentIdsRaw = (java.util.List<Integer>) payload.get("studentIds");
+            java.util.List<Long> studentIds = studentIdsRaw.stream().map(Integer::longValue).collect(java.util.stream.Collectors.toList());
+            String driverName = (String) payload.get("pickupDriverName");
+            String driverContact = (String) payload.get("pickupDriverContact");
+            String vehicleInfo = (String) payload.get("pickupVehicleInfo");
+            
+            service.bulkAssignDriver(studentIds, driverName, driverContact, vehicleInfo);
+            return ResponseEntity.ok(Map.of("success", true, "message", "Drivers assigned successfully"));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("success", false, "message", "Failed to assign drivers: " + e.getMessage()));
         }
     }
 }

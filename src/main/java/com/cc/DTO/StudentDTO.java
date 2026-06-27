@@ -55,6 +55,11 @@ public class StudentDTO {
     private String userNameAgent;
     private String assignedCollegeName; // [NEW]
 
+    // Driver details
+    private String pickupDriverName;
+    private String pickupDriverContact;
+    private String pickupVehicleInfo;
+
     public StudentDTO() {
     }
 
@@ -74,6 +79,30 @@ public class StudentDTO {
 
     public void setAssignedCollegeName(String assignedCollegeName) {
         this.assignedCollegeName = assignedCollegeName;
+    }
+
+    public String getPickupDriverName() {
+        return pickupDriverName;
+    }
+
+    public void setPickupDriverName(String pickupDriverName) {
+        this.pickupDriverName = pickupDriverName;
+    }
+
+    public String getPickupDriverContact() {
+        return pickupDriverContact;
+    }
+
+    public void setPickupDriverContact(String pickupDriverContact) {
+        this.pickupDriverContact = pickupDriverContact;
+    }
+
+    public String getPickupVehicleInfo() {
+        return pickupVehicleInfo;
+    }
+
+    public void setPickupVehicleInfo(String pickupVehicleInfo) {
+        this.pickupVehicleInfo = pickupVehicleInfo;
     }
 
     public String getFullName() {

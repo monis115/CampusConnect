@@ -1414,4 +1414,31 @@ public class AddmissionManagerService {
                         return "N/A";
                 return (trend >= 0 ? "+" : "") + String.format("%.1f", trend) + "%";
         }
+
+        @Transactional
+        public Student updateAdmissionPlan(Long studentId, String admissionPlanStatus, String admissionNotes) {
+                Student student = studentRepo.findById(studentId)
+                                .orElseThrow(() -> new RuntimeException("Student not found with ID: " + studentId));
+                
+                student.setAdmissionPlanStatus(admissionPlanStatus);
+                student.setAdmissionNotes(admissionNotes);
+                
+                // If the admission manager marks the student as arrived, update the main application status if needed.
+                if ("MARK_ARRIVED".equals(admissionPlanStatus) && !"COMPLETED".equals(student.getApplicationStatus())) {
+                        // Optional: we can add logic to update main applicationStatus here if requested.
+                        // Currently leaving applicationStatus untouched unless specifically requested.
+                }
+                
+                return studentRepo.save(student);
+        }
+
+        public void bulkAssignDriver(List<Long> studentIds, String driverName, String driverContact, String vehicleInfo) {
+                List<Student> students = studentRepo.findAllById(studentIds);
+                for (Student student : students) {
+                        student.setPickupDriverName(driverName);
+                        student.setPickupDriverContact(driverContact);
+                        student.setPickupVehicleInfo(vehicleInfo);
+                }
+                studentRepo.saveAll(students);
+        }
 }

@@ -1038,7 +1038,7 @@ public class AgentService {
                 rejected);
     }
 
-    public List<com.cc.DTO.StudentStatusCountDTO> getStudentStatusBreakdown(String username) {
+    public List<java.util.Map<String, Object>> getStudentStatusBreakdown(String username) {
         Agent agent = agentRepository.findByUserId(username)
                 .orElseThrow(() -> new RuntimeException("Agent not found with username: " + username));
 
@@ -1051,9 +1051,12 @@ public class AgentService {
                 .collect(java.util.stream.Collectors.groupingBy(s -> s.getApplicationStatus().toString(),
                         java.util.stream.Collectors.counting()));
 
-        List<com.cc.DTO.StudentStatusCountDTO> breakdown = new ArrayList<>();
+        List<java.util.Map<String, Object>> breakdown = new ArrayList<>();
         for (java.util.Map.Entry<String, Long> entry : statusCounts.entrySet()) {
-            breakdown.add(new com.cc.DTO.StudentStatusCountDTO(entry.getKey(), entry.getValue()));
+            java.util.Map<String, Object> map = new java.util.HashMap<>();
+            map.put("status", entry.getKey());
+            map.put("count", entry.getValue());
+            breakdown.add(map);
         }
 
         return breakdown;

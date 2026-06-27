@@ -13,9 +13,6 @@ import java.util.Map;
 import java.util.List;
 import com.cc.service.AccountantService;
 import com.cc.repository.AccountantRepository;
-
-
-
 import com.cc.DTO.FundReleaseRequestDTO;
 import com.cc.modals.FundRelease;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -81,15 +78,18 @@ public class AccountantController {
     }
 
     @PostMapping("/beneficiary-accounts")
-    public ResponseEntity<com.cc.modals.BeneficiaryAccount> createBeneficiaryAccount(@RequestBody com.cc.modals.BeneficiaryAccount account) {
+    public ResponseEntity<com.cc.modals.BeneficiaryAccount> createBeneficiaryAccount(
+            @RequestBody com.cc.modals.BeneficiaryAccount account) {
         return ResponseEntity.ok(beneficiaryAccountRepository.save(account));
     }
 
     @PutMapping("/beneficiary-accounts/{id}")
-    public ResponseEntity<com.cc.modals.BeneficiaryAccount> updateBeneficiaryAccount(@PathVariable Long id, @RequestBody com.cc.modals.BeneficiaryAccount account) {
+    public ResponseEntity<com.cc.modals.BeneficiaryAccount> updateBeneficiaryAccount(@PathVariable Long id,
+            @RequestBody com.cc.modals.BeneficiaryAccount account) {
         java.util.Optional<com.cc.modals.BeneficiaryAccount> existingOpt = beneficiaryAccountRepository.findById(id);
-        if (!existingOpt.isPresent()) return ResponseEntity.notFound().build();
-        
+        if (!existingOpt.isPresent())
+            return ResponseEntity.notFound().build();
+
         com.cc.modals.BeneficiaryAccount existing = existingOpt.get();
         existing.setBeneficiaryType(account.getBeneficiaryType());
         existing.setBeneficiaryName(account.getBeneficiaryName());
@@ -101,9 +101,10 @@ public class AccountantController {
         existing.setMobileNumber(account.getMobileNumber());
         existing.setEmailAddress(account.getEmailAddress());
         existing.setStatus(account.getStatus());
-        
+
         return ResponseEntity.ok(beneficiaryAccountRepository.save(existing));
     }
+
     @GetMapping("/subaccounts")
     public ResponseEntity<List<com.cc.modals.SubAccount>> getAllSubAccounts() {
         return ResponseEntity.ok(subAccountService.getAllSubAccounts());
@@ -142,7 +143,7 @@ public class AccountantController {
             String description = (String) payload.get("description");
 
             subAccountService.internalTransfer(sourceId, destId, amount, description);
-            
+
             return ResponseEntity.ok(java.util.Collections.singletonMap("message", "Transfer successful"));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -162,8 +163,9 @@ public class AccountantController {
             String transactionId = (String) payload.get("transactionId");
             String paymentMethod = (String) payload.get("paymentMethod");
 
-            subAccountService.processDeposit(destId, amount, depositorName, depositedDate, transactionId, paymentMethod);
-            
+            subAccountService.processDeposit(destId, amount, depositorName, depositedDate, transactionId,
+                    paymentMethod);
+
             return ResponseEntity.ok(java.util.Collections.singletonMap("message", "Deposit successful"));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -184,8 +186,9 @@ public class AccountantController {
             String paymentMethod = (String) payload.get("paymentMethod");
             String chequeDetails = (String) payload.get("chequeDetails");
 
-            subAccountService.processWithdrawal(sourceId, amount, withdrawerName, withdrawnDate, transactionId, paymentMethod, chequeDetails);
-            
+            subAccountService.processWithdrawal(sourceId, amount, withdrawerName, withdrawnDate, transactionId,
+                    paymentMethod, chequeDetails);
+
             return ResponseEntity.ok(java.util.Collections.singletonMap("message", "Withdrawal successful"));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -412,7 +415,8 @@ public class AccountantController {
     }
 
     @PostMapping("/transactions/advanced-summary")
-    public ResponseEntity<?> getAdvancedTransactionSummary(@RequestBody com.cc.DTO.AdvancedTransactionRequestDTO request) {
+    public ResponseEntity<?> getAdvancedTransactionSummary(
+            @RequestBody com.cc.DTO.AdvancedTransactionRequestDTO request) {
         try {
             return ResponseEntity.ok(advancedTransactionService.getAdvancedSummary(request));
         } catch (Exception e) {
@@ -429,18 +433,20 @@ public class AccountantController {
             @RequestParam(required = false) String startDate,
             @RequestParam(required = false) String endDate) {
         try {
-            org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(page, size);
+            org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(page,
+                    size);
             java.time.LocalDateTime start = null;
             java.time.LocalDateTime end = null;
-            
+
             if (startDate != null && !startDate.isEmpty()) {
                 start = java.time.LocalDate.parse(startDate).atStartOfDay();
             }
             if (endDate != null && !endDate.isEmpty()) {
                 end = java.time.LocalDate.parse(endDate).atTime(23, 59, 59, 999999999);
             }
-            
-            return ResponseEntity.ok(subAccountTransactionRepository.findFilteredTransactions(bankId, start, end, pageable));
+
+            return ResponseEntity
+                    .ok(subAccountTransactionRepository.findFilteredTransactions(bankId, start, end, pageable));
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(500).body("Error fetching all transactions: " + e.getMessage());
@@ -457,7 +463,8 @@ public class AccountantController {
             return ResponseEntity.ok(release);
         } catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to release fund: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Failed to release fund: " + e.getMessage());
         }
     }
 
@@ -473,9 +480,11 @@ public class AccountantController {
             return ResponseEntity.ok(recoveryList);
         } catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to fetch outstanding recovery: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Failed to fetch outstanding recovery: " + e.getMessage());
         }
     }
+
     @GetMapping("/transactions/advanced-filter-options")
     public ResponseEntity<Map<String, List<String>>> getAdvancedFilterOptions() {
         return ResponseEntity.ok(advancedTransactionService.getFilterOptions());

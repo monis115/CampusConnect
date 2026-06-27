@@ -29,6 +29,9 @@ public class User {
     @Column(name = "role", nullable = false, length = 30)
     private String role;
 
+    @jakarta.persistence.Transient
+    private String fullName;
+
     // Default constructor
     public User() {
         super();
@@ -73,5 +76,13 @@ public class User {
 
     public void setRole(String role) {
         this.role = role;
+    }
+
+    public String getFullName() {
+        return fullName;
+    }
+
+    public void setFullName(String fullName) {
+        this.fullName = fullName;
     }
 }

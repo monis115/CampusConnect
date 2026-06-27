@@ -317,21 +317,25 @@ public class UniversityPersonService {
                 rejectedStudents);
     }
 
-    public List<com.cc.DTO.UniversityStudentStatusCountDTO> getStudentStatusBreakdown(String username) {
-        UniversityPerson person = getByUserName(username);
-        List<Student> students = person.getStudents();
+    public List<java.util.Map<String, Object>> getStudentStatusBreakdown(String username) {
+        UniversityPerson universityPerson = upRepository.findByUserName(username)
+                .orElseThrow(() -> new RuntimeException("University Coordinator not found with username: " + username));
 
-        if (students == null || students.isEmpty()) {
-            return java.util.Collections.emptyList();
+        List<Student> students = universityPerson.getStudents();
+        if (students == null) {
+            return new java.util.ArrayList<>();
         }
 
         java.util.Map<String, Long> statusCounts = students.stream()
                 .collect(java.util.stream.Collectors.groupingBy(s -> s.getApplicationStatus().toString(),
                         java.util.stream.Collectors.counting()));
 
-        List<com.cc.DTO.UniversityStudentStatusCountDTO> breakdown = new java.util.ArrayList<>();
+        List<java.util.Map<String, Object>> breakdown = new java.util.ArrayList<>();
         for (java.util.Map.Entry<String, Long> entry : statusCounts.entrySet()) {
-            breakdown.add(new com.cc.DTO.UniversityStudentStatusCountDTO(entry.getKey(), entry.getValue()));
+            java.util.Map<String, Object> map = new java.util.HashMap<>();
+            map.put("status", entry.getKey());
+            map.put("count", entry.getValue());
+            breakdown.add(map);
         }
 
         return breakdown;

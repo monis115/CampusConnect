@@ -75,12 +75,13 @@ public class ReportStudentDetailedStatementGenerator implements ReportGenerator 
         List<Long> targetStudentIds = new ArrayList<>();
         String studentDisplay = "All Students";
         String appIdDisplay = "Multiple";
-        
+
         if (!search.isEmpty()) {
             List<Student> allStudents = studentRepository.findAll();
             for (Student s : allStudents) {
                 String fullName = (s.getFullName() != null ? s.getFullName() : "").toLowerCase();
-                if (fullName.contains(search) || (s.getApplicationId() != null && s.getApplicationId().toLowerCase().contains(search))) {
+                if (fullName.contains(search)
+                        || (s.getApplicationId() != null && s.getApplicationId().toLowerCase().contains(search))) {
                     targetStudentIds.add(s.getId());
                     if (studentDisplay.equals("All Students")) {
                         studentDisplay = s.getFullName() != null ? s.getFullName() : "Unknown";
@@ -98,20 +99,25 @@ public class ReportStudentDetailedStatementGenerator implements ReportGenerator 
             }
         }
 
-
-
         // Fetch Data
-        List<CollectionRequest> collections = search.isEmpty() ? collectionRequestRepository.findAll() : collectionRequestRepository.findAll().stream().filter(cr -> targetStudentIds.contains(cr.getStudentId())).collect(Collectors.toList());
-        List<VisaPaymentTransaction> visaPayments = search.isEmpty() ? visaPaymentTransactionRepository.findAll() : visaPaymentTransactionRepository.findAll().stream().filter(vp -> targetStudentIds.contains(vp.getStudentId())).collect(Collectors.toList());
+        List<CollectionRequest> collections = search.isEmpty() ? collectionRequestRepository.findAll()
+                : collectionRequestRepository.findAll().stream()
+                        .filter(cr -> targetStudentIds.contains(cr.getStudentId())).collect(Collectors.toList());
+        List<VisaPaymentTransaction> visaPayments = search.isEmpty() ? visaPaymentTransactionRepository.findAll()
+                : visaPaymentTransactionRepository.findAll().stream()
+                        .filter(vp -> targetStudentIds.contains(vp.getStudentId())).collect(Collectors.toList());
 
         List<LedgerEvent> ledgerEvents = new ArrayList<>();
 
         for (CollectionRequest cr : collections) {
             LocalDateTime date = cr.getCreatedAt();
             if (isWithinRange(date, startDate, endDate)) {
-                ledgerEvents.add(new LedgerEvent(date, "COLLECTION_REQUEST", "Fee Requested: " + (cr.getRemarks() != null ? cr.getRemarks() : "General"), cr.getRequestedAmount(), 0.0));
+                ledgerEvents.add(new LedgerEvent(date, "COLLECTION_REQUEST",
+                        "Fee Requested: " + (cr.getRemarks() != null ? cr.getRemarks() : "General"),
+                        cr.getRequestedAmount(), 0.0));
                 if (cr.getCollectedAmount() != null && cr.getCollectedAmount() > 0) {
-                    ledgerEvents.add(new LedgerEvent(date, "COLLECTION_PAID", "Amount Collected", 0.0, cr.getCollectedAmount()));
+                    ledgerEvents.add(
+                            new LedgerEvent(date, "COLLECTION_PAID", "Amount Collected", 0.0, cr.getCollectedAmount()));
                 }
             }
         }
@@ -119,10 +125,12 @@ public class ReportStudentDetailedStatementGenerator implements ReportGenerator 
         for (VisaPaymentTransaction vp : visaPayments) {
             LocalDateTime date = vp.getTransactionDate();
             if (isWithinRange(date, startDate, endDate)) {
-                boolean isDebit = vp.getTransactionType().contains("REQUESTED") || vp.getTransactionType().contains("DUE");
+                boolean isDebit = vp.getTransactionType().contains("REQUESTED")
+                        || vp.getTransactionType().contains("DUE");
                 double debit = isDebit ? vp.getAmount() : 0.0;
                 double credit = isDebit ? 0.0 : vp.getAmount();
-                ledgerEvents.add(new LedgerEvent(date, vp.getTransactionType(), vp.getRemarks() != null ? vp.getRemarks() : "Visa Transaction", debit, credit));
+                ledgerEvents.add(new LedgerEvent(date, vp.getTransactionType(),
+                        vp.getRemarks() != null ? vp.getRemarks() : "Visa Transaction", debit, credit));
             }
         }
 
@@ -161,16 +169,19 @@ public class ReportStudentDetailedStatementGenerator implements ReportGenerator 
         summary.addMetric("Total Debits", String.format("₹%.2f", totalDebit));
         summary.addMetric("Total Credits", String.format("₹%.2f", totalCredit));
         summary.addMetric("Closing Balance", String.format("₹%.2f", runningBalance));
-        
+
         response.setSummary(summary);
 
         return response;
     }
 
     private boolean isWithinRange(LocalDateTime date, LocalDateTime startDate, LocalDateTime endDate) {
-        if (date == null) return false;
-        if (startDate != null && date.isBefore(startDate)) return false;
-        if (endDate != null && date.isAfter(endDate)) return false;
+        if (date == null)
+            return false;
+        if (startDate != null && date.isBefore(startDate))
+            return false;
+        if (endDate != null && date.isAfter(endDate))
+            return false;
         return true;
     }
 
@@ -189,10 +200,24 @@ public class ReportStudentDetailedStatementGenerator implements ReportGenerator 
             this.credit = credit;
         }
 
-        public LocalDateTime getDate() { return date; }
-        public String getType() { return type; }
-        public String getDescription() { return description; }
-        public double getDebit() { return debit; }
-        public double getCredit() { return credit; }
+        public LocalDateTime getDate() {
+            return date;
+        }
+
+        public String getType() {
+            return type;
+        }
+
+        public String getDescription() {
+            return description;
+        }
+
+        public double getDebit() {
+            return debit;
+        }
+
+        public double getCredit() {
+            return credit;
+        }
     }
 }

@@ -22,9 +22,13 @@ public class UserService {
         return userRepository.save(user);
     }
 
-    // Get all users
     public List<User> getAllUsers() {
-        return userRepository.findAll();
+        List<User> users = userRepository.findAll();
+        for (User user : users) {
+            String fullName = resolveFullName(user.getUsername());
+            user.setFullName(fullName != null ? fullName : "");
+        }
+        return users;
     }
 
     // Get user by username
