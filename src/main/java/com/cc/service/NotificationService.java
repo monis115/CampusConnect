@@ -45,6 +45,11 @@ public class NotificationService {
         notificationRepository.deleteById(id);
     }
 
+    @org.springframework.transaction.annotation.Transactional
+    public void deleteAllNotificationsForUser(String targetUsername) {
+        notificationRepository.deleteByTargetUsername(targetUsername);
+    }
+
     private NotificationDTO convertToDTO(Notification notification) {
         return new NotificationDTO(
                 notification.getId(),

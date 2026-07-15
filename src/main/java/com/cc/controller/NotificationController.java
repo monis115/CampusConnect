@@ -59,4 +59,14 @@ public class NotificationController {
             return ResponseEntity.notFound().build();
         }
     }
+
+    @DeleteMapping("/user/{targetUsername}")
+    public ResponseEntity<Void> deleteAllNotifications(@PathVariable String targetUsername) {
+        try {
+            notificationService.deleteAllNotificationsForUser(targetUsername);
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
 }
